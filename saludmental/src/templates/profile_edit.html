@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+<title>{% block title %}{% trans "Be Man Be Woman" %}{% endblock %}</title>
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="display-4 fw-bold">{% trans "Bienvenido a Be Man Be Woman" %}</h1>
+    <p class="lead">{% trans "Un espacio para tu bienestar mental, compartir historias, escuchar podcasts y agendar tu progreso." %}</p>
+    <h2 class="mb-4">{% trans "Editar Perfil" %}</h2>
+    <p>{% trans "Página de edición de perfil (en construcción)." %}</p>
+   
+</div>
+{% endblock %}

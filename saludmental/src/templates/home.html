@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+
+{% block title %}{% trans "Inicio - Be Man Be Woman" %}{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero text-center shadow mb-5">
+    <h1 class="display-4 fw-bold">{% trans "Bienvenido a Be Man Be Woman" %}</h1>
+    <p class="lead">{% trans "Un espacio para tu bienestar mental, compartir historias, escuchar podcasts y agendar tu progreso." %}</p>
+    {% if not user.is_authenticated %}
+        <a href="{% url 'register' %}" class="btn btn-light btn-lg mt-3">Empieza Ahora</a>
+    {% endif %}
+</section>
+
+<!-- Historias -->
+<section class="mb-5">
+    <h2 class="mb-4">Historias Destacadas</h2>
+    <div class="row g-4">
+        <div class="col-md-4 d-flex">
+            <div class="card equal-card card-hover shadow-sm w-100">
+                <div class="card-body">
+                    <h5 class="card-title">Historia 1</h5>
+                    <p class="card-text">Un testimonio inspirador sobre superación personal.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="#" class="btn btn-outline-primary w-100">Leer más</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex">
+            <div class="card equal-card card-hover shadow-sm w-100">
+                <div class="card-body">
+                    <h5 class="card-title">Historia 2</h5>
+                    <p class="card-text">Descubre cómo la comunidad apoyó a alguien en su proceso.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="#" class="btn btn-outline-primary w-100">Leer más</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex">
+            <div class="card equal-card card-hover shadow-sm w-100">
+                <div class="card-body">
+                    <h5 class="card-title">Historia 3</h5>
+                    <p class="card-text">Historias reales de cambio positivo gracias al apoyo mutuo.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="#" class="btn btn-outline-primary w-100">Leer más</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Podcast -->
+<section class="mb-5">
+    <h2 class="mb-4">Podcast</h2>
+    <div class="card card-hover shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Episodio más reciente</h5>
+            <p class="card-text">Conversamos sobre la importancia del autocuidado en tiempos difíciles.</p>
+            <audio controls class="w-100">
+                <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+                Tu navegador no soporta el reproductor de audio.
+            </audio>
+        </div>
+    </div>
+</section>
+
+<!-- Agenda -->
+<section class="mb-5">
+    <h2 class="mb-4">Próximos Eventos</h2>
+    <div class="row g-4">
+        <div class="col-md-4 d-flex">
+            <div class="card equal-card card-hover shadow-sm w-100">
+                <div class="card-body">
+                    <h5 class="card-title">Taller de meditación</h5>
+                    <p class="card-text">25 de Septiembre - Sesión guiada para encontrar calma.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex">
+            <div class="card equal-card card-hover shadow-sm w-100">
+                <div class="card-body">
+                    <h5 class="card-title">Charla: Manejo del estrés</h5>
+                    <p class="card-text">28 de Septiembre - Herramientas prácticas para la vida diaria.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex">
+            <div class="card equal-card card-hover shadow-sm w-100">
+                <div class="card-body">
+                    <h5 class="card-title">Podcast en vivo</h5>
+                    <p class="card-text">1 de Octubre - Participa y haz tus preguntas en directo.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
