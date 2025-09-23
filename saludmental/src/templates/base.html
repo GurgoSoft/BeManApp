@@ -69,7 +69,7 @@
                     <i class="bi bi-moon"></i>
                 </span>
                 {% if user.is_authenticated %}
-                    <a href="{% url 'profile_edit' %}" class="btn btn-link me-2" title="Editar perfil"><i class="bi bi-person-circle fs-4"></i></a>
+                    <a href="{% url 'editar_perfil' %}" class="btn btn-link me-2" title="Editar perfil"><i class="bi bi-person-circle fs-4"></i></a>
                     <a href="{% url 'logout' %}" class="btn btn-link me-2" title="Cerrar sesión"><i class="bi bi-box-arrow-right fs-4"></i></a>
                     <!-- Cambiar idioma -->
                     <form action="{% url 'set_language' %}" method="post" class="d-inline">
@@ -84,6 +84,32 @@
                     </form>
                     <a href="#" class="btn btn-link me-2" title="{% trans 'Cambiar idioma' %}"><i class="bi bi-translate fs-4"></i></a>
                     <a href="#" class="btn btn-link" title="Cambiar región"><i class="bi bi-geo-alt fs-4"></i></a>
+                    <!-- Notificaciones -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link position-relative" href="#" id="notificacionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bell fs-4"></i>
+                            
+                                {% if notif_count > 0 %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ notif_count }}</span>
+                                {% endif %}
+                           
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificacionesDropdown" style="min-width:300px;">
+                            {% for notif in notificaciones %}
+                                <li>
+                                    <a class="dropdown-item {% if not notif.leida %}fw-bold{% endif %}" href="{% url 'notificacion_leida' notif.pk %}">
+                                        {{ notif.mensaje|truncatechars:60 }}
+                                        <br>
+                                        <small class="text-muted">{{ notif.fecha|date:"d M H:i" }}</small>
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item text-muted">{% trans "Sin notificaciones" %}</span></li>
+                            {% endfor %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-center" href="{% url 'notificaciones' %}">{% trans "Ver todas" %}</a></li>
+                        </ul>
+                    </li>
                 {% else %}
                     <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">Iniciar sesión</a>
                     <a href="{% url 'register' %}" class="btn btn-primary">Registrarse</a>
@@ -114,7 +140,7 @@
             <i class="bi bi-moon"></i> Cambiar tema
         </span>
         {% if user.is_authenticated %}
-            <a href="{% url 'profile_edit' %}" class="btn btn-link w-100 text-start mb-2"><i class="bi bi-person-circle me-2"></i>Editar perfil</a>
+            <a href="{% url 'editar_perfil' %}" class="btn btn-link w-100 text-start mb-2"><i class="bi bi-person-circle me-2"></i>Editar perfil</a>
             <a href="{% url 'logout' %}" class="btn btn-link w-100 text-start mb-2"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</a>
             <a href="#" class="btn btn-link w-100 text-start mb-2"><i class="bi bi-translate me-2"></i>Cambiar idioma</a>
             <a href="#" class="btn btn-link w-100 text-start"><i class="bi bi-geo-alt me-2"></i>Cambiar región</a>

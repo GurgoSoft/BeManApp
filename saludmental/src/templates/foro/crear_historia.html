@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load form_extras %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 animate__animated animate__fadeInDown" style="border-radius: 1.5rem;">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <span class="d-inline-block bg-gradient p-3 rounded-circle mb-2" style="background: linear-gradient(135deg, #6f42c1 0%, #20c997 100%);">
+                            <i class="bi bi-journal-richtext fs-1 text-white"></i>
+                        </span>
+                        <h2 class="fw-bold mb-0">
+                            {% if historia %}
+                                {% trans "Editar historia" %}
+                            {% else %}
+                                {% trans "Escribir nueva historia" %}
+                            {% endif %}
+                        </h2>
+                        <p class="text-muted mt-2">
+                            {% if historia %}
+                                {% trans "Modifica tu historia y hazla aún más inspiradora." %}
+                            {% else %}
+                                {% trans "Comparte tu experiencia y ayuda a otros con tu historia." %}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <form method="post" novalidate autocomplete="off">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_titulo" class="form-label fw-semibold">{% trans "Título" %}</label>
+                            {{ form.titulo }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_contenido" class="form-label fw-semibold">{% trans "Contenido" %}</label>
+                            {{ form.contenido|add_class:"form-control" }}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <button type="submit" class="btn btn-gradient px-4 py-2 fw-semibold shadow-sm" style="background: linear-gradient(135deg, #6f42c1 0%, #20c997 100%); color: #fff; border: none;">
+                                {% if historia %}
+                                    <i class="bi bi-arrow-repeat"></i> {% trans "Actualizar" %}
+                                {% else %}
+                                    <i class="bi bi-send"></i> {% trans "Publicar" %}
+                                {% endif %}
+                            </button>
+                            {% if historia and user == historia.usuario %}
+                                <form method="post" action="{% url 'eliminar_historia' historia.pk %}" onsubmit="return confirm('{% trans "¿Estás seguro de que deseas eliminar esta historia?" %}');" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger px-4 py-2 fw-semibold shadow-sm">
+                                        <i class="bi bi-trash"></i> {% trans "Eliminar" %}
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .btn-gradient {
+        background: linear-gradient(135deg, #6f42c1 0%, #20c997 100%);
+        color: #fff;
+        border: none;
+        transition: box-shadow 0.2s;
+    }
+    .btn-gradient:hover, .btn-gradient:focus {
+        box-shadow: 0 0 0 0.2rem rgba(111,66,193,.25), 0 0 0 0.4rem rgba(32,201,151,.15);
+        color: #fff;
+    }
+</style>
+{% endblock %}

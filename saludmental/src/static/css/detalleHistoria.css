@@ -1,0 +1,101 @@
+/* Animación suave para el acordeón */
+.tiktok-accordion-anim {
+    transition: max-height 0.5s cubic-bezier(.4,0,.2,1), background 0.3s;
+    overflow: hidden;
+    border-radius: 1rem;
+}
+
+/* Sección de comentarios TikTok */
+.tiktok-comments-section {
+    background: #fff;
+    color: #222;
+    border-radius: 1.2rem;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    padding: 1.5rem 1rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e3e3e3;
+}
+
+/* Comentarios TikTok adaptados */
+.tiktok-comments .accordion-item,
+.tiktok-comments .accordion-body,
+.tiktok-accordion-btn {
+    background: #fff;
+    color: #222;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid #e3e3e3;
+}
+
+/* Recuadro de respuesta adaptable */
+.respuesta-box {
+    background: #f8f9fa;
+    color: #222;
+    border-radius: 1rem;
+    border: 1px solid #e3e3e3;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* Badge contador de respuestas */
+.bg-gradient {
+    background: linear-gradient(90deg, #ff0050 0%, #00f2ea 100%);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 1rem;
+    padding: 0.2em 0.7em;
+    font-size: 0.95em;
+}
+
+/* Colores de texto internos */
+.tiktok-comments .accordion-body .text-muted,
+.tiktok-comments .accordion-body .text-dark,
+.tiktok-comments .accordion-body .fw-bold {
+    color: #222 !important;
+    opacity: 1 !important;
+}
+
+/* Modo oscuro */
+@media (prefers-color-scheme: dark) {
+    .tiktok-comments-section {
+        background: #181818 !important;
+        color: #fff !important;
+        border-color: #333 !important;
+    }
+    .tiktok-comments .accordion-item,
+    .tiktok-comments .accordion-body,
+    .tiktok-accordion-btn {
+        background: #181818 !important;
+        color: #fff !important;
+        border-color: #333 !important;
+    }
+    .respuesta-box {
+        background: #222 !important;
+        color: #fff !important;
+        border-color: #333 !important;
+    }
+    .tiktok-comments .accordion-body .text-muted,
+    .tiktok-comments .accordion-body .text-dark,
+    .tiktok-comments .accordion-body .fw-bold {
+        color: #fff !important;
+        opacity: 1 !important;
+    }
+}
+
+/* Modo claro */
+@media (prefers-color-scheme: light) {
+    .tiktok-comments-section,
+    .tiktok-comments .accordion-item,
+    .tiktok-comments .accordion-body,
+    .tiktok-accordion-btn,
+    .respuesta-box {
+        background: #fff !important;
+        color: #222 !important;
+        border-color: #e3e3e3 !important;
+    }
+    .tiktok-comments .accordion-body .text-muted,
+    .tiktok-comments .accordion-body .text-dark,
+    .tiktok-comments .accordion-body .fw-bold {
+        color: #222 !important;
+        opacity: 1 !important;
+    }
+}

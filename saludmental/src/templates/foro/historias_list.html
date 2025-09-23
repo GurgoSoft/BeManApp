@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Historias Destacadas</h2>
+{% if historias %}
+    <div class="row g-4">
+        {% for historia in historias %}
+        <div class="col-md-4 d-flex">
+            <div class="card w-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ historia.titulo }}</h5>
+                    <p class="card-text">{{ historia.contenido|truncatewords:20 }}</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{% url 'historia_detalle' historia.pk %}" class="btn btn-outline-primary w-100">Leer más</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No hay historias publicadas aún.</p>
+{% endif %}
+{% if user.is_authenticated %}
+    <a href="{% url 'crear_historia' %}" class="btn btn-primary mt-4">Escribir historia</a>
+{% endif %}
+{% endblock %}
