@@ -3,77 +3,257 @@
 {% load form_extras %}
 
 {% block content %}
-
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow-lg border-0 animate__animated animate__fadeInDown" style="border-radius: 1.5rem;">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <span class="d-inline-block bg-gradient p-3 rounded-circle mb-2" style="background: linear-gradient(135deg, #6f42c1 0%, #20c997 100%);">
-                            <i class="bi bi-journal-richtext fs-1 text-white"></i>
-                        </span>
-                        <h2 class="fw-bold mb-0">
-                            {% if historia %}
-                                {% trans "Editar historia" %}
-                            {% else %}
-                                {% trans "Escribir nueva historia" %}
-                            {% endif %}
-                        </h2>
-                        <p class="text-muted mt-2">
-                            {% if historia %}
-                                {% trans "Modifica tu historia y hazla aún más inspiradora." %}
-                            {% else %}
-                                {% trans "Comparte tu experiencia y ayuda a otros con tu historia." %}
-                            {% endif %}
-                        </p>
-                    </div>
-                    <form method="post" novalidate autocomplete="off">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="id_titulo" class="form-label fw-semibold">{% trans "Título" %}</label>
-                            {{ form.titulo }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="id_contenido" class="form-label fw-semibold">{% trans "Contenido" %}</label>
-                            {{ form.contenido|add_class:"form-control" }}
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-4">
-                            <button type="submit" class="btn btn-gradient px-4 py-2 fw-semibold shadow-sm" style="background: linear-gradient(135deg, #6f42c1 0%, #20c997 100%); color: #fff; border: none;">
-                                {% if historia %}
-                                    <i class="bi bi-arrow-repeat"></i> {% trans "Actualizar" %}
-                                {% else %}
-                                    <i class="bi bi-send"></i> {% trans "Publicar" %}
-                                {% endif %}
-                            </button>
-                            {% if historia and user == historia.usuario %}
-                                <form method="post" action="{% url 'eliminar_historia' historia.pk %}" onsubmit="return confirm('{% trans "¿Estás seguro de que deseas eliminar esta historia?" %}');" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger px-4 py-2 fw-semibold shadow-sm">
-                                        <i class="bi bi-trash"></i> {% trans "Eliminar" %}
-                                    </button>
-                                </form>
-                            {% endif %}
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<div class="story-wrap">
+  <div class="story-card animate__animated animate__fadeInDown">
+    <div class="story-head">
+      <div class="icon-wrap">
+        <i class="bi bi-journal-text"></i>
+      </div>
+      <div>
+        <h2 class="title mb-0">
+          {% if historia %}{% trans "Editar historia" %}{% else %}{% trans "Escribir nueva historia" %}{% endif %}
+        </h2>
+        <p class="subtitle">
+          {% if historia %}{% trans "Modifica tu historia y hazla aún más inspiradora." %}
+          {% else %}{% trans "Comparte tu experiencia y ayuda a otros con tu historia." %}{% endif %}
+        </p>
+      </div>
     </div>
+
+    {% if form.non_field_errors %}
+      <div class="alert-modern">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <form method="post" novalidate autocomplete="off" id="storyForm">
+      {% csrf_token %}
+
+      <div class="field">
+        <label for="id_titulo" class="label">{% trans "Título" %}</label>
+        {{ form.titulo|add_class:"bm-input bm-input-lg" }}
+        {% if form.titulo.errors %}<small class="error">{{ form.titulo.errors|striptags }}</small>{% endif %}
+        <div class="meta-row">
+          <small class="helper">{% trans "Sé claro y directo. Evita mayúsculas excesivas." %}</small>
+          <small class="counter" id="tituloCounter">0</small>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="id_contenido" class="label">{% trans "Contenido" %}</label>
+        {{ form.contenido|add_class:"bm-input bm-textarea" }}
+        {% if form.contenido.errors %}<small class="error">{{ form.contenido.errors|striptags }}</small>{% endif %}
+        <div class="meta-row">
+          <small class="helper">{% trans "Cuenta tu historia con respeto. Evita datos sensibles de terceros." %}</small>
+          <small class="counter" id="contenidoCounter">0</small>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-gradient">
+          {% if historia %}<i class="bi bi-arrow-repeat"></i> {% trans "Actualizar" %}
+          {% else %}<i class="bi bi-send"></i> {% trans "Publicar" %}{% endif %}
+        </button>
+
+        {% if historia and user == historia.usuario %}
+          <button type="button" class="btn-danger-outline" data-bs-toggle="modal" data-bs-target="#modalEliminarHistoria">
+            <i class="bi bi-trash"></i> {% trans "Eliminar" %}
+          </button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
 </div>
+
+{% if historia and user == historia.usuario %}
+  <!-- Formulario separado para eliminar (evita forms anidados) -->
+  <form method="post" action="{% url 'eliminar_historia' historia.pk %}" id="deleteForm" class="d-none">
+    {% csrf_token %}
+  </form>
+
+  <!-- Modal eliminar historia -->
+  <div class="modal fade" id="modalEliminarHistoria" tabindex="-1" aria-labelledby="modalEliminarHistoriaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content story-modal">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEliminarHistoriaLabel">{% trans "¿Eliminar historia?" %}</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Cerrar' %}"></button>
+        </div>
+        <div class="modal-body">
+          {% trans "Esta acción no se puede deshacer." %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+          <button type="button" class="btn-danger" id="confirmDeleteStory">{% trans "Eliminar" %}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_css %}
 <style>
-    .btn-gradient {
-        background: linear-gradient(135deg, #6f42c1 0%, #20c997 100%);
-        color: #fff;
-        border: none;
-        transition: box-shadow 0.2s;
-    }
-    .btn-gradient:hover, .btn-gradient:focus {
-        box-shadow: 0 0 0 0.2rem rgba(111,66,193,.25), 0 0 0 0.4rem rgba(32,201,151,.15);
-        color: #fff;
-    }
+  /* Sin scroll del documento, pantalla completa */
+  html, body { height:100%; overflow:hidden; }
+
+  :root{
+    --brand-1:#7f3cff; --brand-2:#20c997;
+    --ring:#7f3cff55;
+    --text:#0f1222; --muted:#61677b;
+    --card-bg:rgba(255,255,255,.85);
+    --input-bg:#fff; --input-bd:#e6e8ef;
+  }
+  [data-bs-theme="dark"]{
+    --text:#eaeef6; --muted:#a2a8bd;
+    --card-bg:rgba(16,18,24,.72);
+    --input-bg:#12151d; --input-bd:#262a36;
+  }
+
+  .story-wrap{
+    height:100svh;
+    --wrap-pad: clamp(16px,3vw,32px);
+    padding: var(--wrap-pad);
+    display:grid; place-items:center;
+    background:
+      radial-gradient(50rem 24rem at -10% -10%, #7f3cff22, transparent 60%),
+      radial-gradient(50rem 24rem at 110% 110%, #20c99722, transparent 60%);
+  }
+  .story-card{
+    width:min(860px,96vw);
+    max-height: calc(100svh - var(--wrap-pad) * 2);
+    background:var(--card-bg); backdrop-filter: blur(14px);
+    border:1px solid rgba(127,60,255,.12);
+    border-radius: 18px;
+    padding: clamp(18px,3vw,28px);
+    box-shadow: 0 10px 40px rgba(0,0,0,.18);
+
+    display:flex; flex-direction:column; overflow:auto;
+  }
+  .story-head{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .icon-wrap{
+    width:52px; height:52px; border-radius:14px; display:grid; place-items:center;
+    background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+    color:#fff; font-size:1.4rem; box-shadow: 0 6px 18px rgba(127,60,255,.28);
+    flex: 0 0 auto;
+  }
+  .title{
+    font-weight:800; letter-spacing:.2px; margin:0;
+    background: linear-gradient(90deg, var(--brand-1), var(--brand-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .subtitle{ margin:2px 0 0; color:var(--muted); }
+
+  #storyForm{ display:flex; flex-direction:column; gap:6px; min-height:0; }
+  .field{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .label{ font-weight:600; color:var(--text); }
+  .bm-input{
+    width:100%; border-radius:12px; background:var(--input-bg); color:var(--text);
+    border:1.5px solid var(--input-bd); padding:12px 14px; outline:none;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+  }
+  .bm-input-lg{ padding:14px 16px; font-size:1.05rem; }
+  .bm-input:focus{ border-color:var(--brand-1); box-shadow:0 0 0 4px var(--ring); }
+  .bm-textarea{ min-height:160px; max-height:40vh; resize:none; line-height:1.5; overflow:auto; }
+
+  .meta-row{ display:flex; justify-content:space-between; align-items:center; }
+  .helper{ color:var(--muted); }
+  .counter{ color:var(--muted); font-variant-numeric: tabular-nums; }
+
+  .actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:auto; flex-wrap:wrap; }
+
+  .btn-gradient{
+    display:inline-flex; align-items:center; gap:8px;
+    border:0; border-radius:12px; padding:12px 16px; font-weight:700;
+    background: linear-gradient(135deg, var(--brand-1), var(--brand-2)); color:#fff;
+    box-shadow: 0 8px 22px rgba(127,60,255,.25); transition: transform .06s, box-shadow .2s;
+  }
+  .btn-gradient:active{ transform: translateY(1px); box-shadow: 0 6px 16px rgba(127,60,255,.22); }
+
+  .btn-danger-outline{
+    display:inline-flex; align-items:center; gap:8px;
+    border:1.5px solid #dc3545aa; color:#dc3545; background: transparent;
+    border-radius:12px; padding:12px 16px; font-weight:700;
+    transition: background .2s, color .2s, border-color .2s;
+  }
+  .btn-danger-outline:hover{ background:#dc354515; border-color:#dc3545; }
+
+  .alert-modern{
+    border:1px solid #ff6b6b55; background:#ff6b6b10; color:#ffb3b3;
+    border-radius:12px; padding:10px 12px; font-size:.95rem; margin-bottom:10px;
+  }
+  .error{ color:#ff6b6b; }
+
+  /* Modal estilo */
+  .story-modal{
+    background: var(--card-bg); color: var(--text);
+    border:1.5px solid rgba(127,60,255,.18); border-radius:18px;
+  }
+  .story-modal .modal-header{ border:0; }
+  .story-modal .modal-footer{ border:0; }
+  .btn-secondary{
+    border:1.5px solid var(--input-bd); background:transparent; color:var(--text);
+    border-radius:10px; padding:.6rem 1rem; font-weight:600;
+  }
+  .btn-danger{
+    border:0; border-radius:10px; padding:.6rem 1rem; font-weight:700; color:#fff;
+    background: linear-gradient(135deg, #ff4d6d, #c9184a);
+  }
+
+  /* Compacta en pantallas de poca altura: evita overflow sin scroll global */
+  @media (max-height: 720px){
+    .subtitle{ display:none; }
+    .story-card{ padding: 14px; }
+    .field{ margin-top:8px; }
+  }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Contadores y autosize con límite para mantener la vista en 100svh
+  (function(){
+    const titulo = document.getElementById('id_titulo');
+    const contenido = document.getElementById('id_contenido');
+    const tituloCounter = document.getElementById('tituloCounter');
+    const contenidoCounter = document.getElementById('contenidoCounter');
+
+    function updateCounter(input, counter, maxFallback){
+      if(!input || !counter) return;
+      const max = input.getAttribute('maxlength') ? parseInt(input.getAttribute('maxlength')) : maxFallback;
+      const len = (input.value || '').length;
+      counter.textContent = max ? `${len}/${max}` : `${len}`;
+      if(max){
+        const ratio = len / max;
+        counter.style.color = ratio > 0.9 ? '#ff6b6b' : 'var(--muted)';
+      }
+    }
+    function autosizeTextarea(el){
+      if(!el) return;
+      const maxPx = Math.round(window.innerHeight * 0.40); // 40vh
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, maxPx) + 'px';
+    }
+
+    if(titulo){ updateCounter(titulo, tituloCounter, 120); titulo.addEventListener('input', ()=>updateCounter(titulo, tituloCounter, 120)); }
+    if(contenido){
+      updateCounter(contenido, contenidoCounter, 5000);
+      autosizeTextarea(contenido);
+      contenido.addEventListener('input', ()=>{
+        autosizeTextarea(contenido);
+        updateCounter(contenido, contenidoCounter, 5000);
+      });
+      window.addEventListener('resize', ()=>autosizeTextarea(contenido));
+    }
+  })();
+
+  // Confirmar eliminación (envía formulario separado)
+  (function(){
+    const btn = document.getElementById('confirmDeleteStory');
+    const form = document.getElementById('deleteForm');
+    if(btn && form){
+      btn.addEventListener('click', ()=> form.submit());
+    }
+  })();
+</script>
 {% endblock %}

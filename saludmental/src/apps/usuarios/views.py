@@ -31,7 +31,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            messages.success(request, f"¡Bienvenido {user.username}!")
+            messages.success(request, f"¡Bienvenid@, {user.username}!")
             return redirect("home")
         else:
             messages.error(request, "Usuario o contraseña incorrectos")
@@ -88,6 +88,7 @@ def editar_perfil(request):
         form = PerfilForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
+            messages.success(request, "Perfil actualizado.")
             return redirect('editar_perfil')
     else:
         form = PerfilForm(instance=user)
@@ -104,5 +105,11 @@ def marcar_notificacion_leida(request, pk):
     notif.leida = True
     notif.save()
     return redirect(notif.url or '/')
+
+def clean_phone_number(self):
+    number = self.cleaned_data.get('phone_number', '').strip()
+    if not number.startswith('+') or not number[1:].replace(' ', '').isdigit():
+        raise forms.ValidationError("El número debe incluir el indicativo internacional y solo contener números.")
+    return number
 
 

@@ -1,45 +1,173 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-<title>{% block title %}{% trans "Be Man Be Woman" %}{% endblock %}</title>
+{% block title %}{% trans "Iniciar sesión - Be Man Be Woman" %}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-  <div class="card shadow-lg p-4 border-0 animate__animated animate__fadeIn" style="width: 100%; max-width: 400px; border-radius: 20px;">
-    <h3 class="text-center mb-4 fw-bold">{% trans "Bienvenido de nuevo" %}</h3>
-    
-    <form method="post" action="{% url 'login' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+  html,body{ height:100%; overflow:hidden; } /* evita scroll del documento */
+
+  :root{
+    --brand-1:#7f3cff; --brand-2:#3f8cff;
+    --card-bg:rgba(255,255,255,.85);
+    --text:#0f1222; --muted:#61677b; --ring:#7f3cff55;
+    --input-bg:#fff; --input-bd:#e6e8ef;
+  }
+  [data-bs-theme="dark"]{
+    --card-bg:rgba(16,18,24,.72);
+    --text:#eaeef6; --muted:#a2a8bd; --ring:#7f3cff55;
+    --input-bg:#12151d; --input-bd:#262a36;
+  }
+
+  .auth-wrap{
+    height:100svh; /* ocupa toda la pantalla en móviles modernos */
+    display:grid; place-items:center;
+    padding:clamp(12px,2.5vw,24px);
+    background:
+      radial-gradient(60rem 30rem at -10% -10%, #7f3cff22, transparent 60%),
+      radial-gradient(60rem 30rem at 110% 110%, #3f8cff22, transparent 60%);
+  }
+  .card-modern{
+    width:min(480px,92vw);
+    background:var(--card-bg); backdrop-filter:blur(14px);
+    border:1px solid rgba(127,60,255,.12);
+    border-radius:18px; padding:clamp(18px,3.2vw,26px);
+    box-shadow:0 10px 40px rgba(0,0,0,.18);
+    animation:slideUp .55s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes slideUp{ from{opacity:0; transform:translateY(24px)} to{opacity:1; transform:none} }
+
+  .title{
+    font-weight:800; letter-spacing:.2px; text-align:center;
+    margin:0 0 6px;
+    background:linear-gradient(90deg,var(--brand-1),var(--brand-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .subtitle{ color:var(--muted); text-align:center; margin:0 0 12px; }
+
+  .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+  .label{ font-weight:600; color:var(--text); font-size:.95rem; }
+
+  .input-icon{ position:relative; }
+  .input-icon .icon-left{
+    position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    color:var(--muted); font-size:1.1rem;
+  }
+  .bm-input{
+    width:100%; border-radius:12px; background:var(--input-bg); color:var(--text);
+    border:1.5px solid var(--input-bd); padding:12px 14px; outline:none;
+    transition:border-color .2s, box-shadow .2s, background .2s;
+  }
+  .input-icon .bm-input{ padding-left:42px; }
+  .bm-input:focus{ border-color:var(--brand-1); box-shadow:0 0 0 4px var(--ring); }
+
+  .btn-eye{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    width:38px; height:38px; display:grid; place-items:center;
+    border:0; background:transparent; color:var(--muted); border-radius:10px; cursor:pointer;
+  }
+  .btn-eye:hover{ color:var(--text); }
+
+  .submit-btn{
+    width:100%; border:0; border-radius:12px; padding:12px 16px; font-weight:700;
+    background:linear-gradient(90deg,var(--brand-1),var(--brand-2)); color:#fff;
+    box-shadow:0 8px 22px rgba(63,140,255,.28);
+    transition:transform .08s ease, box-shadow .2s ease;
+    margin-top:6px;
+  }
+  .submit-btn:active{ transform:translateY(1px); box-shadow:0 6px 16px rgba(63,140,255,.24); }
+
+  .aux-row{ display:flex; justify-content:space-between; align-items:center; margin:4px 0 10px; }
+  .link{ color:var(--brand-2); text-decoration:none; font-weight:600; }
+  .link:hover{ text-decoration:underline; }
+
+  .foot{ text-align:center; color:var(--muted); margin-top:8px; }
+  .foot a{ color:var(--brand-2); text-decoration:none; font-weight:700; }
+  .foot a:hover{ text-decoration:underline; }
+
+  .alert-modern{
+    border:1px solid #ff6b6b55; background:#ff6b6b10; color:#ffb3b3;
+    border-radius:12px; padding:10px 12px; font-size:.95rem; margin-bottom:10px;
+  }
+
+  /* Compacta si la altura del dispositivo es muy baja */
+  @media (max-height: 640px){
+    .subtitle{ display:none; }
+    .field{ margin-bottom:8px; }
+    .auth-wrap{ padding:12px; }
+  }
+</style>
+
+<div class="auth-wrap">
+  <div class="card-modern">
+    <h2 class="title">{% trans "Bienvenid@ de nuevo" %}</h2>
+    <p class="subtitle">{% trans "Ingresa para continuar." %}</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert-modern d-flex align-items-center gap-2">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>{{ message }}</span>
+          <button type="button" class="btn btn-sm ms-auto" style="background:transparent;border:0;color:inherit" onclick="this.parentElement.remove()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}" novalidate>
       {% csrf_token %}
-      <div class="mb-3">
-        <label for="username" class="form-label fw-semibold">{% trans "Usuario o Correo" %}</label>
-        <input type="text" class="form-control form-control-lg" id="username" name="username" placeholder="{% trans 'Tu usuario...' %}" required>
+
+      <div class="field">
+        <label for="username" class="label">{% trans "Usuario o Correo" %}</label>
+        <div class="input-icon">
+          <i class="bi bi-person icon-left"></i>
+          <input type="text" class="bm-input" id="username" name="username" placeholder="{% trans 'Tu usuario o correo' %}" required autocomplete="username" autofocus>
+        </div>
       </div>
 
-      <div class="mb-3">
-        <label for="password" class="form-label fw-semibold">{% trans "Contraseña" %}</label>
-        <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="••••••" required>
+      <div class="field">
+        <label for="password" class="label">{% trans "Contraseña" %}</label>
+        <div class="input-icon">
+          <i class="bi bi-shield-lock icon-left"></i>
+          <input type="password" class="bm-input" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+          <button type="button" class="btn-eye" aria-label="{% trans 'Mostrar/ocultar contraseña' %}" id="togglePass">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
       </div>
 
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="#" class="small text-decoration-none">{% trans "¿Olvidaste tu contraseña?" %}</a>
+      <div class="aux-row">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="1" id="remember" name="remember">
+          <label class="form-check-label" for="remember">{% trans "Recordarme" %}</label>
+        </div>
+        <a href="#" class="link">{% trans "¿Olvidaste tu contraseña?" %}</a>
       </div>
 
-      <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">{% trans "Iniciar Sesión" %}</button>
+      <button type="submit" class="submit-btn">{% trans "Iniciar sesión" %}</button>
     </form>
 
-    <div class="text-center mt-3">
-      <small>{% trans "¿No tienes cuenta?" %} <a href="{% url 'register' %}" class="fw-bold">{% trans "Regístrate" %}</a></small>
+    <div class="foot">
+      <small>{% trans "¿No tienes cuenta?" %} <a href="{% url 'register' %}">{% trans "Regístrate" %}</a></small>
     </div>
   </div>
 </div>
-{% endblock %}
 
-<!-- Add this block where appropriate in your base.html, likely in the <head> section -->
-{% block extra_head %}
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
-{% endblock %}
-
-<!-- And this block where you want the language switcher button to appear, likely in your base.html header -->
-{% block language_switcher %}
-  <a href="#" class="btn btn-link me-2" title="{% trans 'Cambiar idioma' %}"><i class="bi bi-translate fs-4"></i></a>
+<script>
+  // Toggle contraseña
+  (function(){
+    const btn = document.getElementById('togglePass');
+    const input = document.getElementById('password');
+    btn.addEventListener('click', ()=>{
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      const icon = btn.querySelector('i');
+      icon.classList.toggle('bi-eye', !show);
+      icon.classList.toggle('bi-eye-slash', show);
+    });
+  })();
+</script>
 {% endblock %}
