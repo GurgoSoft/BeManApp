@@ -10,8 +10,9 @@ urlpatterns = [
     path('historias/<int:pk>/comentar/', views.comentar_historia, name='comentar_historia'),
     path('historias/<int:pk>/ocultar/', views.ocultar_historia, name='ocultar_historia'),
     path('historias/<int:pk>/eliminar/', views.eliminar_historia, name='eliminar_historia'),
-    path('historias/<int:pk>/editar/', views.crear_historia, name='editar_historia'),
-    path('comentarios/<int:pk>/like/', views.toggle_like_comentario, name='like_comentario'),
+    path('historias/<int:pk>/editar/', views.editar_historia, name='editar_historia'),
+    path('comentarios/<int:pk>/like/', views.like_comentario, name='like_comentario'),
     path('comentarios/<int:pk>/responder/', views.responder_comentario, name='responder_comentario'),
+    path('comentarios/<int:pk>/editar/', views.editar_comentario, name='editar_comentario'),
     path('comentarios/<int:pk>/eliminar/', views.eliminar_comentario, name='eliminar_comentario'),
 ]

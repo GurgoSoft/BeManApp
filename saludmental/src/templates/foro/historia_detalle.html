@@ -5,10 +5,14 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/detalleHistoria.css' %}">
+<style>
+/* Animación simple para feedback */
+@keyframes like-pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+.btn-like-anim { animation: like-pop 250ms ease-in-out; }
+</style>
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Historia principal -->
             <div class="card shadow-lg border-0 mb-4 animate__animated animate__fadeIn">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
@@ -27,30 +31,31 @@
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <form method="post" action="{% url 'eliminar_historia' historia.pk %}" class="d-inline" onsubmit="return confirm('{% trans '¿Eliminar esta historia?' %}');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="{% trans 'Eliminar' %}">
-                                        <i class="bi bi-trash"></i>
-                                    </form>
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm" title="{% trans 'Eliminar' %}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
                             </div>
                         {% endif %}
                     </div>
                     <hr>
                     <p class="fs-5 mb-4" style="white-space: pre-line;">{{ historia.contenido }}</p>
+
                     <div class="d-flex gap-2 mb-3">
-                        <a href="{% url 'like_historia' historia.pk %}" class="btn btn-outline-success btn-sm">
-                            <i class="bi bi-hand-thumbs-up"></i> {% trans "Like" %}
-                        </a>
-                        <a href="{% url 'favorito_historia' historia.pk %}" class="btn btn-outline-warning btn-sm">
-                            <i class="bi bi-star"></i> {% trans "Favorito" %}
-                        </a>
-                        <a href="{% url 'ocultar_historia' historia.pk %}" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-eye-slash"></i> {% trans "No mostrar más" %}
-                        </a>
+                        <!-- Botón like de historia sin recarga -->
+                        <button
+                            id="btn-like-historia"
+                            class="btn btn-sm {% if liked_story %}btn-success{% else %}btn-outline-success{% endif %}"
+                            data-like-url="{% url 'like_historia' historia.pk %}">
+                            <i class="bi bi-hand-thumbs-up"></i>
+                            {% trans "Like" %} (<span id="story-like-count">{{ historia.like_set.count }}</span>)
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Sección de comentarios estilo TikTok -->
+            <!-- Comentarios -->
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body">
                     <h4 class="mb-3"><i class="bi bi-chat-dots"></i> {% trans "Comentarios" %}</h4>
@@ -59,20 +64,22 @@
                             {% for comentario in comentarios %}
                                 <div class="accordion-item mb-2">
                                     <h2 class="accordion-header" id="heading{{ comentario.pk }}">
-                                        <button class="accordion-button collapsed tiktok-accordion-btn" type="button"
+                                        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} tiktok-accordion-btn" type="button"
                                                 data-bs-toggle="collapse"
                                                 data-bs-target="#collapse{{ comentario.pk }}"
-                                                aria-expanded="false"
+                                                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
                                                 aria-controls="collapse{{ comentario.pk }}">
                                             <span class="fw-bold me-2"><i class="bi bi-person-circle text-secondary"></i> {{ comentario.usuario.username }}</span>
                                             <span class="text-muted small me-2">{{ comentario.fecha|date:"d M Y H:i" }}</span>
                                             <span class="text-dark">{{ comentario.texto|truncatechars:60 }}</span>
                                             <span class="badge bg-gradient ms-2">
-                                                <i class="bi bi-chat-dots"></i> {{ comentario.respuestas.count }} 
+                                                <i class="bi bi-hand-thumbs-up"></i> {{ comment_like_counts|dict_get:comentario.pk|default:0 }}
+                                                &nbsp;·&nbsp;
+                                                <i class="bi bi-chat-dots"></i> {{ comentario.replies_count }}
                                             </span>
                                         </button>
                                     </h2>
-                                    <div id="collapse{{ comentario.pk }}" class="accordion-collapse collapse tiktok-accordion-anim"
+                                    <div id="collapse{{ comentario.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %} tiktok-accordion-anim"
                                          aria-labelledby="heading{{ comentario.pk }}" data-bs-parent="#comentariosAccordion">
                                         <div class="accordion-body">
                                             <div class="d-flex align-items-center mb-2">
@@ -80,17 +87,22 @@
                                                 <span class="text-muted small ms-2">{{ comentario.fecha|date:"d M Y H:i" }}</span>
                                                 <div class="ms-auto d-flex gap-2">
                                                     {% if user.is_authenticated %}
-                                                        <form method="post" action="{% url 'like_comentario' comentario.pk %}" class="d-inline">
-                                                            {% csrf_token %}
-                                                            <button type="submit" class="btn btn-sm {% if comentario.pk in user_likes %}btn-success{% else %}btn-outline-success{% endif %}">
-                                                                <i class="bi bi-hand-thumbs-up"></i> {{ comentario.likecomentario_set.count }}
-                                                            </button>
-                                                        </form>
-                                                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#respuesta{{ comentario.pk }}">
-                                                            <i class="bi bi-reply"></i> {% trans "Responder" %}
+                                                        <button
+                                                            class="btn btn-sm {% if comentario.pk in user_likes %}btn-success{% else %}btn-outline-success{% endif %} btn-like-comentario"
+                                                            data-like-url="{% url 'like_comentario' comentario.pk %}"
+                                                            data-comment-id="{{ comentario.pk }}">
+                                                            <i class="bi bi-hand-thumbs-up"></i>
+                                                            <span class="comment-like-count" data-comment-id="{{ comentario.pk }}">{{ comment_like_counts|dict_get:comentario.pk|default:0 }}</span>
                                                         </button>
+
+                                                        {% if user == comentario.usuario %}
+                                                            <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="collapse" data-bs-target="#editar{{ comentario.pk }}">
+                                                                <i class="bi bi-pencil"></i> {% trans "Editar" %}
+                                                            </button>
+                                                        {% endif %}
                                                     {% endif %}
-                                                    {% if user == comentario.usuario %}
+
+                                                    {% if user == comentario.usuario or user == historia.usuario %}
                                                         <form method="post" action="{% url 'eliminar_comentario' comentario.pk %}" class="d-inline" onsubmit="return confirm('{% trans '¿Eliminar este comentario?' %}');">
                                                             {% csrf_token %}
                                                             <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -100,9 +112,22 @@
                                                     {% endif %}
                                                 </div>
                                             </div>
+
                                             <div class="mb-2">{{ comentario.texto }}</div>
 
-                                            <!-- Respuestas anidadas -->
+                                            {% if user.is_authenticated and user == comentario.usuario %}
+                                                <div class="collapse mt-2" id="editar{{ comentario.pk }}">
+                                                    <form method="post" action="{% url 'editar_comentario' comentario.pk %}">
+                                                        {% csrf_token %}
+                                                        <textarea name="texto" class="form-control" rows="2">{{ comentario.texto }}</textarea>
+                                                        <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                                            <i class="bi bi-check2"></i> {% trans "Guardar" %}
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            {% endif %}
+
+                                            <!-- Respuestas -->
                                             {% if comentario.respuestas.all %}
                                                 <div class="ms-4">
                                                     {% for respuesta in comentario.respuestas.all %}
@@ -110,20 +135,25 @@
                                                             <div class="d-flex align-items-center">
                                                                 <span class="fw-bold"><i class="bi bi-person-circle text-secondary"></i> {{ respuesta.usuario.username }}</span>
                                                                 <span class="text-muted small ms-2">{{ respuesta.fecha|date:"d M Y H:i" }}</span>
-                                                                <span class="badge bg-info ms-2">En respuesta a {{ respuesta.parent.usuario.username }}</span>
+                                                                <span class="badge bg-info ms-2">{% trans "En respuesta a" %} {{ respuesta.parent.usuario.username }}</span>
                                                                 <div class="ms-auto d-flex gap-2">
                                                                     {% if user.is_authenticated %}
-                                                                        <form method="post" action="{% url 'like_comentario' respuesta.pk %}" class="d-inline">
-                                                                            {% csrf_token %}
-                                                                            <button type="submit" class="btn btn-sm {% if respuesta.pk in user_likes %}btn-success{% else %}btn-outline-success{% endif %}">
-                                                                                <i class="bi bi-hand-thumbs-up"></i> {{ respuesta.likecomentario_set.count }}
-                                                                            </button>
-                                                                        </form>
-                                                                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#respuesta{{ respuesta.pk }}">
-                                                                            <i class="bi bi-reply"></i> {% trans "Responder" %}
+                                                                        <button
+                                                                            class="btn btn-sm {% if respuesta.pk in user_likes %}btn-success{% else %}btn-outline-success{% endif %} btn-like-comentario"
+                                                                            data-like-url="{% url 'like_comentario' respuesta.pk %}"
+                                                                            data-comment-id="{{ respuesta.pk }}">
+                                                                            <i class="bi bi-hand-thumbs-up"></i>
+                                                                            <span class="comment-like-count" data-comment-id="{{ respuesta.pk }}">{{ comment_like_counts|dict_get:respuesta.pk|default:0 }}</span>
                                                                         </button>
+
+                                                                        {% if user == respuesta.usuario %}
+                                                                            <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="collapse" data-bs-target="#editar{{ respuesta.pk }}">
+                                                                                <i class="bi bi-pencil"></i> {% trans "Editar" %}
+                                                                            </button>
+                                                                        {% endif %}
                                                                     {% endif %}
-                                                                    {% if user == respuesta.usuario %}
+
+                                                                    {% if user == respuesta.usuario or user == historia.usuario %}
                                                                         <form method="post" action="{% url 'eliminar_comentario' respuesta.pk %}" class="d-inline" onsubmit="return confirm('{% trans '¿Eliminar esta respuesta?' %}');">
                                                                             {% csrf_token %}
                                                                             <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -134,12 +164,25 @@
                                                                 </div>
                                                             </div>
                                                             <div class="mb-2">{{ respuesta.texto }}</div>
-                                                            <!-- Formulario para responder a la respuesta -->
+
+                                                            {% if user.is_authenticated and user == respuesta.usuario %}
+                                                                <div class="collapse mt-2" id="editar{{ respuesta.pk }}">
+                                                                    <form method="post" action="{% url 'editar_comentario' respuesta.pk %}">
+                                                                        {% csrf_token %}
+                                                                        <textarea name="texto" class="form-control" rows="2">{{ respuesta.texto }}</textarea>
+                                                                        <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                                                            <i class="bi bi-check2"></i> {% trans "Guardar" %}
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            {% endif %}
+
+                                                            <!-- Responder -->
                                                             {% if user.is_authenticated %}
                                                                 <div class="collapse mt-2" id="respuesta{{ respuesta.pk }}">
                                                                     <form method="post" action="{% url 'responder_comentario' respuesta.pk %}">
                                                                         {% csrf_token %}
-                                                                        {{ respuesta_forms|dict_get:respuesta.pk }}
+                                                                        <textarea name="texto" class="form-control" rows="2" required></textarea>
                                                                         <button type="submit" class="btn btn-primary btn-sm mt-2">
                                                                             <i class="bi bi-send"></i> {% trans "Responder" %}
                                                                         </button>
@@ -151,12 +194,12 @@
                                                 </div>
                                             {% endif %}
 
-                                            <!-- Formulario para responder al comentario principal -->
+                                            <!-- Responder comentario principal -->
                                             {% if user.is_authenticated %}
                                                 <div class="collapse mt-2" id="respuesta{{ comentario.pk }}">
                                                     <form method="post" action="{% url 'responder_comentario' comentario.pk %}">
                                                         {% csrf_token %}
-                                                        {{ respuesta_forms|dict_get:comentario.pk }}
+                                                        <textarea name="texto" class="form-control" rows="2" required></textarea>
                                                         <button type="submit" class="btn btn-primary btn-sm mt-2">
                                                             <i class="bi bi-send"></i> {% trans "Responder" %}
                                                         </button>
@@ -171,12 +214,14 @@
                             {% endfor %}
                         </div>
                     </div>
+
+                    <!-- Comentar -->
                     {% if user.is_authenticated and user != historia.usuario %}
                         <form method="post" action="{% url 'comentar_historia' historia.pk %}">
                             {% csrf_token %}
                             <div class="mb-3">
-                                {{ form.texto }}
-                            </div>
+  <textarea name="texto" class="form-control" rows="3" required></textarea>
+</div>
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="bi bi-send"></i> {% trans "Comentar" %}
                             </button>
@@ -199,6 +244,55 @@
 
 {% block extra_js %}
 <script>
-    // Puedes agregar animaciones o efectos aquí si lo deseas
+// CSRF desde cookie
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+}
+const csrftoken = getCookie('csrftoken');
+
+// Like/Unlike historia
+const btnStory = document.getElementById('btn-like-historia');
+if (btnStory) {
+  btnStory.addEventListener('click', async () => {
+    try {
+      const res = await fetch(btnStory.dataset.likeUrl, {
+        method: 'POST', // <- necesario
+        headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      document.getElementById('story-like-count').textContent = data.likes_count;
+      btnStory.classList.toggle('btn-success', data.liked);
+      btnStory.classList.toggle('btn-outline-success', !data.liked);
+      btnStory.classList.add('btn-like-anim');
+      setTimeout(() => btnStory.classList.remove('btn-like-anim'), 250);
+    } catch (_) {}
+  });
+}
+
+// Like/Unlike comentarios (delegación)
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.btn-like-comentario');
+  if (!btn) return;
+  e.preventDefault();
+  try {
+    const res = await fetch(btn.dataset.likeUrl, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    // actualizar contador
+    const span = document.querySelector(`.comment-like-count[data-comment-id="${data.comentario_id}"]`);
+    if (span) span.textContent = data.likes_count;
+    // toggle clases
+    btn.classList.toggle('btn-success', data.liked);
+    btn.classList.toggle('btn-outline-success', !data.liked);
+    btn.classList.add('btn-like-anim');
+    setTimeout(() => btn.classList.remove('btn-like-anim'), 250);
+  } catch (_) {}
+});
 </script>
 {% endblock %}

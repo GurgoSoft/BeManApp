@@ -18,9 +18,16 @@ def home(request):
     if request.user.is_authenticated:
         notif_count = request.user.notificaciones.filter(leida=False).count()
         notificaciones = request.user.notificaciones.order_by('-fecha')[:8]
+
+    historias = Historia.objects.annotate(
+        likes_count=Count('like_set', distinct=True),
+        comentarios_count=Count('comentario', distinct=True),
+    ).order_by('-likes_count', '-comentarios_count', '-fecha')[:6]
+
     return render(request, "home.html", {
         "notif_count": notif_count,
         "notificaciones": notificaciones,
+        "historias": historias,
     })
 
 def login_view(request):
@@ -71,7 +78,7 @@ def register_view(request):
         user.save()
 
         login(request, user)  # Loguea al usuario automáticamente
-        messages.success(request, "Cuenta creada con éxito, inicia sesión")
+        messages.success(request, "Cuenta creada con éxito, ¡Bienvenid@!")
         return redirect("home")  # Redirige al home
 
     return render(request, "register.html")
