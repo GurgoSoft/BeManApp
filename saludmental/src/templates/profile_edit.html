@@ -33,27 +33,37 @@
         border-color: #7f3cff;
     }
     .custom-select-indicativo {
-        background: var(--bs-dark-bg-subtle, #23272b);
-        color: #fff;
-        border: 1.5px solid #7f3cff;
+        background: var(--bs-tertiary-bg);
+        color: var(--bs-body-color);
+        border: 1.5px solid var(--bs-border-color);
         border-radius: 0.7rem;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         font-weight: 500;
-        padding-left: 2.2rem;
-        box-shadow: 0 2px 8px rgba(127,60,255,0.08);
-        transition: border-color .2s;
+        padding-left: 2.2rem; /* espacio para bandera */
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        transition: border-color .2s, box-shadow .2s, background .2s;
     }
     .custom-select-indicativo:focus {
-        border-color: #3f8cff;
-        box-shadow: 0 0 0 2px #3f8cff33;
-        background: #181a1b;
-        color: #fff;
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), .2);
+        background: var(--bs-tertiary-bg);
+        color: var(--bs-body-color);
     }
     .custom-select-indicativo option {
-        background: #23272b;
-        color: #fff;
+        background: var(--bs-body-bg);
+        color: var(--bs-body-color);
         font-size: 1rem;
     }
+    .country-flag {
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        font-size: 1.1rem;
+        z-index: 3;
+    }
+    /* input teléfono: mejor hint en ambos temas */
+    #id_phone_number::placeholder { color: var(--bs-secondary-color); }
     @media (max-width: 575px) {
         .profile-card { padding: 1rem !important; }
         .profile-avatar { width: 70px !important; height: 70px !important; }
@@ -151,21 +161,15 @@
                             <label class="form-label">{% trans "Teléfono" %}</label>
                             <div class="row g-2 align-items-center">
                                 <div class="col-5 col-sm-4 position-relative">
-                                    <select name="phone_code" id="id_phone_code" class="form-select profile-input custom-select-indicativo" required>
-                                        <option value="">Indicativo</option>
-                                        <option value="1" {% if form.phone_code.value == "1" %}selected{% endif %}>🇺🇸 +1</option>
-                                        <option value="34" {% if form.phone_code.value == "34" %}selected{% endif %}>🇪🇸 +34</option>
-                                        <option value="52" {% if form.phone_code.value == "52" %}selected{% endif %}>🇲🇽 +52</option>
-                                        <option value="57" {% if form.phone_code.value == "57" %}selected{% endif %}>🇨🇴 +57</option>
-                                        <option value="54" {% if form.phone_code.value == "54" %}selected{% endif %}>🇦🇷 +54</option>
-                                        <!-- Agrega más países si quieres -->
-                                    </select>
+                                    <input type="tel" inputmode="numeric" pattern="^[0-9]{1,3}$" maxlength="3" name="phone_code" id="id_phone_code" class="form-control profile-input custom-select-indicativo" required value="{{ form.phone_code.value|default:'' }}" placeholder="{% trans 'Indicativo (sin +)' %}">
+                                    <span id="country-flag" class="position-absolute country-flag"></span>
                                 </div>
                                 <div class="col-7 col-sm-8">
-                                    <input type="text" name="phone_number" id="id_phone_number" class="form-control profile-input" pattern="^[0-9]{7,15}$" maxlength="15" required value="{{ form.phone_number.value|default:'' }}" placeholder="Ej: 3001234567">
+                                    <input type="tel" inputmode="numeric" autocomplete="tel-national" name="phone_number" id="id_phone_number" class="form-control profile-input" pattern="^[0-9]{7,15}$" maxlength="15" required value="{{ form.phone_number.value|default:'' }}" placeholder="Ej: 3001234567" aria-describedby="phoneHelp">
+                                    <div class="invalid-feedback">{% trans "Ingresa solo números (7 a 15 dígitos)." %}</div>
                                 </div>
                             </div>
-                            <small class="text-muted">{% trans "Escribe el indicativo y tu número. Solo números permitidos." %}</small>
+                            <small id="phoneHelp" class="text-muted">{% trans "Escribe el indicativo y tu número. Solo números permitidos." %}</small>
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
@@ -181,9 +185,8 @@
         </div>
     </div>
 </div>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.min.css">
-<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
 <script>
+// Preview de avatar y eliminar foto
 document.addEventListener('DOMContentLoaded', function() {
     const input = document.getElementById('id_foto_perfil');
     const preview = document.getElementById('preview-avatar');
@@ -191,87 +194,78 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('change', function(e){
             if(e.target.files && e.target.files[0]){
                 const reader = new FileReader();
-                reader.onload = function(ev){
-                    preview.src = ev.target.result;
-                }
+                reader.onload = function(ev){ preview.src = ev.target.result; }
                 reader.readAsDataURL(e.target.files[0]);
             }
         });
     }
-    // Modal eliminar foto
     const confirmBtn = document.getElementById('confirmEliminarFoto');
     const clearCheckbox = document.getElementById('id_foto_perfil_clear');
     if(confirmBtn && clearCheckbox){
         confirmBtn.addEventListener('click', function(){
             clearCheckbox.checked = true;
-            // Cierra el modal y envía el formulario
             const modal = bootstrap.Modal.getInstance(document.getElementById('modalEliminarFoto'));
             modal.hide();
             clearCheckbox.form.submit();
         });
     }
 });
-document.addEventListener('DOMContentLoaded', function() {
-    var codeInput = document.querySelector("#id_phone_code");
-    if(codeInput){
-        var iti = window.intlTelInput(codeInput, {
-            initialCountry: "auto",
-            separateDialCode: true,
-            geoIpLookup: function(callback) {
-                fetch('https://ipinfo.io/json')
-                    .then(resp => resp.json())
-                    .then(resp => callback(resp.country))
-                    .catch(() => callback('us'));
-            },
-            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js"
-        });
-
-        // Cuando el usuario selecciona país, actualiza el valor del input con el indicativo
-        codeInput.addEventListener('countrychange', function() {
-            codeInput.value = iti.getSelectedCountryData().dialCode;
-        });
-
-        // Al enviar el formulario, asegura que el indicativo sea solo números positivos
-        codeInput.form.addEventListener('submit', function(e){
-            let code = codeInput.value.trim();
-            if(!/^\d+$/.test(code) || parseInt(code) <= 0){
-                e.preventDefault();
-                alert("El indicativo debe ser solo números positivos.");
-            }
-        });
-    }
-
-    // Solo números en el campo de número
-    var numberInput = document.querySelector("#id_phone_number");
-    if(numberInput){
-        numberInput.addEventListener('input', function(e){
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-    }
-});
 </script>
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
 <script>
-const indicativos = {
-    "1": "🇺🇸", "34": "🇪🇸", "52": "🇲🇽", "57": "🇨🇴", "54": "🇦🇷",
-    "55": "🇧🇷", "44": "🇬🇧", "49": "🇩🇪", "33": "🇫🇷", "39": "🇮🇹",
-    "7": "🇷🇺", "81": "🇯🇵", "82": "🇰🇷", "86": "🇨🇳", "91": "🇮🇳"
-};
+// Mapea todos los códigos de país a su bandera usando intl-tel-input
+function isoToFlag(iso){
+  if(!iso) return '';
+  return iso.toUpperCase().replace(/[A-Z]/g, c => String.fromCodePoint(127397 + c.charCodeAt(0)));
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     var codeInput = document.getElementById('id_phone_code');
     var flagSpan = document.getElementById('country-flag');
-    if(codeInput){
-        codeInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-            let flag = indicativos[this.value] || '';
-            flagSpan.textContent = flag;
-        });
+
+    // Construir mapa dialCode -> flag con todos los países (espera a que la lib esté lista)
+    var dialCodeToFlag = {};
+    function buildDialMap(){
+        try {
+            var countries = (window.intlTelInputGlobals && window.intlTelInputGlobals.getCountryData) ? window.intlTelInputGlobals.getCountryData() : [];
+            if(!countries || !countries.length) return false;
+            countries.forEach(function(ct){
+                if(ct && ct.dialCode){
+                    if(!dialCodeToFlag[ct.dialCode]) dialCodeToFlag[ct.dialCode] = isoToFlag(ct.iso2);
+                }
+            });
+            dialCodeToFlag['1'] = '🇺🇸'; // preferencia para +1
+            return true;
+        } catch(e) { return false; }
     }
+    if(!buildDialMap()){
+        // Fallback básico si el dataset aún no está
+        dialCodeToFlag = { '1':'🇺🇸','34':'🇪🇸','52':'🇲🇽','57':'🇨🇴','54':'🇦🇷','55':'🇧🇷','44':'🇬🇧','49':'🇩🇪','33':'🇫🇷','39':'🇮🇹','7':'🇷🇺','81':'🇯🇵','82':'🇰🇷','86':'🇨🇳','91':'🇮🇳' };
+        // Reintenta construir el mapa completo tras un tick
+        setTimeout(buildDialMap, 300);
+    }
+
+    if(codeInput && flagSpan){
+    const updateFlag = function(){ flagSpan.textContent = dialCodeToFlag[codeInput.value] || ''; };
+        const sanitizeCode = function(){ codeInput.value = codeInput.value.replace(/[^0-9]/g, '').slice(0,3); updateFlag(); };
+        sanitizeCode();
+        codeInput.addEventListener('input', sanitizeCode);
+        codeInput.addEventListener('paste', function(){ setTimeout(sanitizeCode, 0); });
+        codeInput.addEventListener('blur', sanitizeCode);
+        codeInput.addEventListener('invalid', function(){ codeInput.classList.add('is-invalid'); });
+        codeInput.addEventListener('input', function(){ if(codeInput.checkValidity()) codeInput.classList.remove('is-invalid'); });
+    }
+
     var numberInput = document.getElementById('id_phone_number');
     if(numberInput){
-        numberInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
+        // Forzar solo números en cualquier interacción
+        const sanitize = function(){ numberInput.value = numberInput.value.replace(/[^0-9]/g, ''); };
+        numberInput.addEventListener('input', sanitize);
+        numberInput.addEventListener('blur', sanitize);
+        numberInput.addEventListener('paste', function(){ setTimeout(sanitize, 0); });
+        // Mostrar feedback nativo si no cumple patrón
+        numberInput.addEventListener('invalid', function(){ numberInput.classList.add('is-invalid'); });
+        numberInput.addEventListener('input', function(){ if(numberInput.checkValidity()) numberInput.classList.remove('is-invalid'); });
     }
 });
 </script>

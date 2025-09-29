@@ -17,7 +17,11 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <div class="me-3">
-                            <i class="bi bi-person-circle fs-2 text-primary"></i>
+                            {% if historia.usuario.foto_perfil %}
+                                <img src="{{ historia.usuario.foto_perfil.url }}" alt="{{ historia.usuario.username }}" class="avatar" />
+                            {% else %}
+                                <img src="{% static 'img/default_avatar.png' %}" alt="{{ historia.usuario.username }}" class="avatar" />
+                            {% endif %}
                         </div>
                         <div>
                             <h2 class="card-title mb-0">{{ historia.titulo }}</h2>
@@ -30,7 +34,7 @@
                                 <a href="{% url 'editar_historia' historia.pk %}" class="btn btn-outline-info btn-sm me-2" title="{% trans 'Editar' %}">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <form method="post" action="{% url 'eliminar_historia' historia.pk %}" class="d-inline" onsubmit="return confirm('{% trans '¿Eliminar esta historia?' %}');">
+                                <form method="post" action="{% url 'eliminar_historia' historia.pk %}" class="d-inline" data-confirm="{% trans "¿Eliminar esta historia?" %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-danger btn-sm" title="{% trans 'Eliminar' %}">
                                 <i class="bi bi-trash"></i>
@@ -69,7 +73,14 @@
                                                 data-bs-target="#collapse{{ comentario.pk }}"
                                                 aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
                                                 aria-controls="collapse{{ comentario.pk }}">
-                                            <span class="fw-bold me-2"><i class="bi bi-person-circle text-secondary"></i> {{ comentario.usuario.username }}</span>
+                                            <span class="fw-bold me-2 d-inline-flex align-items-center">
+                                                {% if comentario.usuario.foto_perfil %}
+                                                    <img src="{{ comentario.usuario.foto_perfil.url }}" alt="{{ comentario.usuario.username }}" class="avatar-sm me-2" />
+                                                {% else %}
+                                                    <img src="{% static 'img/default_avatar.png' %}" alt="{{ comentario.usuario.username }}" class="avatar-sm me-2" />
+                                                {% endif %}
+                                                {{ comentario.usuario.username }}
+                                            </span>
                                             <span class="text-muted small me-2">{{ comentario.fecha|date:"d M Y H:i" }}</span>
                                             <span class="text-dark">{{ comentario.texto|truncatechars:60 }}</span>
                                             <span class="badge bg-gradient ms-2">
@@ -83,7 +94,14 @@
                                          aria-labelledby="heading{{ comentario.pk }}" data-bs-parent="#comentariosAccordion">
                                         <div class="accordion-body">
                                             <div class="d-flex align-items-center mb-2">
-                                                <span class="fw-bold"><i class="bi bi-person-circle text-secondary"></i> {{ comentario.usuario.username }}</span>
+                                                <span class="fw-bold d-inline-flex align-items-center">
+                                                    {% if comentario.usuario.foto_perfil %}
+                                                        <img src="{{ comentario.usuario.foto_perfil.url }}" alt="{{ comentario.usuario.username }}" class="avatar-sm me-2" />
+                                                    {% else %}
+                                                        <img src="{% static 'img/default_avatar.png' %}" alt="{{ comentario.usuario.username }}" class="avatar-sm me-2" />
+                                                    {% endif %}
+                                                    {{ comentario.usuario.username }}
+                                                </span>
                                                 <span class="text-muted small ms-2">{{ comentario.fecha|date:"d M Y H:i" }}</span>
                                                 <div class="ms-auto d-flex gap-2">
                                                     {% if user.is_authenticated %}
@@ -103,7 +121,7 @@
                                                     {% endif %}
 
                                                     {% if user == comentario.usuario or user == historia.usuario %}
-                                                        <form method="post" action="{% url 'eliminar_comentario' comentario.pk %}" class="d-inline" onsubmit="return confirm('{% trans '¿Eliminar este comentario?' %}');">
+                                                        <form method="post" action="{% url 'eliminar_comentario' comentario.pk %}" class="d-inline" data-confirm="{% trans "¿Eliminar este comentario?" %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
                                                             {% csrf_token %}
                                                             <button type="submit" class="btn btn-outline-danger btn-sm">
                                                                 <i class="bi bi-trash"></i>
@@ -133,7 +151,14 @@
                                                     {% for respuesta in comentario.respuestas.all %}
                                                         <div class="respuesta-box p-2 mb-2">
                                                             <div class="d-flex align-items-center">
-                                                                <span class="fw-bold"><i class="bi bi-person-circle text-secondary"></i> {{ respuesta.usuario.username }}</span>
+                                                                <span class="fw-bold d-inline-flex align-items-center">
+                                                                    {% if respuesta.usuario.foto_perfil %}
+                                                                        <img src="{{ respuesta.usuario.foto_perfil.url }}" alt="{{ respuesta.usuario.username }}" class="avatar-sm me-2" />
+                                                                    {% else %}
+                                                                        <img src="{% static 'img/default_avatar.png' %}" alt="{{ respuesta.usuario.username }}" class="avatar-sm me-2" />
+                                                                    {% endif %}
+                                                                    {{ respuesta.usuario.username }}
+                                                                </span>
                                                                 <span class="text-muted small ms-2">{{ respuesta.fecha|date:"d M Y H:i" }}</span>
                                                                 <span class="badge bg-info ms-2">{% trans "En respuesta a" %} {{ respuesta.parent.usuario.username }}</span>
                                                                 <div class="ms-auto d-flex gap-2">
@@ -154,7 +179,7 @@
                                                                     {% endif %}
 
                                                                     {% if user == respuesta.usuario or user == historia.usuario %}
-                                                                        <form method="post" action="{% url 'eliminar_comentario' respuesta.pk %}" class="d-inline" onsubmit="return confirm('{% trans '¿Eliminar esta respuesta?' %}');">
+                                                                        <form method="post" action="{% url 'eliminar_comentario' respuesta.pk %}" class="d-inline" data-confirm="{% trans "¿Eliminar esta respuesta?" %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
                                                                             {% csrf_token %}
                                                                             <button type="submit" class="btn btn-outline-danger btn-sm">
                                                                                 <i class="bi bi-trash"></i>

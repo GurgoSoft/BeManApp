@@ -4,6 +4,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from .forms import HistoriaForm
+from .profanity import contains_banned_words
 from .models import Historia, Comentario, Like, LikeComentario
 from apps.usuarios.models import Notificacion
 from django.http import JsonResponse, HttpResponseForbidden
@@ -119,6 +120,8 @@ def editar_comentario(request, pk):
     texto = (request.POST.get("texto") or "").strip()
     if not texto:
         messages.error(request, _("El texto no puede estar vacío."))
+    elif contains_banned_words(texto):
+        messages.error(request, _("Tu comentario contiene palabras no permitidas."))
     else:
         comentario.texto = texto
         comentario.save()
@@ -133,11 +136,13 @@ def comentar_historia(request, pk):
             messages.error(request, _("No puedes comentar tu propia historia."))
         else:
             texto = (request.POST.get("texto") or "").strip()
-            if texto:
+            if not texto:
+                messages.error(request, _("El comentario no puede estar vacío."))
+            elif contains_banned_words(texto):
+                messages.error(request, _("Tu comentario contiene palabras no permitidas."))
+            else:
                 Comentario.objects.create(historia=historia, usuario=request.user, texto=texto)
                 messages.success(request, _("Comentario publicado."))
-            else:
-                messages.error(request, _("El comentario no puede estar vacío."))
     return redirect("historia_detalle", pk=pk)
 
 @login_required
@@ -156,6 +161,8 @@ def responder_comentario(request, pk):
     texto = (request.POST.get("texto") or "").strip()
     if not texto:
         messages.error(request, _("El texto no puede estar vacío."))
+    elif contains_banned_words(texto):
+        messages.error(request, _("Tu respuesta contiene palabras no permitidas."))
     else:
         Comentario.objects.create(
             historia=parent.historia,
