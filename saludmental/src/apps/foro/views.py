@@ -96,7 +96,8 @@ def like_comentario(request, pk):
     if not created:
         like.delete()
         liked = False
-    likes_count = comentario.likecomentario.count()
+    # Contar nuevamente usando el related manager correcto tras posible toggle
+    likes_count = LikeComentario.objects.filter(comentario=comentario).count()
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({"liked": liked, "likes_count": likes_count, "comentario_id": comentario.pk})
     next_url = request.POST.get("next") or request.META.get("HTTP_REFERER") or reverse("historia_detalle", kwargs={"pk": comentario.historia_id})

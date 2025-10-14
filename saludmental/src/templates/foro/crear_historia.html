@@ -7,7 +7,7 @@
   <div class="story-card animate__animated animate__fadeInDown">
     <div class="story-head">
       <div class="icon-wrap">
-        <i class="bi bi-journal-text"></i>
+  <i class="ri-booklet-line"></i>
       </div>
       <div>
         <h2 class="title mb-0">
@@ -51,13 +51,13 @@
 
       <div class="actions">
         <button type="submit" class="btn-gradient">
-          {% if historia %}<i class="bi bi-arrow-repeat"></i> {% trans "Actualizar" %}
-          {% else %}<i class="bi bi-send"></i> {% trans "Publicar" %}{% endif %}
+          {% if historia %}<i class="ri-refresh-line"></i> {% trans "Actualizar" %}
+          {% else %}<i class="ri-send-plane-line"></i> {% trans "Publicar" %}{% endif %}
         </button>
 
         {% if historia and user == historia.usuario %}
           <button type="button" class="btn-danger-outline" data-bs-toggle="modal" data-bs-target="#modalEliminarHistoria">
-            <i class="bi bi-trash"></i> {% trans "Eliminar" %}
+            <i class="ri-delete-bin-6-line"></i> {% trans "Eliminar" %}
           </button>
         {% endif %}
       </div>

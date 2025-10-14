@@ -20,6 +20,9 @@ class LikeComentario(models.Model):
     comentario = models.ForeignKey(Comentario, on_delete=models.CASCADE)
     fecha = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('usuario', 'comentario')
+
 class Like(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     historia = models.ForeignKey('Historia', on_delete=models.CASCADE, related_name='like_set')

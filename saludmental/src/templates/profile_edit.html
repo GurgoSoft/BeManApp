@@ -86,7 +86,7 @@
                     <div class="profile-header-info">
                         <h2 class="fw-bold mb-1">{{ user.username }}</h2>
                         <span class="badge profile-gradient px-3 py-1 mb-1">{% trans "Miembro desde" %} {{ user.date_joined|date:"d M Y" }}</span>
-                        <div class="text-muted small mt-1"><i class="bi bi-envelope"></i> {{ user.email }}</div>
+                        <div class="text-muted small mt-1"><i class="ri-mail-line"></i> {{ user.email }}</div>
                     </div>
                 </div>
                 <form method="post" enctype="multipart/form-data" autocomplete="off">
@@ -112,12 +112,12 @@
                                 </div>
                                 <div class="d-flex flex-column align-items-start gap-2">
                                     <label class="btn btn-outline-primary mb-0" for="id_foto_perfil">
-                                        <i class="bi bi-image"></i> {% trans "Cambiar foto" %}
+                                        <i class="ri-image-line"></i> {% trans "Cambiar foto" %}
                                     </label>
                                     <input type="file" name="foto_perfil" id="id_foto_perfil" class="form-control visually-hidden">
                                     {% if user.foto_perfil %}
                                         <button type="button" class="btn btn-outline-danger mt-2" data-bs-toggle="modal" data-bs-target="#modalEliminarFoto">
-                                            <i class="bi bi-trash"></i> {% trans "Eliminar foto" %}
+                                            <i class="ri-delete-bin-line"></i> {% trans "Eliminar foto" %}
                                         </button>
                                         <!-- Modal de confirmación -->
                                         <div class="modal fade" id="modalEliminarFoto" tabindex="-1" aria-labelledby="modalEliminarFotoLabel" aria-hidden="true">
@@ -179,7 +179,7 @@
                 </form>
                 <hr class="my-4">
                 <div class="text-center text-muted small">
-                    <i class="bi bi-shield-lock"></i> {% trans "Tus datos están protegidos y nunca serán compartidos." %}
+                    <i class="ri-shield-keyhole-line"></i> {% trans "Tus datos están protegidos y nunca serán compartidos." %}
                 </div>
             </div>
         </div>

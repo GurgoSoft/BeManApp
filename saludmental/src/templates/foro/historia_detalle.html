@@ -32,12 +32,12 @@
                         {% if user == historia.usuario %}
                             <div class="ms-auto">
                                 <a href="{% url 'editar_historia' historia.pk %}" class="btn btn-outline-info btn-sm me-2" title="{% trans 'Editar' %}">
-                                    <i class="bi bi-pencil"></i>
+                                    <i class="ri-edit-line"></i>
                                 </a>
-                                <form method="post" action="{% url 'eliminar_historia' historia.pk %}" class="d-inline" data-confirm="{% trans "¿Eliminar esta historia?" %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
+                                <form method="post" action="{% url 'eliminar_historia' historia.pk %}" class="d-inline" data-confirm="{% trans '¿Eliminar esta historia?' %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-danger btn-sm" title="{% trans 'Eliminar' %}">
-                                <i class="bi bi-trash"></i>
+                                <i class="ri-delete-bin-line"></i>
                             </button>
                         </form>
                             </div>
@@ -50,195 +50,151 @@
                         <!-- Botón like de historia sin recarga -->
                         <button
                             id="btn-like-historia"
-                            class="btn btn-sm {% if liked_story %}btn-success{% else %}btn-outline-success{% endif %}"
+                            class="btn btn-sm {% if liked_story %}btn-like-active{% else %}btn-like-inactive{% endif %}"
                             data-like-url="{% url 'like_historia' historia.pk %}">
-                            <i class="bi bi-hand-thumbs-up"></i>
+                            <i class="ri-thumb-up-line"></i>
                             {% trans "Like" %} (<span id="story-like-count">{{ historia.like_set.count }}</span>)
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Comentarios -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-body">
-                    <h4 class="mb-3"><i class="bi bi-chat-dots"></i> {% trans "Comentarios" %}</h4>
-                    <div class="tiktok-comments-section">
-                        <div class="accordion tiktok-comments" id="comentariosAccordion">
-                            {% for comentario in comentarios %}
-                                <div class="accordion-item mb-2">
-                                    <h2 class="accordion-header" id="heading{{ comentario.pk }}">
-                                        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} tiktok-accordion-btn" type="button"
-                                                data-bs-toggle="collapse"
-                                                data-bs-target="#collapse{{ comentario.pk }}"
-                                                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
-                                                aria-controls="collapse{{ comentario.pk }}">
-                                            <span class="fw-bold me-2 d-inline-flex align-items-center">
-                                                {% if comentario.usuario.foto_perfil %}
-                                                    <img src="{{ comentario.usuario.foto_perfil.url }}" alt="{{ comentario.usuario.username }}" class="avatar-sm me-2" />
-                                                {% else %}
-                                                    <img src="{% static 'img/default_avatar.png' %}" alt="{{ comentario.usuario.username }}" class="avatar-sm me-2" />
-                                                {% endif %}
-                                                {{ comentario.usuario.username }}
-                                            </span>
-                                            <span class="text-muted small me-2">{{ comentario.fecha|date:"d M Y H:i" }}</span>
-                                            <span class="text-dark">{{ comentario.texto|truncatechars:60 }}</span>
-                                            <span class="badge bg-gradient ms-2">
-                                                <i class="bi bi-hand-thumbs-up"></i> {{ comment_like_counts|dict_get:comentario.pk|default:0 }}
-                                                &nbsp;·&nbsp;
-                                                <i class="bi bi-chat-dots"></i> {{ comentario.replies_count }}
-                                            </span>
-                                        </button>
-                                    </h2>
-                                    <div id="collapse{{ comentario.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %} tiktok-accordion-anim"
-                                         aria-labelledby="heading{{ comentario.pk }}" data-bs-parent="#comentariosAccordion">
-                                        <div class="accordion-body">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <span class="fw-bold d-inline-flex align-items-center">
+                        <!-- Comentarios estilo feed -->
+                        <div class="card shadow-sm border-0 mb-4">
+                            <div class="card-body p-0">
+                                <div class="d-flex align-items-center justify-content-between px-3 pt-3 pb-2">
+                                    <h4 class="mb-0 d-flex align-items-center gap-2"><i class="ri-chat-3-line"></i> {% trans "Comentarios" %}</h4>
+                                    <span class="badge bg-primary-subtle text-primary">{{ comentarios|length }} {% trans "total" %}</span>
+                                </div>
+                                <div class="comments-feed" style="max-height:520px; overflow-y:auto; padding:0 12px 12px;">
+                                    {% for comentario in comentarios %}
+                                        <div class="comment-item py-3 border-bottom position-relative" data-comment-id="{{ comentario.pk }}">
+                                            <div class="d-flex align-items-start gap-3">
+                                                <div class="flex-shrink-0">
                                                     {% if comentario.usuario.foto_perfil %}
-                                                        <img src="{{ comentario.usuario.foto_perfil.url }}" alt="{{ comentario.usuario.username }}" class="avatar-sm me-2" />
+                                                        <img src="{{ comentario.usuario.foto_perfil.url }}" class="avatar-sm rounded-circle" style="width:42px;height:42px;object-fit:cover;" alt="{{ comentario.usuario.username }}">
                                                     {% else %}
-                                                        <img src="{% static 'img/default_avatar.png' %}" alt="{{ comentario.usuario.username }}" class="avatar-sm me-2" />
+                                                        <img src="{% static 'img/default_avatar.png' %}" class="avatar-sm rounded-circle" style="width:42px;height:42px;object-fit:cover;" alt="{{ comentario.usuario.username }}">
                                                     {% endif %}
-                                                    {{ comentario.usuario.username }}
-                                                </span>
-                                                <span class="text-muted small ms-2">{{ comentario.fecha|date:"d M Y H:i" }}</span>
-                                                <div class="ms-auto d-flex gap-2">
-                                                    {% if user.is_authenticated %}
-                                                        <button
-                                                            class="btn btn-sm {% if comentario.pk in user_likes %}btn-success{% else %}btn-outline-success{% endif %} btn-like-comentario"
-                                                            data-like-url="{% url 'like_comentario' comentario.pk %}"
-                                                            data-comment-id="{{ comentario.pk }}">
-                                                            <i class="bi bi-hand-thumbs-up"></i>
-                                                            <span class="comment-like-count" data-comment-id="{{ comentario.pk }}">{{ comment_like_counts|dict_get:comentario.pk|default:0 }}</span>
-                                                        </button>
-
-                                                        {% if user == comentario.usuario %}
-                                                            <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="collapse" data-bs-target="#editar{{ comentario.pk }}">
-                                                                <i class="bi bi-pencil"></i> {% trans "Editar" %}
+                                                </div>
+                                                <div class="flex-grow-1 min-w-0">
+                                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                        <span class="fw-semibold">{{ comentario.usuario.username }}</span>
+                                                        <small class="text-muted">{{ comentario.fecha|date:"d M H:i" }}</small>
+                                                        <small class="text-muted">· {{ comment_like_counts|dict_get:comentario.pk|default:0 }} 👍 · {{ comentario.replies_count }} 💬</small>
+                                                    </div>
+                                                    <div class="mt-1 comment-text" data-original-text="{{ comentario.texto }}">{{ comentario.texto }}</div>
+                                                    <div class="d-flex align-items-center gap-2 mt-2">
+                                                        {% if user.is_authenticated %}
+                                                            <button class="btn btn-sm btn-like-comentario btn-icon {% if comentario.pk in user_likes %}btn-like-active{% else %}btn-like-inactive{% endif %}" data-like-url="{% url 'like_comentario' comentario.pk %}" data-comment-id="{{ comentario.pk }}" aria-label="{% trans 'Dar like' %}">
+                                                                <i class="ri-thumb-up-line"></i>
+                                                                <span class="comment-like-count" data-comment-id="{{ comentario.pk }}">{{ comment_like_counts|dict_get:comentario.pk|default:0 }}</span>
                                                             </button>
+                                                            <button class="btn btn-sm btn-outline-primary btn-reply-toggle" data-target="#reply-box-{{ comentario.pk }}"><i class="ri-reply-line"></i></button>
+                                                            {% if user == comentario.usuario %}
+                                                                <button class="btn btn-sm btn-outline-info btn-edit-toggle" data-target="#edit-box-{{ comentario.pk }}"><i class="ri-edit-line"></i></button>
+                                                            {% endif %}
+                                                            {% if user == comentario.usuario or user == historia.usuario %}
+                                                                <form method="post" action="{% url 'eliminar_comentario' comentario.pk %}" class="d-inline" data-confirm="{% trans '¿Eliminar este comentario?' %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
+                                                                    {% csrf_token %}
+                                                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="ri-delete-bin-line"></i></button>
+                                                                </form>
+                                                            {% endif %}
                                                         {% endif %}
+                                                    </div>
+                                                    <!-- Caja edición -->
+                                                    {% if user.is_authenticated and user == comentario.usuario %}
+                                                        <div id="edit-box-{{ comentario.pk }}" class="mt-2 d-none">
+                                                            <form method="post" action="{% url 'editar_comentario' comentario.pk %}">
+                                                                {% csrf_token %}
+                                                                <textarea name="texto" class="form-control form-control-sm" rows="2">{{ comentario.texto }}</textarea>
+                                                                <div class="d-flex gap-2 mt-2">
+                                                                    <button type="submit" class="btn btn-primary btn-sm"><i class="ri-check-line"></i> {% trans "Guardar" %}</button>
+                                                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-cancel-edit" data-target="#edit-box-{{ comentario.pk }}">{% trans "Cancelar" %}</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
                                                     {% endif %}
-
-                                                    {% if user == comentario.usuario or user == historia.usuario %}
-                                                        <form method="post" action="{% url 'eliminar_comentario' comentario.pk %}" class="d-inline" data-confirm="{% trans "¿Eliminar este comentario?" %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
-                                                            {% csrf_token %}
-                                                            <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        </form>
+                                                    <!-- Responder -->
+                                                    {% if user.is_authenticated %}
+                                                        <div id="reply-box-{{ comentario.pk }}" class="mt-2 d-none">
+                                                            <form method="post" action="{% url 'responder_comentario' comentario.pk %}">
+                                                                {% csrf_token %}
+                                                                <textarea name="texto" class="form-control form-control-sm" rows="2" required placeholder="{% trans 'Escribe una respuesta...' %}"></textarea>
+                                                                <div class="d-flex gap-2 mt-2">
+                                                                    <button type="submit" class="btn btn-primary btn-sm"><i class="ri-send-plane-line"></i> {% trans "Responder" %}</button>
+                                                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-cancel-reply" data-target="#reply-box-{{ comentario.pk }}">{% trans "Cancelar" %}</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    {% endif %}
+                                                    <!-- Respuestas -->
+                                                    {% if comentario.respuestas.all %}
+                                                        <div class="replies mt-3 ps-3 border-start" style="--bs-border-color:rgba(255,255,255,.08)">
+                                                            {% for respuesta in comentario.respuestas.all %}
+                                                                <div class="reply-item mb-3" data-reply-id="{{ respuesta.pk }}">
+                                                                    <div class="d-flex gap-2 align-items-start">
+                                                                        {% if respuesta.usuario.foto_perfil %}
+                                                                            <img src="{{ respuesta.usuario.foto_perfil.url }}" class="rounded-circle" style="width:34px;height:34px;object-fit:cover;" alt="{{ respuesta.usuario.username }}">
+                                                                        {% else %}
+                                                                            <img src="{% static 'img/default_avatar.png' %}" class="rounded-circle" style="width:34px;height:34px;object-fit:cover;" alt="{{ respuesta.usuario.username }}">
+                                                                        {% endif %}
+                                                                        <div class="flex-grow-1">
+                                                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                                                <span class="fw-semibold">{{ respuesta.usuario.username }}</span>
+                                                                                <small class="text-muted">{{ respuesta.fecha|date:"d M H:i" }}</small>
+                                                                                <small class="text-muted">{% trans "A" %} {{ respuesta.parent.usuario.username }}</small>
+                                                                            </div>
+                                                                            <div class="mt-1">{{ respuesta.texto }}</div>
+                                                                            <div class="d-flex align-items-center gap-2 mt-1">
+                                                                                {% if user.is_authenticated %}
+                                                                                    <button class="btn btn-xs btn-like-comentario btn-icon {% if respuesta.pk in user_likes %}btn-like-active{% else %}btn-like-inactive{% endif %}" data-like-url="{% url 'like_comentario' respuesta.pk %}" data-comment-id="{{ respuesta.pk }}">
+                                                                                        <i class="ri-thumb-up-line"></i>
+                                                                                        <span class="comment-like-count" data-comment-id="{{ respuesta.pk }}">{{ comment_like_counts|dict_get:respuesta.pk|default:0 }}</span>
+                                                                                    </button>
+                                                                                    {% if user == respuesta.usuario %}
+                                                                                        <button class="btn btn-outline-info btn-xs btn-edit-toggle" data-target="#edit-reply-{{ respuesta.pk }}"><i class="ri-edit-line"></i></button>
+                                                                                    {% endif %}
+                                                                                    {% if user == respuesta.usuario %}
+                                                                                        <form method="post" action="{% url 'eliminar_comentario' respuesta.pk %}" class="d-inline" data-confirm="{% trans '¿Eliminar esta respuesta?' %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
+                                                                                            {% csrf_token %}
+                                                                                            <button type="submit" class="btn btn-outline-danger btn-xs"><i class="ri-delete-bin-line"></i></button>
+                                                                                        </form>
+                                                                                    {% elif user == historia.usuario %}
+                                                                                        <form method="post" action="{% url 'eliminar_comentario' respuesta.pk %}" class="d-inline" data-confirm="{% trans '¿Eliminar esta respuesta?' %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
+                                                                                            {% csrf_token %}
+                                                                                            <button type="submit" class="btn btn-outline-danger btn-xs"><i class="ri-delete-bin-line"></i></button>
+                                                                                        </form>
+                                                                                    {% endif %}
+                                                                                {% endif %}
+                                                                            </div>
+                                                                            {% if user.is_authenticated and user == respuesta.usuario %}
+                                                                                <div id="edit-reply-{{ respuesta.pk }}" class="mt-2 d-none">
+                                                                                    <form method="post" action="{% url 'editar_comentario' respuesta.pk %}">
+                                                                                        {% csrf_token %}
+                                                                                        <textarea name="texto" class="form-control form-control-sm" rows="2">{{ respuesta.texto }}</textarea>
+                                                                                        <div class="d-flex gap-2 mt-2">
+                                                                                            <button type="submit" class="btn btn-primary btn-sm"><i class="ri-check-line"></i> {% trans "Guardar" %}</button>
+                                                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-cancel-edit" data-target="#edit-reply-{{ respuesta.pk }}">{% trans "Cancelar" %}</button>
+                                                                                        </div>
+                                                                                    </form>
+                                                                                </div>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
+                                                        </div>
                                                     {% endif %}
                                                 </div>
                                             </div>
-
-                                            <div class="mb-2">{{ comentario.texto }}</div>
-
-                                            {% if user.is_authenticated and user == comentario.usuario %}
-                                                <div class="collapse mt-2" id="editar{{ comentario.pk }}">
-                                                    <form method="post" action="{% url 'editar_comentario' comentario.pk %}">
-                                                        {% csrf_token %}
-                                                        <textarea name="texto" class="form-control" rows="2">{{ comentario.texto }}</textarea>
-                                                        <button type="submit" class="btn btn-primary btn-sm mt-2">
-                                                            <i class="bi bi-check2"></i> {% trans "Guardar" %}
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            {% endif %}
-
-                                            <!-- Respuestas -->
-                                            {% if comentario.respuestas.all %}
-                                                <div class="ms-4">
-                                                    {% for respuesta in comentario.respuestas.all %}
-                                                        <div class="respuesta-box p-2 mb-2">
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="fw-bold d-inline-flex align-items-center">
-                                                                    {% if respuesta.usuario.foto_perfil %}
-                                                                        <img src="{{ respuesta.usuario.foto_perfil.url }}" alt="{{ respuesta.usuario.username }}" class="avatar-sm me-2" />
-                                                                    {% else %}
-                                                                        <img src="{% static 'img/default_avatar.png' %}" alt="{{ respuesta.usuario.username }}" class="avatar-sm me-2" />
-                                                                    {% endif %}
-                                                                    {{ respuesta.usuario.username }}
-                                                                </span>
-                                                                <span class="text-muted small ms-2">{{ respuesta.fecha|date:"d M Y H:i" }}</span>
-                                                                <span class="badge bg-info ms-2">{% trans "En respuesta a" %} {{ respuesta.parent.usuario.username }}</span>
-                                                                <div class="ms-auto d-flex gap-2">
-                                                                    {% if user.is_authenticated %}
-                                                                        <button
-                                                                            class="btn btn-sm {% if respuesta.pk in user_likes %}btn-success{% else %}btn-outline-success{% endif %} btn-like-comentario"
-                                                                            data-like-url="{% url 'like_comentario' respuesta.pk %}"
-                                                                            data-comment-id="{{ respuesta.pk }}">
-                                                                            <i class="bi bi-hand-thumbs-up"></i>
-                                                                            <span class="comment-like-count" data-comment-id="{{ respuesta.pk }}">{{ comment_like_counts|dict_get:respuesta.pk|default:0 }}</span>
-                                                                        </button>
-
-                                                                        {% if user == respuesta.usuario %}
-                                                                            <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="collapse" data-bs-target="#editar{{ respuesta.pk }}">
-                                                                                <i class="bi bi-pencil"></i> {% trans "Editar" %}
-                                                                            </button>
-                                                                        {% endif %}
-                                                                    {% endif %}
-
-                                                                    {% if user == respuesta.usuario or user == historia.usuario %}
-                                                                        <form method="post" action="{% url 'eliminar_comentario' respuesta.pk %}" class="d-inline" data-confirm="{% trans "¿Eliminar esta respuesta?" %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
-                                                                            {% csrf_token %}
-                                                                            <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                                                <i class="bi bi-trash"></i>
-                                                                            </button>
-                                                                        </form>
-                                                                    {% endif %}
-                                                                </div>
-                                                            </div>
-                                                            <div class="mb-2">{{ respuesta.texto }}</div>
-
-                                                            {% if user.is_authenticated and user == respuesta.usuario %}
-                                                                <div class="collapse mt-2" id="editar{{ respuesta.pk }}">
-                                                                    <form method="post" action="{% url 'editar_comentario' respuesta.pk %}">
-                                                                        {% csrf_token %}
-                                                                        <textarea name="texto" class="form-control" rows="2">{{ respuesta.texto }}</textarea>
-                                                                        <button type="submit" class="btn btn-primary btn-sm mt-2">
-                                                                            <i class="bi bi-check2"></i> {% trans "Guardar" %}
-                                                                        </button>
-                                                                    </form>
-                                                                </div>
-                                                            {% endif %}
-
-                                                            <!-- Responder -->
-                                                            {% if user.is_authenticated %}
-                                                                <div class="collapse mt-2" id="respuesta{{ respuesta.pk }}">
-                                                                    <form method="post" action="{% url 'responder_comentario' respuesta.pk %}">
-                                                                        {% csrf_token %}
-                                                                        <textarea name="texto" class="form-control" rows="2" required></textarea>
-                                                                        <button type="submit" class="btn btn-primary btn-sm mt-2">
-                                                                            <i class="bi bi-send"></i> {% trans "Responder" %}
-                                                                        </button>
-                                                                    </form>
-                                                                </div>
-                                                            {% endif %}
-                                                        </div>
-                                                    {% endfor %}
-                                                </div>
-                                            {% endif %}
-
-                                            <!-- Responder comentario principal -->
-                                            {% if user.is_authenticated %}
-                                                <div class="collapse mt-2" id="respuesta{{ comentario.pk }}">
-                                                    <form method="post" action="{% url 'responder_comentario' comentario.pk %}">
-                                                        {% csrf_token %}
-                                                        <textarea name="texto" class="form-control" rows="2" required></textarea>
-                                                        <button type="submit" class="btn btn-primary btn-sm mt-2">
-                                                            <i class="bi bi-send"></i> {% trans "Responder" %}
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            {% endif %}
                                         </div>
-                                    </div>
+                                    {% empty %}
+                                        <div class="text-center text-muted py-4">{% trans "No hay comentarios aún." %}</div>
+                                    {% endfor %}
                                 </div>
-                            {% empty %}
-                                <div class="text-center text-muted">{% trans "No hay comentarios aún." %}</div>
-                            {% endfor %}
+                            </div>
                         </div>
-                    </div>
 
                     <!-- Comentar -->
                     {% if user.is_authenticated and user != historia.usuario %}
@@ -248,16 +204,16 @@
   <textarea name="texto" class="form-control" rows="3" required></textarea>
 </div>
                             <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="bi bi-send"></i> {% trans "Comentar" %}
+                                <i class="ri-send-plane-line"></i> {% trans "Comentar" %}
                             </button>
                         </form>
                     {% elif user == historia.usuario %}
                         <div class="alert alert-warning mb-0">
-                            <i class="bi bi-exclamation-triangle"></i> {% trans "No puedes comentar tu propia historia." %}
+                            <i class="ri-error-warning-line"></i> {% trans "No puedes comentar tu propia historia." %}
                         </div>
                     {% else %}
                         <div class="alert alert-info mb-0">
-                            <i class="bi bi-info-circle"></i> {% trans "Inicia sesión para comentar." %}
+                            <i class="ri-information-line"></i> {% trans "Inicia sesión para comentar." %}
                         </div>
                     {% endif %}
                 </div>
@@ -289,8 +245,8 @@ if (btnStory) {
       if (!res.ok) return;
       const data = await res.json();
       document.getElementById('story-like-count').textContent = data.likes_count;
-      btnStory.classList.toggle('btn-success', data.liked);
-      btnStory.classList.toggle('btn-outline-success', !data.liked);
+    btnStory.classList.toggle('btn-like-active', data.liked);
+    btnStory.classList.toggle('btn-like-inactive', !data.liked);
       btnStory.classList.add('btn-like-anim');
       setTimeout(() => btnStory.classList.remove('btn-like-anim'), 250);
     } catch (_) {}
@@ -303,7 +259,8 @@ document.addEventListener('click', async (e) => {
   if (!btn) return;
   e.preventDefault();
   try {
-    const res = await fetch(btn.dataset.likeUrl, {
+        console.debug('Like comentario click', {id: btn.dataset.commentId, url: btn.dataset.likeUrl});
+        const res = await fetch(btn.dataset.likeUrl, {
       method: 'POST',
       headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
     });
@@ -313,11 +270,39 @@ document.addEventListener('click', async (e) => {
     const span = document.querySelector(`.comment-like-count[data-comment-id="${data.comentario_id}"]`);
     if (span) span.textContent = data.likes_count;
     // toggle clases
-    btn.classList.toggle('btn-success', data.liked);
-    btn.classList.toggle('btn-outline-success', !data.liked);
+    btn.classList.toggle('btn-like-active', data.liked);
+    btn.classList.toggle('btn-like-inactive', !data.liked);
     btn.classList.add('btn-like-anim');
     setTimeout(() => btn.classList.remove('btn-like-anim'), 250);
   } catch (_) {}
+});
+
+// Mostrar / ocultar cajas de respuesta y edición (delegación)
+document.addEventListener('click', (e) => {
+    const replyToggle = e.target.closest('.btn-reply-toggle');
+    if (replyToggle) {
+        const targetSel = replyToggle.getAttribute('data-target');
+        const box = document.querySelector(targetSel);
+        if (box) box.classList.toggle('d-none');
+    }
+    const editToggle = e.target.closest('.btn-edit-toggle');
+    if (editToggle) {
+        const targetSel = editToggle.getAttribute('data-target');
+        const box = document.querySelector(targetSel);
+        if (box) box.classList.toggle('d-none');
+    }
+    const cancelReply = e.target.closest('.btn-cancel-reply');
+    if (cancelReply) {
+        const targetSel = cancelReply.getAttribute('data-target');
+        const box = document.querySelector(targetSel);
+        if (box) box.classList.add('d-none');
+    }
+    const cancelEdit = e.target.closest('.btn-cancel-edit');
+    if (cancelEdit) {
+        const targetSel = cancelEdit.getAttribute('data-target');
+        const box = document.querySelector(targetSel);
+        if (box) box.classList.add('d-none');
+    }
 });
 </script>
 {% endblock %}
