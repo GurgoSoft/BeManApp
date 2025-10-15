@@ -5,8 +5,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.urls import reverse
+from django import forms
 
 from apps.foro.models import Historia, Like
+from apps.agenda.models import Evento
 from .forms import PerfilForm
 from .models import Notificacion
 
@@ -24,10 +26,13 @@ def home(request):
         comentarios_count=Count('comentario', distinct=True),
     ).order_by('-likes_count', '-comentarios_count', '-fecha')[:6]
 
+    eventos = Evento.objects.order_by('fecha')[:6]
+
     return render(request, "home.html", {
         "notif_count": notif_count,
         "notificaciones": notificaciones,
         "historias": historias,
+        "eventos": eventos,
     })
 
 def login_view(request):
