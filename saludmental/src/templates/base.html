@@ -96,6 +96,9 @@
             <div class="d-none d-lg-flex align-items-center ms-auto">
                 <!-- Tema fijo oscuro: se removió toggle -->
                 {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'agenda_admin_dashboard' %}" class="btn btn-link me-2" title="Dashboard admin"><i class="ri-dashboard-line fs-4"></i></a>
+                    {% endif %}
                     <a href="{% url 'editar_perfil' %}" class="btn btn-link me-2 p-0" title="{% trans 'Editar perfil' %}" style="line-height:0;">
                         {% if user.foto_perfil %}
                             <img src="{{ user.foto_perfil.url }}" alt="Perfil" class="rounded-circle border" style="width:38px; height:38px; object-fit:cover;">
@@ -261,5 +264,43 @@
     })();
     </script>
     {% block extra_js %}{% endblock %}
+            {% if user.is_authenticated and WHATSAPP_HELP_ENABLED and WHATSAPP_SUPPORT_URL %}
+                <div class="wa-popup" id="waPopup" aria-live="polite">
+                    <a href="{{ WHATSAPP_SUPPORT_URL }}" target="_blank" rel="noopener" class="wa-fab" id="waFab" aria-label="Abrir chat de WhatsApp">
+                        <i class="ri-whatsapp-fill"></i>
+                    </a>
+                    <div class="wa-bubble" id="waBubble">
+                        <i class="ri-whatsapp-line" style="color:#25D366"></i>
+                        <div>
+                            <div class="fw-bold mb-1">¿Necesitas ayuda?</div>
+                            <small class="text-muted">Chatea con soporte por WhatsApp</small>
+                        </div>
+                        <a href="{{ WHATSAPP_SUPPORT_URL }}" target="_blank" rel="noopener" class="btn btn-sm btn-success ms-1">Abrir</a>
+                        <button class="wa-close ms-1" id="waClose" aria-label="Cerrar"><i class="ri-close-line"></i></button>
+                    </div>
+                </div>
+            <script>
+                        (function(){
+                    try{
+                        const POPUP_KEY = 'wa_help_shown';
+                                const bubble = document.getElementById('waBubble');
+                                const fab = document.getElementById('waFab');
+                                const closeBtn = document.getElementById('waClose');
+                                if(!bubble || !fab) return;
+                        // Mostrar el globito solo una vez por sesión
+                        if(!sessionStorage.getItem(POPUP_KEY)){
+                            requestAnimationFrame(()=> bubble.classList.add('show'));
+                            sessionStorage.setItem(POPUP_KEY, '1');
+                            // ocultarlo automáticamente luego de unos segundos
+                            setTimeout(()=> bubble.classList.remove('show'), 4200);
+                        }
+                                // Accesibilidad: mostrar al enfocar con teclado, ocultar al salir
+                                fab.addEventListener('focus', ()=> bubble.classList.add('show'));
+                                fab.addEventListener('blur', ()=> bubble.classList.remove('show'));
+                                if(closeBtn){ closeBtn.addEventListener('click', ()=> bubble.classList.remove('show')); }
+                    } catch(e) {}
+                })();
+            </script>
+            {% endif %}
 </body>
 </html>

@@ -71,24 +71,37 @@ a:hover { color: var(--bs-link-hover-color); }
 }
 .navbar .nav-link, .navbar .btn-link {
   color: var(--bm-blanco);
+  background: transparent !important;
+  border: none !important;
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1 !important;
+  padding: .25rem;
 }
 .navbar .nav-link:hover, .navbar .btn-link:hover {
   color: var(--bm-dorado);
 }
+.navbar .nav-link i, .navbar .btn-link i { line-height: 1; vertical-align: middle; display: inline-block; }
+.navbar .nav-item { list-style: none; }
 .navbar .badge.bg-danger { /* notificaciones */
   background-color: #dc3545 !important;
 }
 
 /* Botones */
-.btn,
+/* Base: sin imponer color de fondo global */
+.btn {
+  transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+}
+.btn:active { transform: translateY(0); }
+
+/* Primario dorado */
 .btn-primary {
   background-color: var(--bm-dorado);
   border-color: var(--bm-dorado);
   color: #0d1b2a; /* contraste accesible sobre dorado */
-  transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
 }
-.btn:hover,
-.btn:focus,
 .btn-primary:hover,
 .btn-primary:focus {
   background-color: var(--bm-dorado-700);
@@ -97,9 +110,17 @@ a:hover { color: var(--bs-link-hover-color); }
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(212,175,55,.25);
 }
-.btn:active {
-  transform: translateY(0);
+
+/* Enlaces botón: siempre transparentes */
+.btn-link {
+  background: transparent !important;
+  border-color: transparent !important;
+  padding: 0;
+  border-radius: 0;
+  color: var(--bs-link-color);
 }
+.btn-link:hover,
+.btn-link:focus { color: var(--bs-link-hover-color); text-decoration: underline; }
 .btn-outline-primary {
   color: var(--bm-dorado);
   border-color: var(--bm-dorado);
@@ -302,3 +323,170 @@ iframe { background: transparent; }
 [data-bs-theme="light"] .btn-like-inactive:hover { background: rgba(212,175,55,0.18); color: #6d5411; }
 [data-bs-theme="light"] .btn-like-active { background: var(--bm-dorado); color: #0d1b2a; }
 [data-bs-theme="light"] .btn-like-active:hover { background: var(--bm-dorado-700); }
+
+/* Popup flotante de WhatsApp */
+.wa-popup {
+  position: fixed;
+  right: 16px !important;
+  left: auto !important;
+  bottom: 16px !important;
+  z-index: 2000;
+  display: block; /* FAB siempre visible */
+}
+.wa-card {
+  background: var(--bs-card-bg);
+  color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  padding: 12px 14px;
+  display: flex; gap: 10px; align-items: center;
+  transform: translateY(10px);
+  opacity: 0;
+  transition: transform .25s ease, opacity .25s ease;
+}
+.wa-card.show { transform: translateY(0); opacity: 1; }
+.wa-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #25D366; color: #0b1a2a; border: 0; border-radius: 10px;
+  padding: 8px 12px; font-weight: 700; text-decoration: none;
+}
+.wa-btn:hover { filter: brightness(1.05); }
+.wa-close {
+  margin-left: auto; background: transparent; border: 0; color: var(--bm-gris);
+}
+.wa-close:hover { color: var(--bs-body-color); }
+
+/* FAB circular de WhatsApp */
+.wa-fab {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: #25D366; color: #0b1a2a; display: grid; place-items: center;
+  box-shadow: 0 12px 28px rgba(37,211,102,.35), 0 0 0 1px rgba(0,0,0,.1) inset;
+  text-decoration: none; cursor: pointer; outline: none; border: none;
+  transition: transform .18s ease, box-shadow .25s ease, filter .25s ease;
+  animation: fabPop .45s cubic-bezier(.2,.7,.2,1) both, fabPulse 2.8s ease-in-out 1.2s infinite;
+}
+.wa-fab i { font-size: 1.6rem; color: #0b1a2a; }
+.wa-fab:hover { transform: translateY(-2px); filter: saturate(1.1); box-shadow: 0 16px 34px rgba(37,211,102,.42); }
+.wa-fab:active { transform: translateY(0); }
+.wa-fab:focus-visible { box-shadow: 0 0 0 4px rgba(37,211,102,.28), 0 12px 28px rgba(37,211,102,.35); }
+
+@keyframes fabPop { from { opacity: 0; transform: scale(.85) translateY(8px);} to { opacity: 1; transform: scale(1) translateY(0);} }
+@keyframes fabPulse {
+  0%, 100% { box-shadow: 0 12px 28px rgba(37,211,102,.35), 0 0 0 0 rgba(37,211,102,.0); }
+  50% { box-shadow: 0 14px 34px rgba(37,211,102,.42), 0 0 0 8px rgba(37,211,102,.12); }
+}
+
+/* Globito/tooltip del FAB */
+.wa-bubble {
+  position: absolute; right: 70px; left: auto; bottom: 8px;
+  background: var(--bs-card-bg); color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color);
+  padding: 10px 12px; border-radius: 14px; font-weight: 600;
+  box-shadow: 0 12px 28px rgba(0,0,0,.35);
+  opacity: 0; transform: translateY(6px) translateX(8px);
+  transition: opacity .25s ease, transform .25s ease;
+  max-width: min(80vw, 320px);
+  line-height: 1.2;
+}
+.wa-bubble::after {
+  content: ""; position: absolute; right: -6px; bottom: 12px;
+  width: 12px; height: 12px; transform: rotate(45deg);
+  background: var(--bs-card-bg); border-right: 1px solid var(--bs-border-color); border-bottom: 1px solid var(--bs-border-color);
+}
+.wa-bubble.show { opacity: 1; transform: translateY(0) translateX(0); }
+
+/* Mostrar bubble al pasar el mouse o enfocar el botón */
+.wa-popup:hover .wa-bubble,
+.wa-fab:focus + .wa-bubble,
+.wa-fab:focus-visible + .wa-bubble { opacity: 1; transform: translateY(0) translateX(0); }
+
+/* Respeto de accesibilidad: reducir animaciones si el usuario lo prefiere */
+@media (prefers-reduced-motion: reduce) {
+  .wa-fab { animation: none; transition: none; }
+  .wa-bubble { transition: none; }
+}
+
+/* Ajuste mobile: mantener el bubble dentro de la pantalla */
+@media (max-width: 420px) {
+  .wa-bubble { right: 64px; bottom: 72px; }
+}
+
+/* ==========================
+   Formularios de Autenticación
+   ==========================
+   Reutilizables para login/registro, alineados con la paleta azul/dorado
+*/
+.auth-wrap {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 2.5vw, 28px);
+  background:
+    radial-gradient(50rem 24rem at -10% -10%, rgba(212,175,55,0.12), transparent 60%),
+    radial-gradient(50rem 24rem at 110% 110%, rgba(36,67,95,0.22), transparent 60%);
+}
+.auth-card {
+  width: min(560px, 94vw);
+  background: var(--bs-card-bg);
+  color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 18px;
+  padding: clamp(18px, 3.2vw, 28px);
+  box-shadow: 0 10px 40px rgba(0,0,0,.28);
+  backdrop-filter: blur(14px);
+  animation: authSlideUp .55s cubic-bezier(.4,0,.2,1);
+}
+@keyframes authSlideUp { from { opacity: 0; transform: translateY(24px);} to { opacity: 1; transform: none; } }
+
+.auth-title {
+  font-weight: 800;
+  letter-spacing: .2px;
+  text-align: center;
+  margin: 0 0 6px;
+  background: linear-gradient(90deg, var(--bm-dorado), var(--bm-dorado-700));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.auth-subtitle { color: var(--bm-gris); text-align: center; margin: 0 0 12px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.label { font-weight: 600; color: var(--bs-body-color); font-size: .95rem; }
+
+.input-icon { position: relative; }
+.input-icon .icon-left {
+  position: absolute;
+  left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--bm-gris); font-size: 1.1rem;
+}
+.input-icon .form-control { padding-left: 42px; }
+
+.btn-eye {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 38px; height: 38px; display: grid; place-items: center;
+  border: 0; background: transparent; color: var(--bm-gris); border-radius: 10px; cursor: pointer;
+}
+.btn-eye:hover { color: var(--bs-body-color); }
+
+.auth-aux { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 10px; }
+.auth-link { color: var(--bs-link-color); text-decoration: none; font-weight: 600; }
+.auth-link:hover { text-decoration: underline; color: var(--bs-link-hover-color); }
+
+.auth-foot { text-align: center; color: var(--bm-gris); margin-top: 8px; }
+.auth-foot a { color: var(--bs-link-color); text-decoration: none; font-weight: 700; }
+.auth-foot a:hover { text-decoration: underline; color: var(--bs-link-hover-color); }
+
+.strength { height: 6px; border-radius: 6px; background: rgba(212,175,55,0.15); overflow: hidden; margin-top: 6px; }
+.strength > i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, #ff4d4d, #ffd166, #06d6a0); transition: width .35s; }
+
+/* Compactación vertical en pantallas bajas */
+@media (max-height: 680px) {
+  .auth-subtitle { display: none; }
+  .field { margin-bottom: 8px; }
+  .auth-wrap { padding: 12px; }
+}
+
+/* Grid utilitario para formularios de registro */
+.form-grid { display: grid; gap: 10px; }
+@media (min-width: 640px) { .grid-2 { grid-template-columns: 1fr 1fr; gap: 10px; } }

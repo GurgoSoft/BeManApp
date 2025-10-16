@@ -2,6 +2,7 @@ import re
 import unicodedata
 from functools import lru_cache
 from typing import Iterable, List, Optional, Sequence, Set, Tuple
+from django.conf import settings
 
 # Listas multilingües (no exhaustivas) de insultos/profanidades genéricas
 # Importante: evita incluir ataques a colectivos protegidos; estas listas buscan obscenidades generales.
@@ -29,6 +30,8 @@ _BANNED_WORDS: dict[str, Set[str]] = {
         # abreviaturas/regionalismos sin espacios
         "hijodeputa", "hijueputa", "conchesumadre", "conchatumadre",
         "ptm", "ctm", "csm",
+        # regionalismos adicionales
+        "pirobo", "piroba",
     },
     "en": {
         # Inglés
@@ -85,7 +88,11 @@ def _prepare_words(languages: Optional[Sequence[str]]) -> List[str]:
         langs = languages
     words: Set[str] = set()
     for lang in langs:
-        words.update(_BANNED_WORDS.get(lang, set()))
+        base = set(_BANNED_WORDS.get(lang, set()))
+        # Permitir extender vía settings: EXTRA_BANNED_WORDS = {"es": ["...", ...], "en": ["..."]}
+        extras_cfg = getattr(settings, "EXTRA_BANNED_WORDS", {}) or {}
+        extras = set(map(str.lower, extras_cfg.get(lang, [])))
+        words.update(base | extras)
     # Normaliza palabras base para construir el regex sobre texto normalizado
     return sorted({_normalize(w) for w in words}, key=len, reverse=True)
 

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Eventos" %}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="mb-0">{% trans "Eventos" %}</h1>
+  <a href="{% url 'admin_evento_create' %}" class="btn btn-primary"><i class="ri-add-line me-1"></i>{% trans "Nuevo" %}</a>
+</div>
+<table class="table table-hover align-middle">
+  <thead>
+    <tr>
+      <th>{% trans "Imagen" %}</th>
+      <th>{% trans "Título" %}</th>
+      <th>{% trans "Fecha" %}</th>
+      <th class="text-end">{% trans "Acciones" %}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in eventos %}
+    <tr>
+      <td style="width:72px">
+        {% if e.imagen %}
+          <img src="{{ e.imagen.url }}" class="rounded" style="width:64px;height:48px;object-fit:cover"/>
+        {% else %}
+          <div class="bg-secondary rounded" style="width:64px;height:48px;"></div>
+        {% endif %}
+      </td>
+      <td>{{ e.titulo|default:e.nombre }}</td>
+      <td>{{ e.fecha|date:"d M Y, H:i" }}</td>
+      <td class="text-end">
+        <a href="{% url 'admin_evento_edit' e.pk %}" class="btn btn-sm btn-outline-primary">{% trans "Editar" %}</a>
+        <a href="{% url 'admin_evento_delete' e.pk %}" class="btn btn-sm btn-outline-danger">{% trans "Eliminar" %}</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4" class="text-muted">{% trans "Sin eventos" %}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
