@@ -23,14 +23,21 @@
     {% for e in proximos %}
       <div class="col-md-6 col-lg-4 d-flex">
         <div class="card w-100 equal-card card-hover">
+          {% if e.imagen %}
+            <img src="{{ e.imagen.url }}" class="card-img-top" alt="{{ e.titulo|default:e.nombre }}" style="height:180px; object-fit:cover;">
+          {% else %}
+            <div class="bg-secondary" style="height: 6rem;"></div>
+          {% endif %}
           <div class="card-body">
             <div class="d-flex align-items-start gap-3">
               <div class="rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width:48px; height:48px; background: rgba(212,175,55,.15); color: var(--bm-dorado);">
                 <i class="ri-calendar-todo-line fs-5"></i>
               </div>
               <div class="w-100">
-                <h5 class="mb-1">{{ e.nombre }}</h5>
-                <div class="text-muted small mb-3"><i class="ri-time-line me-1"></i>{{ e.fecha|date:"D d M Y, H:i" }}</div>
+                <h5 class="mb-1"><a href="{% url 'agenda_evento_detalle' e.pk %}" class="stretched-link text-reset text-decoration-none">{{ e.titulo|default:e.nombre }}</a></h5>
+                <div class="text-muted small mb-1"><i class="ri-time-line me-1"></i>{{ e.fecha|date:"D d M Y, H:i" }}</div>
+                {% if e.lugar %}<div class="text-muted small mb-2"><i class="ri-map-pin-2-line me-1"></i>{{ e.lugar }}</div>{% endif %}
+                {% if e.precio is not None %}<div class="fw-semibold mb-2">{{ e.precio }} <span class="text-muted small">{{ 'COP' }}</span></div>{% endif %}
                 <div class="d-flex gap-2">
                   {% if user.is_authenticated %}
                   <form method="post" action="{% url 'agenda_inscribirme' e.pk %}" class="d-inline">
@@ -54,18 +61,23 @@
 </section>
 
 <section class="mb-5">
-  <h2 class="mb-3">{% trans 'Eventos recientes' %}</h2>
+  <h2 class="mb-3">{% trans 'Eventos pasados' %}</h2>
   <div class="row g-4">
     {% for e in pasados %}
       <div class="col-md-6 col-lg-4 d-flex">
         <div class="card w-100 equal-card">
+          {% if e.imagen %}
+            <img src="{{ e.imagen.url }}" class="card-img-top" alt="{{ e.titulo|default:e.nombre }}" style="height:160px; object-fit:cover; filter: grayscale(40%);">
+          {% else %}
+            <div class="bg-secondary" style="height: 6rem; filter: grayscale(40%);"></div>
+          {% endif %}
           <div class="card-body">
             <div class="d-flex align-items-start gap-3">
               <div class="rounded d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width:48px; height:48px; background: rgba(255,255,255,.06);">
                 <i class="ri-calendar-check-line"></i>
               </div>
               <div>
-                <h6 class="mb-1">{{ e.nombre }}</h6>
+                <h6 class="mb-1"><a href="{% url 'agenda_evento_detalle' e.pk %}" class="text-reset text-decoration-none">{{ e.titulo|default:e.nombre }}</a></h6>
                 <div class="text-muted small"><i class="ri-time-line me-1"></i>{{ e.fecha|date:"D d M Y, H:i" }}</div>
               </div>
             </div>

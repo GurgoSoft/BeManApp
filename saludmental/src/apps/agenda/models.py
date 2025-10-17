@@ -10,6 +10,8 @@ class Evento(models.Model):
     imagen = models.ImageField(upload_to="eventos/", null=True, blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     fecha = models.DateTimeField()
+    publicado = models.BooleanField(default=False)
+    fecha_publicacion = models.DateTimeField(null=True, blank=True)
 
     def __str__(self) -> str:
         return self.titulo or self.nombre

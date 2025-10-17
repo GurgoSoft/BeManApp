@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='agenda_index'),
+    path('evento/<int:pk>/', views.evento_detalle, name='agenda_evento_detalle'),
     # Admin
     path('admin/', views.admin_dashboard, name='agenda_admin_dashboard'),
     path('admin/eventos/', views.admin_evento_list, name='admin_evento_list'),

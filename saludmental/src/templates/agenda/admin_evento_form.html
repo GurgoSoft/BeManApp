@@ -4,39 +4,169 @@
 {% block title %}{{ modo|title }} {% trans "Evento" %}{% endblock %}
 {% block content %}
 <h1 class="mb-3">{{ modo|title }} {% trans "Evento" %}</h1>
-<form method="post" enctype="multipart/form-data" class="row g-3" novalidate>
+<form method="post" enctype="multipart/form-data" class="row g-4 needs-validation" novalidate>
   {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="col-12">
+    <div class="alert alert-danger" role="alert">
+      {% for err in form.non_field_errors %}
+        <div>{{ err }}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
   <div class="col-12 col-md-6">
     <label class="form-label">{% trans "Imagen" %}</label>
-    {{ form.imagen }}
+    <div class="d-flex align-items-start gap-3">
+    <div class="form-text">{% trans "Si es hoy, mínimo 2 horas de anticipación; otros días, al menos 5 minutos (máx. 2 años)." %}</div>
+        <img id="preview-img" src="{% if form.instance and form.instance.imagen %}{{ form.instance.imagen.url }}{% endif %}" alt="preview" class="rounded border" style="width: 140px; height: 140px; object-fit: cover; background:#111;">
+      </div>
+      <div class="flex-grow-1">
+        {{ form.imagen }}
+        {% if form.imagen.errors %}
+          <div class="invalid-feedback d-block">{{ form.imagen.errors|join:', ' }}</div>
+        {% endif %}
+        <div class="form-text">{% trans "Formatos permitidos: JPG, PNG, WEBP. Máx 3MB." %}</div>
+      </div>
+    </div>
   </div>
   <div class="col-12 col-md-6">
     <label class="form-label">{% trans "Título" %}</label>
     {{ form.titulo|add_class:"form-control" }}
+    {% if form.titulo.errors %}
+      <div class="invalid-feedback d-block">{{ form.titulo.errors|join:', ' }}</div>
+    {% endif %}
+    <div class="form-text"><span id="titulo-count">0</span>/120</div>
   </div>
   <div class="col-12 col-md-6">
     <label class="form-label">{% trans "Nombre interno" %}</label>
-    {{ form.nombre|add_class:"form-control" }}
+    <div class="input-group">
+      {{ form.nombre|add_class:"form-control" }}
+      <button class="btn btn-outline-secondary" type="button" id="slugify-btn">{% trans "Auto" %}</button>
+    </div>
+    {% if form.nombre.errors %}
+      <div class="invalid-feedback d-block">{{ form.nombre.errors|join:', ' }}</div>
+    {% endif %}
+    <div class="form-text">{% trans "Se usa como slug interno único." %}</div>
   </div>
   <div class="col-12">
     <label class="form-label">{% trans "Descripción corta" %}</label>
     {{ form.descripcion_corta|add_class:"form-control" }}
+    {% if form.descripcion_corta.errors %}
+      <div class="invalid-feedback d-block">{{ form.descripcion_corta.errors|join:', ' }}</div>
+    {% endif %}
+    <div class="form-text"><span id="desc-count">0</span>/500</div>
   </div>
   <div class="col-12 col-md-6">
     <label class="form-label">{% trans "Lugar" %}</label>
     {{ form.lugar|add_class:"form-control" }}
+    {% if form.lugar.errors %}
+      <div class="invalid-feedback d-block">{{ form.lugar.errors|join:', ' }}</div>
+    {% endif %}
   </div>
   <div class="col-12 col-md-3">
     <label class="form-label">{% trans "Fecha y hora" %}</label>
     {{ form.fecha|add_class:"form-control" }}
+    {% if form.fecha.errors %}
+      <div class="invalid-feedback d-block">{{ form.fecha.errors|join:', ' }}</div>
+    {% endif %}
+    <div class="form-text">{% trans "Debe ser al menos en 5 minutos y no más de 2 años." %}</div>
   </div>
   <div class="col-12 col-md-3">
     <label class="form-label">{% trans "Precio" %}</label>
-    {{ form.precio|add_class:"form-control" }}
+    <div class="input-group">
+      <span class="input-group-text">COP</span>
+      {{ form.precio|add_class:"form-control" }}
+    </div>
+    {% if form.precio.errors %}
+      <div class="invalid-feedback d-block">{{ form.precio.errors|join:', ' }}</div>
+    {% endif %}
+    <div class="form-text">{% trans "Solo números enteros en COP. 0 si es gratuito." %}</div>
   </div>
   <div class="col-12 d-flex gap-2">
-    <button class="btn btn-primary" type="submit">{% trans "Guardar" %}</button>
+    <button class="btn btn-primary" type="submit">{% trans "Publicar" %}</button>
     <a href="{% url 'admin_evento_list' %}" class="btn btn-outline-primary">{% trans "Cancelar" %}</a>
   </div>
 </form>
+<script>
+  (function(){
+    const $ = (sel) => document.querySelector(sel);
+    const titulo = $('#id_titulo');
+    const nombre = $('#id_nombre');
+    const desc = $('#id_descripcion_corta');
+    const fecha = $('#id_fecha');
+  const precio = $('#id_precio');
+    const tituloCount = $('#titulo-count');
+    const descCount = $('#desc-count');
+    const slugBtn = $('#slugify-btn');
+    const imgInput = $('#id_imagen');
+    const preview = $('#preview-img');
+
+    function slugify(str){
+      return (str||'')
+        .toString().normalize('NFD').replace(/\p{Diacritic}/gu, '')
+        .toLowerCase().replace(/[^a-z0-9]+/g,'-')
+        .replace(/(^-|-$)/g,'').slice(0,140);
+    }
+    function updateCount(el, counterEl, max){
+      const val = (el?.value||'');
+      counterEl.textContent = `${val.length}`;
+      if(val.length > max){
+        el.classList.add('is-invalid');
+      } else {
+        el.classList.remove('is-invalid');
+      }
+    }
+    function validateFecha(){
+      if(!fecha) return;
+      const val = fecha.value;
+      if(!val) return;
+      const dt = new Date(val);
+      const now = new Date();
+      const min = new Date(now.getTime() + 5*60000);
+      const max = new Date(now.getTime() + 2*365*24*60*60000);
+      if(dt < min || dt > max){
+        fecha.classList.add('is-invalid');
+      } else {
+        fecha.classList.remove('is-invalid');
+      }
+    }
+    function numbersOnly(e){
+      const v = (e.target.value||'');
+      e.target.value = v.replace(/\D+/g,''); // solo dígitos
+    }
+    function normalizePrecio(){
+      if(!precio) return;
+      if(precio.value === '') precio.value = '0';
+      if(Number(precio.value) < 0){
+        precio.value = '0';
+      }
+    }
+    titulo && titulo.addEventListener('input', ()=> updateCount(titulo, tituloCount, 120));
+    desc && desc.addEventListener('input', ()=> updateCount(desc, descCount, 500));
+    slugBtn && slugBtn.addEventListener('click', ()=> { if(titulo && nombre){ nombre.value = slugify(nombre.value||titulo.value); } });
+    fecha && fecha.addEventListener('change', validateFecha);
+  precio && precio.addEventListener('input', numbersOnly);
+  precio && precio.addEventListener('blur', normalizePrecio);
+    // init
+    updateCount(titulo, tituloCount, 120);
+    updateCount(desc, descCount, 500);
+    validateFecha();
+    // preview
+    if(imgInput && preview){
+      imgInput.addEventListener('change', (e)=>{
+        const f = e.target.files?.[0];
+        if(!f) return;
+        const okTypes = ['image/jpeg','image/png','image/webp'];
+        if(!okTypes.includes(f.type) || f.size > 3*1024*1024){
+          imgInput.value = '';
+          alert('Archivo inválido. Usa JPG, PNG o WEBP, máx 3MB.');
+          return;
+        }
+        const url = URL.createObjectURL(f);
+        preview.src = url;
+      });
+    }
+  })();
+</script>
 {% endblock %}
