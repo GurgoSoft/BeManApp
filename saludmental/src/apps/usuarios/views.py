@@ -9,6 +9,7 @@ from django import forms
 
 from apps.foro.models import Historia, Like
 from apps.agenda.models import Evento
+from django.utils import timezone
 from .forms import PerfilForm
 from .models import Notificacion
 
@@ -26,7 +27,7 @@ def home(request):
         comentarios_count=Count('comentario', distinct=True),
     ).order_by('-likes_count', '-comentarios_count', '-fecha')[:6]
 
-    eventos = Evento.objects.order_by('fecha')[:6]
+    eventos = Evento.objects.filter(publicado=True, fecha__gte=timezone.now()).order_by('fecha')[:6]
 
     return render(request, "home.html", {
         "notif_count": notif_count,

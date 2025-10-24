@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib import messages
@@ -6,7 +8,8 @@ from django.utils.translation import gettext as _, get_language_from_request
 from django.utils import translation
 from django.conf import settings
 from django.urls import reverse
-from .models import Evento, Inscripcion
+from django.utils.formats import date_format
+from .models import Evento, Inscripcion, EventoFoto, EventoCalificacion, EventoComentario, EventoLikeComentario
 from apps.usuarios.models import Notificacion, CustomUser
 from django import forms
 from django.db.models import Count
@@ -14,6 +17,9 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from decimal import Decimal, InvalidOperation
 from datetime import timedelta
+from django.db.models import Avg
+from django.views.decorators.http import require_POST
+from django.http import HttpResponseForbidden
 try:
     # Reusar detección de lenguaje inapropiado si existe
     from apps.foro.profanity import contains_banned_words
@@ -45,6 +51,10 @@ class EventoForm(forms.ModelForm):
             'lugar', 'fecha', 'precio'
         ]
         widgets = {
+            'imagen': forms.ClearableFileInput(attrs={
+                'accept': 'image/jpeg,image/png,image/webp',
+                'class': 'form-control'
+            }),
             'titulo': forms.TextInput(attrs={
                 'placeholder': _('Ej: Círculo de Hombres — Medellín'),
                 'maxlength': 120,
@@ -189,20 +199,53 @@ class EventoForm(forms.ModelForm):
                 raise ValidationError(_('Ya existe un evento en el mismo lugar y horario cercano (±1h).'))
         return cleaned
 
-def _notificar_publicacion(evento: Evento, lang_code: str | None = None) -> int:
-    # Construye URL al detalle del evento respetando i18n_patterns
+def _notificar_publicacion(evento: Evento, lang_code: str | None = None, publisher=None) -> int:
+    """Envía notificaciones: a usuarios (no staff) anuncio; al publicador (staff) mensaje de confirmación."""
+    # Construir URLs
     if lang_code:
         with translation.override(lang_code):
-            url = reverse('agenda_evento_detalle', kwargs={'pk': evento.pk})
+            user_url = reverse('agenda_evento_detalle', kwargs={'pk': evento.pk})
+            admin_url = reverse('admin_evento_edit', kwargs={'pk': evento.pk})
     else:
-        # Fallback al idioma por defecto
         with translation.override(getattr(settings, 'LANGUAGE_CODE', 'es')):
-            url = reverse('agenda_evento_detalle', kwargs={'pk': evento.pk})
-    usuarios = CustomUser.objects.filter(is_active=True)
-    objs = [
-        Notificacion(usuario=u, mensaje=f"Nuevo evento publicado: {evento.titulo or evento.nombre}", url=url)
-        for u in usuarios
-    ]
+            user_url = reverse('agenda_evento_detalle', kwargs={'pk': evento.pk})
+            admin_url = reverse('admin_evento_edit', kwargs={'pk': evento.pk})
+
+    # Usuarios finales (excluir staff)
+    usuarios = CustomUser.objects.filter(is_active=True, is_staff=False)
+    msg_user = f"Nuevo evento publicado: {evento.titulo or evento.nombre}"
+    objs = [Notificacion(usuario=u, mensaje=msg_user, url=user_url) for u in usuarios]
+
+    # Publicador (si está autenticado)
+    if publisher is not None and getattr(publisher, 'is_authenticated', False):
+        with translation.override(lang_code or getattr(settings, 'LANGUAGE_CODE', 'es')):
+            fecha_fmt = date_format(evento.fecha, 'D d M Y, H:i')
+        msg_admin = f"Publicaste el evento: {evento.titulo or evento.nombre} para {fecha_fmt}"
+        objs.append(Notificacion(usuario=publisher, mensaje=msg_admin, url=admin_url))
+
+    if not objs:
+        return 0
+    Notificacion.objects.bulk_create(objs, ignore_conflicts=True)
+    return len(objs)
+
+def _notificar_inscripcion(evento: Evento, usuario, lang_code: str | None = None) -> int:
+    """Notifica a todo el staff que un usuario se inscribió a un evento."""
+    if lang_code:
+        with translation.override(lang_code):
+            admin_url = reverse('admin_evento_edit', kwargs={'pk': evento.pk})
+    else:
+        with translation.override(getattr(settings, 'LANGUAGE_CODE', 'es')):
+            admin_url = reverse('admin_evento_edit', kwargs={'pk': evento.pk})
+    staff = CustomUser.objects.filter(is_active=True, is_staff=True)
+    display = ''
+    try:
+        display = usuario.get_full_name().strip()
+    except Exception:
+        display = ''
+    if not display:
+        display = getattr(usuario, 'username', None) or getattr(usuario, 'email', 'usuario')
+    msg = f"{display} se inscribió a: {evento.titulo or evento.nombre}"
+    objs = [Notificacion(usuario=adm, mensaje=msg, url=admin_url) for adm in staff if getattr(adm, 'pk', None) != getattr(usuario, 'pk', None)]
     if not objs:
         return 0
     Notificacion.objects.bulk_create(objs, ignore_conflicts=True)
@@ -242,7 +285,7 @@ def admin_evento_create(request):
             evento.fecha_publicacion = timezone.now()
             evento.save()
             lang_code = get_language_from_request(request)
-            creadas = _notificar_publicacion(evento, lang_code)
+            creadas = _notificar_publicacion(evento, lang_code, publisher=request.user)
             messages.success(request, _("Evento publicado correctamente. Notificaciones enviadas: %d") % creadas)
             return redirect('admin_evento_list')
     else:
@@ -265,7 +308,7 @@ def admin_evento_edit(request, pk):
                 evento.fecha_publicacion = timezone.now()
                 evento.save()
                 lang_code = get_language_from_request(request)
-                _ = _notificar_publicacion(evento, lang_code)
+                _ = _notificar_publicacion(evento, lang_code, publisher=request.user)
             else:
                 evento.save()
             messages.success(request, _("Evento actualizado y publicado."))
@@ -289,18 +332,213 @@ def admin_evento_delete(request, pk):
 @login_required
 def inscribirme(request, pk):
     evento = get_object_or_404(Evento, pk=pk)
-    Inscripcion.objects.get_or_create(usuario=request.user, evento=evento)
+    ins, created = Inscripcion.objects.get_or_create(usuario=request.user, evento=evento)
     messages.success(request, _("Inscripción confirmada."))
+    if created:
+        lang_code = get_language_from_request(request)
+        _notificar_inscripcion(evento, request.user, lang_code)
     return redirect('agenda_index')
 
 
 # ============ DETALLE PÚBLICO ============
 def evento_detalle(request, pk):
-    evento = get_object_or_404(Evento, pk=pk, publicado=True)
+    # Si el evento no existe o no está publicado, no 404: redirige al home con aviso
+    evento = Evento.objects.filter(pk=pk).first()
+    if not evento or not evento.publicado:
+        messages.info(request, _("El evento no está disponible."))
+        return redirect('home')
+    # Si el evento ya pasó, redirige al home con mensaje
+    if evento.fecha < timezone.now():
+        messages.info(request, _("Este evento ya pasó."))
+        return redirect('home')
     inscrito = False
     if request.user.is_authenticated:
         inscrito = Inscripcion.objects.filter(usuario=request.user, evento=evento).exists()
+        try:
+            user_rating = EventoCalificacion.objects.filter(evento=evento, usuario=request.user).values_list('estrellas', flat=True).first()
+        except Exception:
+            user_rating = None
+    else:
+        user_rating = None
+    # Datos de rating y comentarios
+    avg_rating = evento.calificaciones.aggregate(avg=Avg('estrellas'))['avg'] or 0
+    comentarios = (
+        evento.comentarios.filter(parent__isnull=True)
+        .annotate(
+            likes_count=Count('eventolikecomentario', distinct=True),
+            replies_count=Count('respuestas', distinct=True),
+        )
+        .select_related('usuario')
+        .prefetch_related('respuestas__usuario')
+        .order_by('-likes_count', '-replies_count', '-fecha')
+    )
+    fotos = evento.fotos.order_by('-fecha_subida')[:12]
+    inscritos_count = Inscripcion.objects.filter(evento=evento).count()
+    user_likes = set()
+    if request.user.is_authenticated:
+        user_likes = set(
+            EventoLikeComentario.objects.filter(usuario=request.user, comentario__evento=evento)
+            .values_list('comentario_id', flat=True)
+        )
     return render(request, 'agenda/evento_detalle.html', {
         'evento': evento,
         'inscrito': inscrito,
+        'avg_rating': round(float(avg_rating), 2),
+        'user_rating': user_rating or 0,
+        'comentarios': comentarios,
+        'user_likes': user_likes,
+        'fotos': fotos,
+        'inscritos_count': inscritos_count,
     })
+
+
+@login_required
+def calificar_evento(request, pk):
+    evento = get_object_or_404(Evento, pk=pk)
+    try:
+        estrellas = int(request.POST.get('estrellas', '0'))
+    except ValueError:
+        estrellas = 0
+    if estrellas < 1 or estrellas > 5:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': _('Calificación inválida (1 a 5).')}, status=400)
+        messages.error(request, _("Calificación inválida (1 a 5)."))
+        return redirect('agenda_evento_detalle', pk=pk)
+    obj, _ = EventoCalificacion.objects.update_or_create(
+        evento=evento, usuario=request.user, defaults={'estrellas': estrellas}
+    )
+    # Responder AJAX con promedio actualizado
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        avg = evento.calificaciones.aggregate(avg=Avg('estrellas'))['avg'] or 0
+        return JsonResponse({'ok': True, 'avg_rating': round(float(avg), 2), 'estrellas': estrellas})
+    messages.success(request, _("¡Gracias por calificar!"))
+    return redirect('agenda_evento_detalle', pk=pk)
+
+
+@login_required
+def comentar_evento(request, pk):
+    evento = get_object_or_404(Evento, pk=pk)
+    texto = (request.POST.get('texto') or '').strip()
+    if not texto or len(texto) < 2:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': _('El comentario es muy corto.')}, status=400)
+        messages.error(request, _("El comentario es muy corto."))
+        return redirect('agenda_evento_detalle', pk=pk)
+    # Moderación básica reutilizando detector local
+    try:
+        from apps.foro.moderation import moderate_text
+        res = moderate_text(texto)
+        if not res.allowed:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'ok': False, 'error': _('Tu comentario contiene contenido no permitido.')}, status=400)
+            messages.error(request, _("Tu comentario contiene contenido no permitido."))
+            return redirect('agenda_evento_detalle', pk=pk)
+    except Exception:
+        try:
+            if contains_banned_words(texto):
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'ok': False, 'error': _('Tu comentario contiene palabras no permitidas.')}, status=400)
+                messages.error(request, _("Tu comentario contiene palabras no permitidas."))
+                return redirect('agenda_evento_detalle', pk=pk)
+        except Exception:
+            pass
+    comentario = EventoComentario.objects.create(evento=evento, usuario=request.user, texto=texto)
+    # Responder AJAX con el HTML del comentario para prepend en el feed
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        html = render_to_string('agenda/_comentario_item.html', {'c': comentario, 'user_likes': set()}, request=request)
+        return JsonResponse({'ok': True, 'html': html})
+    messages.success(request, _("Comentario publicado."))
+    return redirect('agenda_evento_detalle', pk=pk)
+
+
+@login_required
+@require_POST
+def like_evento_comentario(request, pk):
+    comentario = get_object_or_404(EventoComentario, pk=pk)
+    like, created = EventoLikeComentario.objects.get_or_create(comentario=comentario, usuario=request.user)
+    liked = True
+    if not created:
+        like.delete()
+        liked = False
+    likes_count = EventoLikeComentario.objects.filter(comentario=comentario).count()
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'liked': liked, 'likes_count': likes_count, 'comentario_id': comentario.pk})
+    return redirect('agenda_evento_detalle', pk=comentario.evento_id)
+
+
+@login_required
+@require_POST
+def responder_evento_comentario(request, pk):
+    parent = get_object_or_404(EventoComentario, pk=pk)
+    texto = (request.POST.get('texto') or '').strip()
+    if not texto:
+        messages.error(request, _("El texto no puede estar vacío."))
+    else:
+        try:
+            from apps.foro.moderation import moderate_text
+            res = moderate_text(texto)
+            if not res.allowed:
+                messages.error(request, _("Tu respuesta contiene contenido no permitido."))
+                return redirect('agenda_evento_detalle', pk=parent.evento_id)
+        except Exception:
+            try:
+                if contains_banned_words(texto):
+                    messages.error(request, _("Tu respuesta contiene palabras no permitidas."))
+                    return redirect('agenda_evento_detalle', pk=parent.evento_id)
+            except Exception:
+                pass
+        EventoComentario.objects.create(evento=parent.evento, usuario=request.user, texto=texto, parent=parent)
+        messages.success(request, _("Respuesta publicada."))
+    return redirect('agenda_evento_detalle', pk=parent.evento_id)
+
+
+@login_required
+@require_POST
+def editar_evento_comentario(request, pk):
+    comentario = get_object_or_404(EventoComentario, pk=pk, usuario=request.user)
+    texto = (request.POST.get('texto') or '').strip()
+    if not texto:
+        messages.error(request, _("El texto no puede estar vacío."))
+    else:
+        try:
+            from apps.foro.moderation import moderate_text
+            res = moderate_text(texto)
+            if not res.allowed:
+                messages.error(request, _("Tu comentario contiene contenido no permitido."))
+                return redirect('agenda_evento_detalle', pk=comentario.evento_id)
+        except Exception:
+            try:
+                if contains_banned_words(texto):
+                    messages.error(request, _("Tu comentario contiene palabras no permitidas."))
+                    return redirect('agenda_evento_detalle', pk=comentario.evento_id)
+            except Exception:
+                pass
+        comentario.texto = texto
+        comentario.save()
+        messages.success(request, _("Comentario actualizado."))
+    return redirect('agenda_evento_detalle', pk=comentario.evento_id)
+
+
+@login_required
+@require_POST
+def eliminar_evento_comentario(request, pk):
+    comentario = get_object_or_404(EventoComentario, pk=pk)
+    if request.user != comentario.usuario and not request.user.is_staff:
+        return HttpResponseForbidden()
+    evento_pk = comentario.evento_id
+    comentario.delete()
+    messages.success(request, _("Comentario eliminado."))
+    return redirect('agenda_evento_detalle', pk=evento_pk)
+
+
+@user_passes_test(_is_staff)
+def admin_evento_fotos(request, pk):
+    evento = get_object_or_404(Evento, pk=pk)
+    if request.method == 'POST':
+        # Subida de múltiples imágenes
+        for f in request.FILES.getlist('fotos'):
+            EventoFoto.objects.create(evento=evento, imagen=f, subido_por=request.user)
+        messages.success(request, _("Fotos subidas."))
+        return redirect('admin_evento_fotos', pk=pk)
+    fotos = evento.fotos.order_by('-fecha_subida')
+    return render(request, 'agenda/admin_evento_fotos.html', {'evento': evento, 'fotos': fotos})

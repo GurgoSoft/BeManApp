@@ -1,32 +1,55 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n humanize %}
 {% block title %}{{ evento.titulo|default:evento.nombre }}{% endblock %}
 {% block content %}
 <div class="row g-4">
-  <div class="col-lg-6">
+  <!-- Col izquierda: imagen + info -->
+  <div class="col-lg-8">
     <div class="card h-100">
       {% if evento.imagen %}
-        <img src="{{ evento.imagen.url }}" class="card-img-top" alt="{{ evento.titulo|default:evento.nombre }}" style="object-fit:cover; max-height: 420px;">
+        <img src="{{ evento.imagen.url }}" class="card-img-top" alt="{{ evento.titulo|default:evento.nombre }}" style="object-fit:cover; max-height: 460px;">
       {% else %}
-        <div class="bg-secondary" style="width:100%; height: 260px;"></div>
+        <div class="bg-secondary" style="width:100%; height: 280px;"></div>
       {% endif %}
       <div class="card-body">
-        <h1 class="card-title">{{ evento.titulo|default:evento.nombre }}</h1>
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <h1 class="card-title mb-0">{{ evento.titulo|default:evento.nombre }}</h1>
+          <div class="text-warning small">
+            {% for i in "12345" %}
+              {% if forloop.counter <= avg_rating|floatformat:0 %}
+                <i class="ri-star-fill"></i>
+              {% else %}
+                <i class="ri-star-line"></i>
+              {% endif %}
+            {% endfor %}
+            <span id="avg-rating-value" class="small text-muted">{{ avg_rating }} / 5</span>
+          </div>
+        </div>
         {% if evento.descripcion_corta %}
-          <p class="card-text text-muted">{{ evento.descripcion_corta }}</p>
+          <p class="card-text text-muted mt-2">{{ evento.descripcion_corta }}</p>
         {% endif %}
-        <div class="d-flex flex-column gap-1 small text-muted">
-          <div><i class="ri-time-line me-1"></i>{{ evento.fecha|date:"D d M Y, H:i" }}</div>
-          {% if evento.lugar %}<div><i class="ri-map-pin-2-line me-1"></i>{{ evento.lugar }}</div>{% endif %}
-          <div class="fw-semibold text-white"><i class="ri-price-tag-3-line me-1"></i>{{ evento.precio }} <span class="text-muted small">{{ 'COP' }}</span></div>
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <span class="badge rounded-pill text-bg-secondary"><i class="ri-time-line me-1"></i>{{ evento.fecha|date:"D d M Y, H:i" }}</span>
+          {% if evento.lugar %}<span class="badge rounded-pill text-bg-secondary"><i class="ri-map-pin-2-line me-1"></i>{{ evento.lugar }}</span>{% endif %}
+          <span class="badge rounded-pill text-bg-secondary"><i class="ri-price-tag-3-line me-1"></i>{{ evento.precio|intcomma }} {{ 'COP' }}</span>
+          <span class="badge rounded-pill text-bg-secondary"><i class="ri-user-3-line me-1"></i>{{ inscritos_count }} {% trans 'inscritos' %}</span>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+          <button id="copy-link" class="btn btn-outline-light btn-sm" type="button"><i class="ri-link"></i> {% trans 'Copiar enlace' %}</button>
         </div>
       </div>
     </div>
   </div>
-  <div class="col-lg-6">
-    <div class="card h-100">
+  <!-- Col derecha: tarjeta de inscripción -->
+  <div class="col-lg-4">
+    <div class="card h-100 position-sticky" style="top: 90px;">
       <div class="card-body d-flex flex-column">
         <h5 class="mb-3">{% trans "Inscripción" %}</h5>
+        <ul class="list-unstyled small text-muted mb-3">
+          <li class="mb-1"><i class="ri-time-line me-1"></i>{{ evento.fecha|date:"D d M Y, H:i" }}</li>
+          {% if evento.lugar %}<li class="mb-1"><i class="ri-map-pin-2-line me-1"></i>{{ evento.lugar }}</li>{% endif %}
+          <li class="mb-1"><i class="ri-price-tag-3-line me-1"></i>{{ evento.precio|intcomma }} {{ 'COP' }}</li>
+        </ul>
         {% if user.is_authenticated %}
           {% if inscrito %}
             <div class="alert alert-success">{% trans "Ya estás inscrito/a en este evento." %}</div>
@@ -43,4 +66,248 @@
     </div>
   </div>
 </div>
+
+<!-- Segunda fila: Galería y Calificación -->
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    {% if fotos %}
+    <div class="card">
+      <div class="card-body">
+        <h5 class="mb-3">{% trans "Galería" %}</h5>
+        <div class="row g-2">
+          {% for f in fotos %}
+          <div class="col-4 col-md-3">
+            <img src="{{ f.imagen.url }}" class="rounded w-100" style="height:100px;object-fit:cover;">
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="mb-3">{% trans "Calificación" %}</h5>
+        {% if user.is_authenticated %}
+        <div id="rating-widget" class="d-flex align-items-center gap-2" data-url="{% url 'agenda_calificar_evento' evento.pk %}" data-avg="{{ avg_rating|floatformat:0 }}" data-current="{{ user_rating }}">
+          {% csrf_token %}
+          <div class="rating-stars" style="font-size: 1.6rem; color: #f5c518; cursor: pointer;">
+            {% for i in "12345" %}
+              <i class="ri-star-line" data-value="{{ forloop.counter }}"></i>
+            {% endfor %}
+          </div>
+          <span id="rating-status" class="small text-muted"></span>
+        </div>
+        {% else %}
+          <a class="btn btn-outline-primary" href="{% url 'login' %}?next={% url 'agenda_evento_detalle' evento.pk %}">{% trans "Inicia sesión para calificar" %}</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tercera fila: Comentarios a ancho completo -->
+<div class="row g-4 mt-1">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <div id="comment-alert" class="mb-3"></div>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h5 class="mb-0 d-flex align-items-center gap-2"><i class="ri-chat-3-line"></i> {% trans "Comentarios" %}</h5>
+          <span class="badge bg-primary-subtle text-primary">{{ comentarios|length }} {% trans "total" %}</span>
+        </div>
+        {% if user.is_authenticated %}
+        <form id="comment-form" method="post" action="{% url 'agenda_comentar_evento' evento.pk %}" class="mb-3">
+          {% csrf_token %}
+          <textarea class="form-control" name="texto" rows="3" placeholder="{% trans 'Escribe tu experiencia...' %}"></textarea>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <small class="text-muted">{% trans "Sé respetuoso. Los comentarios pasan por moderación." %}</small>
+            <button class="btn btn-primary" type="submit">{% trans "Comentar" %}</button>
+          </div>
+        </form>
+        {% else %}
+          <a class="btn btn-outline-primary mb-3" href="{% url 'login' %}?next={% url 'agenda_evento_detalle' evento.pk %}">{% trans "Inicia sesión para comentar" %}</a>
+        {% endif %}
+        <div id="comments-feed" class="vstack gap-3">
+          {% for c in comentarios %}
+            {% include 'agenda/_comentario_item.html' with c=c %}
+          {% empty %}
+            <div class="text-muted">{% trans "Sé el primero en comentar." %}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  (function(){
+    // Utilidad CSRF
+    function getCookie(name){
+      const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return v ? v.pop() : '';
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Widget de estrellas
+    const widget = document.getElementById('rating-widget');
+    if(widget){
+      const url = widget.getAttribute('data-url');
+      const stars = widget.querySelectorAll('.rating-stars i');
+      const status = document.getElementById('rating-status');
+  const currentUser = parseInt(widget.getAttribute('data-current')||'0') || 0;
+  let current = currentUser; // No usar promedio para pintar selección del usuario
+      function paint(n){
+        stars.forEach((el, idx)=>{
+          if(idx < n){ el.classList.remove('ri-star-line'); el.classList.add('ri-star-fill'); }
+          else { el.classList.remove('ri-star-fill'); el.classList.add('ri-star-line'); }
+        });
+      }
+      stars.forEach(star=>{
+        const val = parseInt(star.getAttribute('data-value'));
+        star.addEventListener('mouseenter', ()=>paint(val));
+        star.addEventListener('mouseleave', ()=>paint(current));
+        star.addEventListener('click', async ()=>{
+          try{
+            const form = new FormData();
+            form.append('estrellas', String(val));
+            const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, body: form});
+            const data = await resp.json();
+            if(data.ok){
+              current = val; paint(current);
+              if(data.avg_rating !== undefined){
+                const avgSpan = document.getElementById('avg-rating-value');
+                if(avgSpan){ avgSpan.textContent = data.avg_rating + ' / 5'; }
+              }
+              status.textContent = '{% trans "¡Gracias por calificar!" %} (' + val + '★)';
+              setTimeout(()=> status.textContent='', 2500);
+            }else{
+              status.textContent = data.error || '{% trans "Error al calificar" %}';
+            }
+          }catch(e){ status.textContent = '{% trans "Error de red" %}'; }
+        });
+      });
+      // pintar estado inicial basado en promedio redondeado
+      paint(current);
+    }
+
+    // Comentarios AJAX
+    const form = document.getElementById('comment-form');
+    if(form){
+      form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const url = form.getAttribute('action');
+        const textarea = form.querySelector('textarea[name="texto"]');
+        const texto = textarea.value.trim();
+        if(texto.length < 2) return;
+        const fd = new FormData(form);
+        const alertBox = document.getElementById('comment-alert');
+        function showCommentAlert(message, level){
+          if(!alertBox) return;
+          const lvl = level || 'danger';
+          alertBox.innerHTML = `
+            <div class="alert alert-${lvl} alert-dismissible fade show" role="alert">
+              ${message}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
+          // Auto-cerrar a los 4s
+          setTimeout(()=>{
+            try{
+              const el = alertBox.querySelector('.alert');
+              if(!el) return;
+              if(window.bootstrap && bootstrap.Alert){
+                const bs = bootstrap.Alert.getOrCreateInstance(el);
+                bs.close();
+              }
+            }catch(_e){}
+            alertBox.innerHTML = '';
+          }, 4000);
+        }
+        try{
+          const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, body: fd});
+          const data = await resp.json();
+          if(data.ok){
+            const feed = document.getElementById('comments-feed');
+            if(feed){
+              const wrapper = document.createElement('div');
+              wrapper.innerHTML = data.html;
+              feed.prepend(wrapper.firstElementChild);
+            }
+            textarea.value='';
+            showCommentAlert('{% trans "Comentario publicado." %}', 'success');
+          }else{
+            showCommentAlert(data.error || '{% trans "Error al publicar el comentario." %}', 'danger');
+          }
+        }catch(err){
+          showCommentAlert('{% trans "Error de red" %}', 'danger');
+        }
+      });
+    }
+
+    // Delegación: Likes de comentarios
+    document.addEventListener('click', async (e)=>{
+      const btn = e.target.closest('.btn-like-comentario');
+      if(!btn) return;
+      e.preventDefault();
+      try{
+        const res = await fetch(btn.dataset.likeUrl, {
+          method:'POST',
+          headers:{'X-CSRFToken':csrftoken,'X-Requested-With':'XMLHttpRequest'}
+        });
+        if(!res.ok) return;
+        const data = await res.json();
+        const span = document.querySelector(`.comment-like-count[data-comment-id="${data.comentario_id}"]`);
+        if(span) span.textContent = data.likes_count;
+        btn.classList.toggle('btn-like-active', data.liked);
+        btn.classList.toggle('btn-like-inactive', !data.liked);
+      }catch(_){ /* noop */}
+    });
+
+    // Delegación: mostrar/ocultar cajas de respuesta y edición
+    document.addEventListener('click', (e)=>{
+      const replyToggle = e.target.closest('.btn-reply-toggle');
+      if(replyToggle){
+        const sel = replyToggle.getAttribute('data-target');
+        const box = document.querySelector(sel);
+        if(box) box.classList.toggle('d-none');
+      }
+      const editToggle = e.target.closest('.btn-edit-toggle');
+      if(editToggle){
+        const sel = editToggle.getAttribute('data-target');
+        const box = document.querySelector(sel);
+        if(box) box.classList.toggle('d-none');
+      }
+      const cancelReply = e.target.closest('.btn-cancel-reply');
+      if(cancelReply){
+        const sel = cancelReply.getAttribute('data-target');
+        const box = document.querySelector(sel);
+        if(box) box.classList.add('d-none');
+      }
+      const cancelEdit = e.target.closest('.btn-cancel-edit');
+      if(cancelEdit){
+        const sel = cancelEdit.getAttribute('data-target');
+        const box = document.querySelector(sel);
+        if(box) box.classList.add('d-none');
+      }
+    });
+
+    // Copiar enlace
+    const copyBtn = document.getElementById('copy-link');
+    if(copyBtn){
+      copyBtn.addEventListener('click', async ()=>{
+        try{
+          await navigator.clipboard.writeText(window.location.href);
+          copyBtn.classList.remove('btn-outline-light');
+          copyBtn.classList.add('btn-success');
+          copyBtn.innerHTML = '<i class="ri-check-line"></i> {% trans "Copiado" %}';
+          setTimeout(()=>{
+            copyBtn.classList.add('btn-outline-light');
+            copyBtn.classList.remove('btn-success');
+            copyBtn.innerHTML = '<i class="ri-link"></i> {% trans "Copiar enlace" %}';
+          }, 2000);
+        }catch(_e){ /* noop */ }
+      });
+    }
+  })();
+</script>
 {% endblock %}

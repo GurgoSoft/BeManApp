@@ -23,3 +23,46 @@ class Inscripcion(models.Model):
 
     class Meta:
         unique_together = ("usuario", "evento")
+
+
+class EventoFoto(models.Model):
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='fotos')
+    imagen = models.ImageField(upload_to="eventos/fotos/")
+    subido_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Foto {self.pk} de {self.evento}"
+
+
+class EventoCalificacion(models.Model):
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='calificaciones')
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    estrellas = models.PositiveSmallIntegerField(default=5)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("evento", "usuario")
+
+    def __str__(self):
+        return f"{self.estrellas}★ por {self.usuario} en {self.evento}"
+
+
+class EventoComentario(models.Model):
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='comentarios')
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    texto = models.TextField()
+    fecha = models.DateTimeField(auto_now_add=True)
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='respuestas', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Comentario de {self.usuario} en {self.evento}: {self.texto[:30]}..."
+
+
+class EventoLikeComentario(models.Model):
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    comentario = models.ForeignKey(EventoComentario, on_delete=models.CASCADE)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("usuario", "comentario")

@@ -55,8 +55,8 @@
     </style>
 </section>
 
-<!-- Eventos (Z-pattern: inmediatamente después del slider) -->
-<section id="podcast" class="mb-5">
+<!-- Eventos destacados (justo después del slider) -->
+<section id="eventos" class="mb-5">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="mb-0">{% trans 'Próximos eventos' %}</h2>
         <a href="{% url 'agenda_index' %}" class="btn btn-outline-primary btn-sm">{% trans 'Ver agenda' %}</a>
@@ -64,15 +64,25 @@
     <div class="row g-4">
         {% for e in eventos %}
             <div class="col-md-6 col-lg-4 d-flex">
-                <div class="card w-100 equal-card card-hover">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:44px; height:44px; background: rgba(212,175,55,.15); color: var(--bm-dorado);">
-                            <i class="ri-calendar-event-line fs-5"></i>
-                        </div>
-                        <div>
-                            <div class="fw-semibold">{{ e.nombre }}</div>
-                            <div class="text-muted small">{{ e.fecha|date:"d M Y, H:i" }}</div>
-                        </div>
+                <div class="card w-100 card-hover">
+                    {% if e.imagen %}
+                        <a href="{% url 'agenda_evento_detalle' e.pk %}">
+                            <img src="{{ e.imagen.url }}" class="card-img-top" alt="{{ e.titulo|default:e.nombre }}" style="height:200px; object-fit:cover;"/>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'agenda_evento_detalle' e.pk %}" class="text-reset text-decoration-none">
+                            <div class="bg-secondary" style="height: 200px;"></div>
+                        </a>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title mb-1">
+                            <a class="stretched-link text-reset text-decoration-none" href="{% url 'agenda_evento_detalle' e.pk %}">{{ e.titulo|default:e.nombre }}</a>
+                        </h5>
+                        <div class="text-muted small mb-1"><i class="ri-time-line me-1"></i>{{ e.fecha|date:"D d M Y, H:i" }}</div>
+                        {% if e.lugar %}<div class="text-muted small mb-2"><i class="ri-map-pin-2-line me-1"></i>{{ e.lugar }}</div>{% endif %}
+                        {% if e.precio is not None %}
+                            <div class="fw-semibold">{{ e.precio }} <span class="text-muted small">COP</span></div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
