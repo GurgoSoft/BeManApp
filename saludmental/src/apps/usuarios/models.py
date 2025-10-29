@@ -25,9 +25,23 @@ class Favorito(models.Model):
 
 
 class Notificacion(models.Model):
+    TIPO_CHOICES = [
+        ('like', 'Like'),
+        ('comentario', 'Comentario'),
+        ('respuesta', 'Respuesta'),
+        ('general', 'General'),
+    ]
+    
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificaciones')
     mensaje = models.CharField(max_length=255)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='general')
     url = models.CharField(max_length=255, blank=True)
     leida = models.BooleanField(default=False)
     fecha = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-fecha']
+    
+    def __str__(self):
+        return f"{self.usuario.username} - {self.mensaje}"
 

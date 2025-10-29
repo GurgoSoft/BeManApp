@@ -10,6 +10,22 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ historia.titulo }}</h5>
                     <p class="card-text">{{ historia.contenido|truncatewords:20 }}</p>
+                    <div class="d-flex gap-3 text-muted small">
+                        <span><i class="ri-user-line"></i> {{ historia.usuario.username }}</span>
+                        <span><i class="ri-calendar-line"></i> {{ historia.fecha|date:"d M Y" }}</span>
+                    </div>
+                    <div class="d-flex gap-3 mt-2">
+                        {% if user.is_authenticated %}
+                        <button type="button" class="btn btn-sm btn-like-historia {% if historia.pk in user_historia_likes %}btn-like-active{% else %}btn-like-inactive{% endif %}"
+                                data-like-url="{% url 'like_historia' historia.pk %}" data-historia-id="{{ historia.pk }}">
+                            <i class="ri-thumb-up-line"></i>
+                            <span class="historia-like-count" data-historia-id="{{ historia.pk }}">{{ historia.likes_count|default:0 }}</span>
+                        </button>
+                        {% else %}
+                        <span class="text-muted"><i class="ri-thumb-up-line"></i> {{ historia.likes_count|default:0 }}</span>
+                        {% endif %}
+                        <span class="text-muted"><i class="ri-chat-3-line"></i> {{ historia.comentarios_count|default:0 }}</span>
+                    </div>
                 </div>
                 <div class="card-footer bg-transparent border-0">
                     <a href="{% url 'historia_detalle' historia.pk %}" class="btn btn-outline-primary w-100">{% trans 'Leer más' %}</a>
@@ -24,4 +40,44 @@
 {% if user.is_authenticated %}
     <a href="{% url 'crear_historia' %}" class="btn btn-primary mt-4">{% trans 'Escribir historia' %}</a>
 {% endif %}
+
+<script>
+// CSRF token
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+}
+const csrftoken = getCookie('csrftoken');
+
+// Like historia en lista (delegación)
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.btn-like-historia');
+  if (!btn) return;
+  e.preventDefault();
+  
+  try {
+    const res = await fetch(btn.dataset.likeUrl, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin'
+    });
+    if (res.redirected) { window.location.href = res.url; return; }
+    if (!res.ok) return;
+    
+    const data = await res.json();
+    
+    // Actualizar contador en la card
+    const span = document.querySelector(`.historia-like-count[data-historia-id="${data.historia_id}"]`);
+    if (span) span.textContent = data.likes_count;
+    
+    // Toggle clases
+    btn.classList.toggle('btn-like-active', data.liked);
+    btn.classList.toggle('btn-like-inactive', !data.liked);
+  } catch (err) {
+    console.error('[LIKE HISTORIA] Error:', err);
+  }
+});
+</script>
+
 {% endblock %}

@@ -115,7 +115,7 @@
         <div id="comment-alert" class="mb-3"></div>
         <div class="d-flex align-items-center justify-content-between mb-3">
           <h5 class="mb-0 d-flex align-items-center gap-2"><i class="ri-chat-3-line"></i> {% trans "Comentarios" %}</h5>
-          <span class="badge bg-primary-subtle text-primary">{{ comentarios|length }} {% trans "total" %}</span>
+          <span id="comments-total-badge" class="badge bg-primary-subtle text-primary" data-count="{{ comentarios_total|default:comentarios|length }}">{{ comentarios_total|default:comentarios|length }} {% trans "total" %}</span>
         </div>
         {% if user.is_authenticated %}
         <form id="comment-form" method="post" action="{% url 'agenda_comentar_evento' evento.pk %}" class="mb-3">
@@ -149,45 +149,165 @@
     }
     const csrftoken = getCookie('csrftoken');
 
-    // Widget de estrellas
+    // Helper: Mostrar alerta estilo Django (versión simple sin Bootstrap JS)
+    function showAlert(message, type = 'success') {
+      let container = document.getElementById('alertas-mensajes');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'alertas-mensajes';
+        container.className = 'container position-fixed start-50 translate-middle-x';
+        container.style.cssText = 'z-index:1055; max-width:500px; top:80px;';
+        document.body.appendChild(container);
+      }
+      
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type} alert-dismissible fade show mt-3 shadow`;
+      alert.role = 'alert';
+      alert.style.animation = 'slideInDown 0.3s ease-out';
+      alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" aria-label="Close"></button>
+      `;
+      
+      // Cerrar al hacer clic en X
+      alert.querySelector('.btn-close').addEventListener('click', () => {
+        alert.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => alert.remove(), 300);
+      });
+      
+      container.appendChild(alert);
+      
+      // Auto-cerrar a los 3 segundos
+      setTimeout(() => {
+        alert.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => alert.remove(), 300);
+      }, 3000);
+    }
+
+    // Utilidades de slide para replies (animación suave abrir/cerrar)
+    function slideDown(el){
+      if(!el) return;
+      el.classList.remove('d-none');
+      el.classList.remove('is-collapsing');
+      el.style.maxHeight = '0px';
+      void el.offsetHeight; // forzar reflow
+      el.classList.add('is-expanding');
+      el.style.maxHeight = el.scrollHeight + 'px';
+      const done = ()=>{
+        el.classList.remove('is-expanding');
+        el.style.maxHeight = '';
+        el.removeEventListener('transitionend', done);
+      };
+      el.addEventListener('transitionend', done);
+    }
+    function slideUp(el){
+      if(!el) return;
+      el.classList.remove('is-expanding');
+      el.style.maxHeight = el.scrollHeight + 'px';
+      void el.offsetHeight; // forzar reflow
+      el.classList.add('is-collapsing');
+      el.style.maxHeight = '0px';
+      const done = ()=>{
+        el.classList.remove('is-collapsing');
+        el.classList.add('d-none');
+        el.style.maxHeight = '';
+        el.removeEventListener('transitionend', done);
+      };
+      el.addEventListener('transitionend', done);
+    }
+    function slideToggle(el){
+      if(!el) return;
+      if(el.classList.contains('d-none')) slideDown(el); else slideUp(el);
+    }
+
+    // Widget de estrellas - calificar/descalificar con un solo toque
     const widget = document.getElementById('rating-widget');
     if(widget){
       const url = widget.getAttribute('data-url');
       const stars = widget.querySelectorAll('.rating-stars i');
       const status = document.getElementById('rating-status');
-  const currentUser = parseInt(widget.getAttribute('data-current')||'0') || 0;
-  let current = currentUser; // No usar promedio para pintar selección del usuario
+      const currentUser = parseInt(widget.getAttribute('data-current')||'0') || 0;
+      let current = currentUser;
+      let isRating = false; // Evitar múltiples requests
+      
       function paint(n){
         stars.forEach((el, idx)=>{
-          if(idx < n){ el.classList.remove('ri-star-line'); el.classList.add('ri-star-fill'); }
-          else { el.classList.remove('ri-star-fill'); el.classList.add('ri-star-line'); }
+          if(idx < n){ 
+            el.classList.remove('ri-star-line'); 
+            el.classList.add('ri-star-fill'); 
+          } else { 
+            el.classList.remove('ri-star-fill'); 
+            el.classList.add('ri-star-line'); 
+          }
         });
       }
+      
       stars.forEach(star=>{
         const val = parseInt(star.getAttribute('data-value'));
-        star.addEventListener('mouseenter', ()=>paint(val));
-        star.addEventListener('mouseleave', ()=>paint(current));
+        
+        // Hover preview
+        star.addEventListener('mouseenter', ()=> {
+          if(!isRating) paint(val);
+        });
+        star.addEventListener('mouseleave', ()=> {
+          if(!isRating) paint(current);
+        });
+        
+        // Click: calificar o descalificar
         star.addEventListener('click', async ()=>{
+          if(isRating) return; // Evitar spam
+          isRating = true;
+          
+          // Si toca la misma estrella, descalificar (eliminar rating)
+          const newVal = (current === val) ? 0 : val;
+          
           try{
             const form = new FormData();
-            form.append('estrellas', String(val));
-            const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, body: form});
+            form.append('estrellas', String(newVal));
+            const resp = await fetch(url, {
+              method:'POST', 
+              headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, 
+              credentials:'same-origin', 
+              body: form
+            });
             const data = await resp.json();
+            
             if(data.ok){
-              current = val; paint(current);
+              current = newVal;
+              paint(current);
+              
+              // Actualizar promedio
               if(data.avg_rating !== undefined){
                 const avgSpan = document.getElementById('avg-rating-value');
                 if(avgSpan){ avgSpan.textContent = data.avg_rating + ' / 5'; }
               }
-              status.textContent = '{% trans "¡Gracias por calificar!" %} (' + val + '★)';
-              setTimeout(()=> status.textContent='', 2500);
-            }else{
-              status.textContent = data.error || '{% trans "Error al calificar" %}';
+              
+              // Alertas personalizadas según calificación
+              if(newVal === 0){
+                showAlert('{% trans "Calificación eliminada" %}', 'info');
+              } else if(newVal === 5){
+                showAlert('{% trans "¡Excelente! Cuéntanos tu experiencia en los comentarios" %}', 'success');
+              } else if(newVal === 4){
+                showAlert('{% trans "¡Muy bien! Comparte tu opinión abajo" %}', 'success');
+              } else if(newVal === 3){
+                showAlert('{% trans "¿Qué mejorarías? Déjanos un comentario" %}', 'warning');
+              } else if(newVal === 2){
+                showAlert('{% trans "¿Qué falló? Ayúdanos con tu feedback en los comentarios" %}', 'warning');
+              } else if(newVal === 1){
+                showAlert('{% trans "Lamentamos tu experiencia. Cuéntanos qué pasó en los comentarios" %}', 'danger');
+              }
+            } else {
+              showAlert(data.error || '{% trans "Error al calificar" %}', 'danger');
             }
-          }catch(e){ status.textContent = '{% trans "Error de red" %}'; }
+          } catch(e) { 
+            showAlert('{% trans "Error de red" %}', 'danger');
+          } finally {
+            isRating = false;
+          }
         });
       });
-      // pintar estado inicial basado en promedio redondeado
+      
+      // Pintar estado inicial
       paint(current);
     }
 
@@ -224,17 +344,29 @@
           }, 4000);
         }
         try{
-          const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, body: fd});
+          const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, credentials:'same-origin', body: fd});
           const data = await resp.json();
           if(data.ok){
             const feed = document.getElementById('comments-feed');
             if(feed){
               const wrapper = document.createElement('div');
               wrapper.innerHTML = data.html;
-              feed.prepend(wrapper.firstElementChild);
+              const el = wrapper.firstElementChild;
+              if(el){
+                el.classList.add('flash-highlight');
+                feed.prepend(el);
+                try{ el.scrollIntoView({behavior:'smooth', block:'nearest'}); }catch(_){ }
+              }
             }
             textarea.value='';
             showCommentAlert('{% trans "Comentario publicado." %}', 'success');
+            // Incrementar contador total de comentarios (incluye respuestas)
+            const badge = document.getElementById('comments-total-badge');
+            if(badge){
+              const n = parseInt((data && data.total !== undefined) ? data.total : (badge.getAttribute('data-count')||'0')) || 0;
+              badge.setAttribute('data-count', String(n));
+              badge.textContent = n + ' ' + ('{% trans "total" %}');
+            }
           }else{
             showCommentAlert(data.error || '{% trans "Error al publicar el comentario." %}', 'danger');
           }
@@ -248,18 +380,25 @@
     document.addEventListener('click', async (e)=>{
       const btn = e.target.closest('.btn-like-comentario');
       if(!btn) return;
-      e.preventDefault();
+      e.preventDefault(); // evita submit del form y usamos fetch
       try{
         const res = await fetch(btn.dataset.likeUrl, {
           method:'POST',
-          headers:{'X-CSRFToken':csrftoken,'X-Requested-With':'XMLHttpRequest'}
+          headers:{'X-CSRFToken':csrftoken,'X-Requested-With':'XMLHttpRequest'},
+          credentials:'same-origin'
         });
+        if(res.redirected){ window.location.href = res.url; return; }
         if(!res.ok) return;
         const data = await res.json();
-        const span = document.querySelector(`.comment-like-count[data-comment-id="${data.comentario_id}"]`);
-        if(span) span.textContent = data.likes_count;
+        // Actualizar AMBOS spans: el del botón y el del meta
+        document.querySelectorAll(`.comment-like-count[data-comment-id="${data.comentario_id}"], .meta-likes-count[data-comment-id="${data.comentario_id}"]`).forEach(span => {
+          span.textContent = data.likes_count;
+        });
         btn.classList.toggle('btn-like-active', data.liked);
         btn.classList.toggle('btn-like-inactive', !data.liked);
+        // Evitar doble envío por el form fallback
+        const likeForm = btn.closest('form.like-form');
+        if(likeForm){ likeForm.addEventListener('submit', (ev)=>ev.preventDefault(), {once:true}); }
       }catch(_){ /* noop */}
     });
 
@@ -289,6 +428,102 @@
         const box = document.querySelector(sel);
         if(box) box.classList.add('d-none');
       }
+      // Toggle de replies por hilo (flecha abajo/arriba estilo TikTok, con animación)
+      const repliesToggle = e.target.closest('.btn-replies-toggle');
+      if(repliesToggle){
+        const sel = repliesToggle.getAttribute('data-target');
+        const box = document.querySelector(sel);
+        if(box){
+          const icon = repliesToggle.querySelector('i');
+          const willExpand = box.classList.contains('d-none');
+          slideToggle(box);
+          if(icon){
+            icon.classList.toggle('ri-arrow-down-s-line', !willExpand);
+            icon.classList.toggle('ri-arrow-up-s-line', willExpand);
+          }
+        }
+      }
+    });
+
+    // Interceptar submit de Like (evitar recarga siempre)
+    document.addEventListener('submit', async (e)=>{
+      const lf = e.target.closest('form.like-form');
+      if(!lf) return;
+      e.preventDefault();
+      const btn = lf.querySelector('.btn-like-comentario');
+      if(!btn) return;
+      try{
+        const res = await fetch(btn.dataset.likeUrl, {
+          method:'POST', headers:{'X-CSRFToken':csrftoken,'X-Requested-With':'XMLHttpRequest'}, credentials:'same-origin'
+        });
+        if(res.redirected){ window.location.href = res.url; return; }
+        if(!res.ok) return;
+        const data = await res.json();
+        // Actualizar AMBOS spans: el del botón y el del meta
+        document.querySelectorAll(`.comment-like-count[data-comment-id="${data.comentario_id}"], .meta-likes-count[data-comment-id="${data.comentario_id}"]`).forEach(span => {
+          span.textContent = data.likes_count;
+        });
+        btn.classList.toggle('btn-like-active', data.liked);
+        btn.classList.toggle('btn-like-inactive', !data.liked);
+      }catch(_){ }
+    });
+
+    // Interceptar submit de Editar comentario (AJAX)
+    document.addEventListener('submit', async (e)=>{
+      const ef = e.target.closest('form.edit-form');
+      if(!ef) return;
+      e.preventDefault();
+      const url = ef.getAttribute('action');
+      const fd = new FormData(ef);
+      try{
+        const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, credentials:'same-origin', body: fd});
+        const data = await resp.json();
+        if(data && data.ok){
+          const txt = document.querySelector('.comment-text[data-comment-id="' + data.comentario_id + '"]');
+          if(txt) txt.textContent = data.texto;
+          const box = document.getElementById('edit-box-' + data.comentario_id);
+          if(box) box.classList.add('d-none');
+        }
+      }catch(_){ }
+    });
+
+    // Interceptar submit de Eliminar comentario - usar modal de confirmación
+    document.addEventListener('submit', async (e)=>{
+      const df = e.target.closest('form.delete-form');
+      if(!df) return;
+      e.preventDefault();
+      
+      const url = df.getAttribute('action');
+      const conf = df.getAttribute('data-confirm') || '{% trans "¿Eliminar este comentario?" %}';
+      const fd = new FormData(df);
+      
+      // Mostrar modal de confirmación
+      window.showDeleteConfirmation(conf, async () => {
+        try{
+          const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, credentials:'same-origin', body: fd});
+          const data = await resp.json();
+          if(data && data.ok){
+            const item = document.querySelector('.comment-item[data-comment-id="' + data.deleted_id + '"]');
+            if(item){
+              item.classList.add('fade-out');
+              setTimeout(() => item.remove(), 300);
+            }
+            // Actualizar badge total
+            const badge = document.getElementById('comments-total-badge');
+            if(badge && data.total !== undefined){
+              badge.setAttribute('data-count', String(data.total));
+              badge.textContent = data.total + ' ' + ('{% trans "total" %}');
+            }
+            // Si es respuesta, actualizar contador de respuestas del padre
+            if(data.parent_id){
+              const rc = document.querySelector('.replies-count[data-comment-id="' + data.parent_id + '"]');
+              if(rc && data.replies_count !== undefined){ rc.textContent = String(data.replies_count); }
+              const box = document.getElementById('replies-' + data.parent_id);
+              if(box && data.replies_count === 0){ slideUp(box); }
+            }
+          }
+        }catch(_){ }
+      }); // Fin de showDeleteConfirmation callback
     });
 
     // Copiar enlace
@@ -308,6 +543,90 @@
         }catch(_e){ /* noop */ }
       });
     }
+
+    // AJAX: envío de respuestas (reply) con actualización del hilo y contadores
+    document.addEventListener('submit', async (e)=>{
+      const formEl = e.target.closest('.reply-form');
+      if(!formEl) return;
+      e.preventDefault();
+      const url = formEl.getAttribute('action');
+      const fd = new FormData(formEl);
+      try{
+          const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, credentials:'same-origin', body: fd});
+        const data = await resp.json();
+        if(data && data.ok){
+          const parentId = data.parent_id;
+          const repliesBox = document.getElementById('replies-' + parentId);
+          if(repliesBox){
+            // Insertar nueva respuesta al final y mostrar el bloque
+            const wrap = document.createElement('div');
+            wrap.innerHTML = data.html;
+            const child = wrap.firstElementChild;
+            if(child){
+              child.classList.add('flash-highlight');
+              repliesBox.appendChild(child);
+            }
+            const wasHidden = repliesBox.classList.contains('d-none');
+            if(wasHidden){ slideDown(repliesBox); }
+          }
+          // Asegurar botón de toggle y poner flecha hacia arriba (abierto)
+          const meta = document.getElementById('comment-meta-' + parentId);
+          if(meta && !meta.querySelector('.btn-replies-toggle')){
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-sm btn-link text-decoration-none text-muted btn-replies-toggle ms-1 p-0 align-baseline';
+            btn.setAttribute('data-target', '#replies-' + parentId);
+            btn.setAttribute('aria-label', 'Toggle replies');
+            btn.innerHTML = '<i class="ri-arrow-up-s-line"></i>';
+            meta.appendChild(btn);
+          } else if(meta){
+            const icon = meta.querySelector('.btn-replies-toggle i');
+            if(icon){ icon.classList.remove('ri-arrow-down-s-line'); icon.classList.add('ri-arrow-up-s-line'); }
+          }
+          // Incrementar contador de respuestas del hilo
+          const rc = document.querySelector('.replies-count[data-comment-id="' + parentId + '"]');
+          if(rc){
+            const n = parseInt(rc.textContent.trim()||'0') + 1;
+            rc.textContent = String(n);
+          }
+          // Actualizar badge de total (si servidor envió total, úsalo)
+          const badge = document.getElementById('comments-total-badge');
+          if(badge){
+            const newTotal = (data.total !== undefined) ? parseInt(data.total) : (parseInt(badge.getAttribute('data-count')||'0') + 1);
+            badge.setAttribute('data-count', String(newTotal));
+            badge.textContent = newTotal + ' ' + ('{% trans "total" %}');
+          }
+          // Limpiar textarea y cerrar caja de reply
+          const txt = formEl.querySelector('textarea[name="texto"]');
+          if(txt) txt.value = '';
+          const replyBox = formEl.closest('[id^="reply-box-"]');
+          if(replyBox) replyBox.classList.add('d-none');
+        }
+      }catch(_err){ /* noop */ }
+    });
   })();
 </script>
+
+<style>
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+</style>
+
 {% endblock %}

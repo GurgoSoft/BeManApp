@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.urls import reverse
 from django import forms
+from django.http import JsonResponse
 
 from apps.foro.models import Historia, Like
 from apps.agenda.models import Evento
@@ -118,6 +119,48 @@ def marcar_notificacion_leida(request, pk):
     notif.leida = True
     notif.save()
     return redirect(notif.url or '/')
+
+# APIs para sidebar móvil
+@login_required
+def user_stats_api(request):
+    """Estadísticas del usuario para sidebar móvil"""
+    from apps.foro.models import Historia, Comentario, Like
+    from django.db.models import Count
+    
+    historias_count = Historia.objects.filter(usuario=request.user).count()
+    comentarios_count = Comentario.objects.filter(usuario=request.user).count()
+    likes_received = Like.objects.filter(historia__usuario=request.user).count()
+    
+    return JsonResponse({
+        'historias': historias_count,
+        'comentarios': comentarios_count,
+        'likes': likes_received
+    })
+
+@login_required
+def notificaciones_recientes_api(request):
+    """Notificaciones recientes para sidebar móvil"""
+    from django.utils import timezone
+    from django.utils.timesince import timesince
+    
+    notifs = request.user.notificaciones.order_by('-fecha')[:5]
+    count = request.user.notificaciones.filter(leida=False).count()
+    
+    notifs_list = []
+    for n in notifs:
+        notifs_list.append({
+            'id': n.pk,
+            'mensaje': n.mensaje,
+            'tipo': n.tipo if hasattr(n, 'tipo') else 'general',
+            'leida': n.leida,
+            'tiempo': timesince(n.fecha) + ' ago',
+            'url': n.url or '#'
+        })
+    
+    return JsonResponse({
+        'count': count,
+        'notificaciones': notifs_list
+    })
 
 def clean_phone_number(self):
     number = self.cleaned_data.get('phone_number', '').strip()

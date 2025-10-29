@@ -9,6 +9,8 @@
 /* Animación simple para feedback */
 @keyframes like-pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
 .btn-like-anim { animation: like-pop 250ms ease-in-out; }
+/* Refuerzo visual del feed para evitar transparencias y colapsos de margen */
+#comments-feed { background-color: var(--bs-card-bg); }
 </style>
 <div class="container py-5">
     <div class="row justify-content-center">
@@ -64,131 +66,11 @@
                             <div class="card-body p-0">
                                 <div class="d-flex align-items-center justify-content-between px-3 pt-3 pb-2">
                                     <h4 class="mb-0 d-flex align-items-center gap-2"><i class="ri-chat-3-line"></i> {% trans "Comentarios" %}</h4>
-                                    <span class="badge bg-primary-subtle text-primary">{{ comentarios|length }} {% trans "total" %}</span>
+                                    <span id="comments-total-badge" class="badge bg-primary-subtle text-primary" data-count="{{ comentarios_total|default:comentarios|length }}">{{ comentarios_total|default:comentarios|length }} {% trans "total" %}</span>
                                 </div>
-                                <div class="comments-feed" style="max-height:520px; overflow-y:auto; padding:0 12px 12px;">
+                                <div id="comments-feed" class="comments-feed" style="padding:0 12px 12px;">
                                     {% for comentario in comentarios %}
-                                        <div class="comment-item py-3 border-bottom position-relative" data-comment-id="{{ comentario.pk }}">
-                                            <div class="d-flex align-items-start gap-3">
-                                                <div class="flex-shrink-0">
-                                                    {% if comentario.usuario.foto_perfil %}
-                                                        <img src="{{ comentario.usuario.foto_perfil.url }}" class="avatar-sm rounded-circle" style="width:42px;height:42px;object-fit:cover;" alt="{{ comentario.usuario.username }}">
-                                                    {% else %}
-                                                        <img src="{% static 'img/default_avatar.png' %}" class="avatar-sm rounded-circle" style="width:42px;height:42px;object-fit:cover;" alt="{{ comentario.usuario.username }}">
-                                                    {% endif %}
-                                                </div>
-                                                <div class="flex-grow-1 min-w-0">
-                                                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                                                        <span class="fw-semibold">{{ comentario.usuario.username }}</span>
-                                                        <small class="text-muted">{{ comentario.fecha|date:"d M H:i" }}</small>
-                                                        <small class="text-muted">· {{ comment_like_counts|dict_get:comentario.pk|default:0 }} 👍 · {{ comentario.replies_count }} 💬</small>
-                                                    </div>
-                                                    <div class="mt-1 comment-text" data-original-text="{{ comentario.texto }}">{{ comentario.texto }}</div>
-                                                    <div class="d-flex align-items-center gap-2 mt-2">
-                                                        {% if user.is_authenticated %}
-                                                            <button class="btn btn-sm btn-like-comentario btn-icon {% if comentario.pk in user_likes %}btn-like-active{% else %}btn-like-inactive{% endif %}" data-like-url="{% url 'like_comentario' comentario.pk %}" data-comment-id="{{ comentario.pk }}" aria-label="{% trans 'Dar like' %}">
-                                                                <i class="ri-thumb-up-line"></i>
-                                                                <span class="comment-like-count" data-comment-id="{{ comentario.pk }}">{{ comment_like_counts|dict_get:comentario.pk|default:0 }}</span>
-                                                            </button>
-                                                            <button class="btn btn-sm btn-outline-primary btn-reply-toggle" data-target="#reply-box-{{ comentario.pk }}"><i class="ri-reply-line"></i></button>
-                                                            {% if user == comentario.usuario %}
-                                                                <button class="btn btn-sm btn-outline-info btn-edit-toggle" data-target="#edit-box-{{ comentario.pk }}"><i class="ri-edit-line"></i></button>
-                                                            {% endif %}
-                                                            {% if user == comentario.usuario or user == historia.usuario %}
-                                                                <form method="post" action="{% url 'eliminar_comentario' comentario.pk %}" class="d-inline" data-confirm="{% trans '¿Eliminar este comentario?' %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
-                                                                    {% csrf_token %}
-                                                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="ri-delete-bin-line"></i></button>
-                                                                </form>
-                                                            {% endif %}
-                                                        {% endif %}
-                                                    </div>
-                                                    <!-- Caja edición -->
-                                                    {% if user.is_authenticated and user == comentario.usuario %}
-                                                        <div id="edit-box-{{ comentario.pk }}" class="mt-2 d-none">
-                                                            <form method="post" action="{% url 'editar_comentario' comentario.pk %}">
-                                                                {% csrf_token %}
-                                                                <textarea name="texto" class="form-control form-control-sm" rows="2">{{ comentario.texto }}</textarea>
-                                                                <div class="d-flex gap-2 mt-2">
-                                                                    <button type="submit" class="btn btn-primary btn-sm"><i class="ri-check-line"></i> {% trans "Guardar" %}</button>
-                                                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-cancel-edit" data-target="#edit-box-{{ comentario.pk }}">{% trans "Cancelar" %}</button>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                    {% endif %}
-                                                    <!-- Responder -->
-                                                    {% if user.is_authenticated %}
-                                                        <div id="reply-box-{{ comentario.pk }}" class="mt-2 d-none">
-                                                            <form method="post" action="{% url 'responder_comentario' comentario.pk %}">
-                                                                {% csrf_token %}
-                                                                <textarea name="texto" class="form-control form-control-sm" rows="2" required placeholder="{% trans 'Escribe una respuesta...' %}"></textarea>
-                                                                <div class="d-flex gap-2 mt-2">
-                                                                    <button type="submit" class="btn btn-primary btn-sm"><i class="ri-send-plane-line"></i> {% trans "Responder" %}</button>
-                                                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-cancel-reply" data-target="#reply-box-{{ comentario.pk }}">{% trans "Cancelar" %}</button>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                    {% endif %}
-                                                    <!-- Respuestas -->
-                                                    {% if comentario.respuestas.all %}
-                                                        <div class="replies mt-3 ps-3 border-start" style="--bs-border-color:rgba(255,255,255,.08)">
-                                                            {% for respuesta in comentario.respuestas.all %}
-                                                                <div class="reply-item mb-3" data-reply-id="{{ respuesta.pk }}">
-                                                                    <div class="d-flex gap-2 align-items-start">
-                                                                        {% if respuesta.usuario.foto_perfil %}
-                                                                            <img src="{{ respuesta.usuario.foto_perfil.url }}" class="rounded-circle" style="width:34px;height:34px;object-fit:cover;" alt="{{ respuesta.usuario.username }}">
-                                                                        {% else %}
-                                                                            <img src="{% static 'img/default_avatar.png' %}" class="rounded-circle" style="width:34px;height:34px;object-fit:cover;" alt="{{ respuesta.usuario.username }}">
-                                                                        {% endif %}
-                                                                        <div class="flex-grow-1">
-                                                                            <div class="d-flex flex-wrap align-items-center gap-2">
-                                                                                <span class="fw-semibold">{{ respuesta.usuario.username }}</span>
-                                                                                <small class="text-muted">{{ respuesta.fecha|date:"d M H:i" }}</small>
-                                                                                <small class="text-muted">{% trans "A" %} {{ respuesta.parent.usuario.username }}</small>
-                                                                            </div>
-                                                                            <div class="mt-1">{{ respuesta.texto }}</div>
-                                                                            <div class="d-flex align-items-center gap-2 mt-1">
-                                                                                {% if user.is_authenticated %}
-                                                                                    <button class="btn btn-xs btn-like-comentario btn-icon {% if respuesta.pk in user_likes %}btn-like-active{% else %}btn-like-inactive{% endif %}" data-like-url="{% url 'like_comentario' respuesta.pk %}" data-comment-id="{{ respuesta.pk }}">
-                                                                                        <i class="ri-thumb-up-line"></i>
-                                                                                        <span class="comment-like-count" data-comment-id="{{ respuesta.pk }}">{{ comment_like_counts|dict_get:respuesta.pk|default:0 }}</span>
-                                                                                    </button>
-                                                                                    {% if user == respuesta.usuario %}
-                                                                                        <button class="btn btn-outline-info btn-xs btn-edit-toggle" data-target="#edit-reply-{{ respuesta.pk }}"><i class="ri-edit-line"></i></button>
-                                                                                    {% endif %}
-                                                                                    {% if user == respuesta.usuario %}
-                                                                                        <form method="post" action="{% url 'eliminar_comentario' respuesta.pk %}" class="d-inline" data-confirm="{% trans '¿Eliminar esta respuesta?' %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
-                                                                                            {% csrf_token %}
-                                                                                            <button type="submit" class="btn btn-outline-danger btn-xs"><i class="ri-delete-bin-line"></i></button>
-                                                                                        </form>
-                                                                                    {% elif user == historia.usuario %}
-                                                                                        <form method="post" action="{% url 'eliminar_comentario' respuesta.pk %}" class="d-inline" data-confirm="{% trans '¿Eliminar esta respuesta?' %}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
-                                                                                            {% csrf_token %}
-                                                                                            <button type="submit" class="btn btn-outline-danger btn-xs"><i class="ri-delete-bin-line"></i></button>
-                                                                                        </form>
-                                                                                    {% endif %}
-                                                                                {% endif %}
-                                                                            </div>
-                                                                            {% if user.is_authenticated and user == respuesta.usuario %}
-                                                                                <div id="edit-reply-{{ respuesta.pk }}" class="mt-2 d-none">
-                                                                                    <form method="post" action="{% url 'editar_comentario' respuesta.pk %}">
-                                                                                        {% csrf_token %}
-                                                                                        <textarea name="texto" class="form-control form-control-sm" rows="2">{{ respuesta.texto }}</textarea>
-                                                                                        <div class="d-flex gap-2 mt-2">
-                                                                                            <button type="submit" class="btn btn-primary btn-sm"><i class="ri-check-line"></i> {% trans "Guardar" %}</button>
-                                                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-cancel-edit" data-target="#edit-reply-{{ respuesta.pk }}">{% trans "Cancelar" %}</button>
-                                                                                        </div>
-                                                                                    </form>
-                                                                                </div>
-                                                                            {% endif %}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            {% endfor %}
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                        </div>
+                                        {% include 'foro/_comentario_item.html' with c=comentario %}
                                     {% empty %}
                                         <div class="text-center text-muted py-4">{% trans "No hay comentarios aún." %}</div>
                                     {% endfor %}
@@ -198,7 +80,8 @@
 
                     <!-- Comentar -->
                     {% if user.is_authenticated and user != historia.usuario %}
-                        <form method="post" action="{% url 'comentar_historia' historia.pk %}">
+                        <div id="comment-alert" class="mb-3"></div>
+                        <form id="comment-form" method="post" action="{% url 'comentar_historia' historia.pk %}">
                             {% csrf_token %}
                             <div class="mb-3">
   <textarea name="texto" class="form-control" rows="3" required></textarea>
@@ -233,63 +116,86 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-// Like/Unlike historia
+// Helpers de slide
+function slideDown(el){
+    if(!el) return; el.classList.remove('d-none'); el.classList.remove('is-collapsing'); el.style.maxHeight='0px'; void el.offsetHeight; el.classList.add('is-expanding'); el.style.maxHeight=el.scrollHeight+'px';
+    const done=()=>{ el.classList.remove('is-expanding'); el.style.maxHeight=''; el.removeEventListener('transitionend', done); };
+    el.addEventListener('transitionend', done);
+}
+function slideUp(el){
+    if(!el) return; el.classList.remove('is-expanding'); el.style.maxHeight=el.scrollHeight+'px'; void el.offsetHeight; el.classList.add('is-collapsing'); el.style.maxHeight='0px';
+    const done=()=>{ el.classList.remove('is-collapsing'); el.classList.add('d-none'); el.style.maxHeight=''; el.removeEventListener('transitionend', done); };
+    el.addEventListener('transitionend', done);
+}
+function slideToggle(el){ if(!el) return; if(el.classList.contains('d-none')) slideDown(el); else slideUp(el); }
+
+// Like/Unlike historia - actualizar en tiempo real
 const btnStory = document.getElementById('btn-like-historia');
 if (btnStory) {
   btnStory.addEventListener('click', async () => {
+    console.log('[LIKE HISTORIA] Click');
     try {
       const res = await fetch(btnStory.dataset.likeUrl, {
-        method: 'POST', // <- necesario
-        headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin'
       });
       if (!res.ok) return;
       const data = await res.json();
+      console.log('[LIKE HISTORIA] Respuesta:', data);
       document.getElementById('story-like-count').textContent = data.likes_count;
-    btnStory.classList.toggle('btn-like-active', data.liked);
-    btnStory.classList.toggle('btn-like-inactive', !data.liked);
+      btnStory.classList.toggle('btn-like-active', data.liked);
+      btnStory.classList.toggle('btn-like-inactive', !data.liked);
       btnStory.classList.add('btn-like-anim');
       setTimeout(() => btnStory.classList.remove('btn-like-anim'), 250);
-    } catch (_) {}
+      console.log('[LIKE HISTORIA] Contador actualizado a', data.likes_count);
+    } catch (err) {
+      console.error('[LIKE HISTORIA] Error:', err);
+    }
   });
-}
-
-// Like/Unlike comentarios (delegación)
+}// Like/Unlike comentarios (delegación) - con actualización en tiempo real
 document.addEventListener('click', async (e) => {
   const btn = e.target.closest('.btn-like-comentario');
   if (!btn) return;
   e.preventDefault();
   try {
-        console.debug('Like comentario click', {id: btn.dataset.commentId, url: btn.dataset.likeUrl});
+        console.log('[LIKE] Click en comentario', btn.dataset.commentId);
         const res = await fetch(btn.dataset.likeUrl, {
       method: 'POST',
-      headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
+      headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin'
     });
+    if(res.redirected){ window.location.href = res.url; return; }
     if (!res.ok) return;
     const data = await res.json();
-    // actualizar contador
-    const span = document.querySelector(`.comment-like-count[data-comment-id="${data.comentario_id}"]`);
-    if (span) span.textContent = data.likes_count;
-    // toggle clases
+    
+    // Actualizar AMBOS spans: el del botón y el del meta
+    document.querySelectorAll(`.comment-like-count[data-comment-id="${data.comentario_id}"], .meta-likes-count[data-comment-id="${data.comentario_id}"]`).forEach(span => {
+      span.textContent = data.likes_count;
+    });
+    
+    // toggle clases en el botón
     btn.classList.toggle('btn-like-active', data.liked);
     btn.classList.toggle('btn-like-inactive', !data.liked);
     btn.classList.add('btn-like-anim');
     setTimeout(() => btn.classList.remove('btn-like-anim'), 250);
-  } catch (_) {}
-});
-
-// Mostrar / ocultar cajas de respuesta y edición (delegación)
+    console.log('[LIKE] Contador actualizado a', data.likes_count, '- liked:', data.liked);
+  } catch (err) {
+    console.error('[LIKE] Error:', err);
+  }
+});// Mostrar / ocultar cajas de respuesta y edición (delegación)
 document.addEventListener('click', (e) => {
     const replyToggle = e.target.closest('.btn-reply-toggle');
     if (replyToggle) {
         const targetSel = replyToggle.getAttribute('data-target');
         const box = document.querySelector(targetSel);
-        if (box) box.classList.toggle('d-none');
+                if (box) box.classList.toggle('d-none');
     }
     const editToggle = e.target.closest('.btn-edit-toggle');
     if (editToggle) {
         const targetSel = editToggle.getAttribute('data-target');
         const box = document.querySelector(targetSel);
-        if (box) box.classList.toggle('d-none');
+                if (box) box.classList.toggle('d-none');
     }
     const cancelReply = e.target.closest('.btn-cancel-reply');
     if (cancelReply) {
@@ -303,6 +209,217 @@ document.addEventListener('click', (e) => {
         const box = document.querySelector(targetSel);
         if (box) box.classList.add('d-none');
     }
+
+        // Toggle desplegar replies con animación
+        const repliesToggle = e.target.closest('.btn-replies-toggle');
+        if(repliesToggle){
+            const sel = repliesToggle.getAttribute('data-target');
+            const box = document.querySelector(sel);
+            if(box){
+                const icon = repliesToggle.querySelector('i');
+                const willExpand = box.classList.contains('d-none');
+                slideToggle(box);
+                if(icon){
+                    icon.classList.toggle('ri-arrow-down-s-line', !willExpand);
+                    icon.classList.toggle('ri-arrow-up-s-line', willExpand);
+                }
+            }
+        }
 });
+
+// Interceptar submit de editar comentario (AJAX)
+document.addEventListener('submit', async (e)=>{
+    const ef = e.target.closest('form.edit-form');
+    if(!ef) return;
+    e.preventDefault();
+    const url = ef.getAttribute('action');
+    const fd = new FormData(ef);
+    const id = ef.getAttribute('data-comment-id') || ef.dataset.commentId || (ef.closest('[id^="edit-box-"]')?.id?.replace('edit-box-',''));
+    const btn = ef.querySelector('button[type="submit"]'); const prev=btn?btn.innerHTML:null; if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> {% trans "Guardando" %}'; }
+    try{
+        const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, credentials:'same-origin', body: fd});
+        if(resp.redirected){ window.location.href = resp.url; return; }
+        const ct = resp.headers.get('content-type')||'';
+        if(!ct.includes('application/json')){ throw new Error('Non-JSON'); }
+        const data = await resp.json();
+        if(data && data.ok){
+            const txt = document.querySelector('.comment-text[data-comment-id="' + (data.comentario_id || id) + '"]');
+            if(txt){ txt.textContent = data.texto; }
+            const box = document.getElementById('edit-box-' + (data.comentario_id || id));
+            if(box) box.classList.add('d-none');
+        } else {
+            // Mostrar error sin cerrar la caja
+            const msg = (data && data.error) || '{% trans "No se pudo guardar el comentario." %}';
+            // inline
+            let holder = ef.querySelector('.form-error');
+            if(!holder){ holder = document.createElement('div'); holder.className='form-error text-warning small mt-1'; ef.appendChild(holder); }
+            holder.textContent = msg;
+        }
+    }catch(_){}
+    finally{ if(btn){ btn.disabled=false; btn.innerHTML=prev; } }
+});
+
+// Interceptar delete comentario/respuesta - usar modal de confirmación
+document.addEventListener('submit', async (e)=>{
+  const df = e.target.closest('form.delete-form');
+  if(!df) return;
+  e.preventDefault();
+  
+  const confirmMsg = df.getAttribute('data-confirm') || '{% trans "¿Eliminar este comentario?" %}';
+  const url = df.getAttribute('action');
+  const commentId = df.getAttribute('data-comment-id');
+  const fd = new FormData(df);
+  
+  // Mostrar modal de confirmación
+  window.showDeleteConfirmation(confirmMsg, async () => {
+    console.log('[DELETE] Eliminando comentario', commentId);
+    try{
+      const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, credentials:'same-origin', body: fd});
+      if(resp.redirected){ window.location.href = resp.url; return; }
+      const data = await resp.json();
+      console.log('[DELETE] Respuesta:', data);
+      if(data && data.ok){
+        const item = document.querySelector('.comment-item[data-comment-id="' + data.deleted_id + '"]');
+        if(item){
+          item.classList.add('fade-out');
+          setTimeout(() => item.remove(), 300);
+          console.log('[DELETE] Comentario eliminado del DOM');
+        }
+        // Actualizar badge total en tiempo real
+        const badge = document.getElementById('comments-total-badge');
+        if(badge && data.total !== undefined){
+          badge.setAttribute('data-count', String(data.total));
+          badge.textContent = data.total + ' ' + ('{% trans "total" %}');
+          console.log('[DELETE] Badge total actualizado a', data.total);
+        }
+        // Si es respuesta, actualizar contador de respuestas del padre en tiempo real
+        if(data.parent_id){
+          const rc = document.querySelector('.replies-count[data-comment-id="' + data.parent_id + '"]');
+          if(rc && data.replies_count !== undefined){
+            rc.textContent = String(data.replies_count);
+            console.log('[DELETE] Contador de respuestas del padre actualizado a', data.replies_count);
+          }
+          const box = document.getElementById('replies-' + data.parent_id);
+          if(box && data.replies_count === 0){
+            slideUp(box);
+            console.log('[DELETE] Cerrando bloque de respuestas vacío');
+          }
+        }
+      }
+    }catch(err){
+      console.error('[DELETE] Error:', err);
+    }
+  }); // Fin de showDeleteConfirmation callback
+});
+// Interceptar responder (AJAX)
+document.addEventListener('submit', async (e)=>{
+    const rf = e.target.closest('form.reply-form');
+    if(!rf) return;
+    e.preventDefault();
+    console.log('[RESPONDER] Iniciando respuesta...');
+    const url = rf.getAttribute('action');
+    const btn = rf.querySelector('button[type="submit"]');
+    const prevBtn = btn ? btn.innerHTML : null;
+    if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> {% trans "Enviando" %}'; }
+    const fd = new FormData(rf);
+    try{
+        console.log('[RESPONDER] Enviando a:', url);
+        const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, credentials:'same-origin', body: fd});
+        console.log('[RESPONDER] Respuesta status:', resp.status, 'redirected:', resp.redirected);
+        if(resp.redirected){ window.location.href = resp.url; return; }
+        const ct = resp.headers.get('content-type')||'';
+        if(!ct.includes('application/json')){ console.error('[RESPONDER] No es JSON:', ct); throw new Error('Non-JSON'); }
+        const data = await resp.json();
+        console.log('[RESPONDER] Data recibida:', data);
+        if(data && data.ok){
+            const parentId = data.parent_id;
+            console.log('[RESPONDER] Insertando respuesta en replies-' + parentId);
+            const repliesBox = document.getElementById('replies-' + parentId);
+            if(repliesBox){
+                const wrap = document.createElement('div');
+                wrap.innerHTML = data.html;
+                const child = wrap.firstElementChild;
+                if(child){
+                    child.classList.add('flash-highlight');
+                    repliesBox.appendChild(child);
+                    console.log('[RESPONDER] Respuesta insertada');
+                }
+                const wasHidden = repliesBox.classList.contains('d-none');
+                if(wasHidden){
+                    console.log('[RESPONDER] Abriendo bloque de respuestas con slideDown');
+                    slideDown(repliesBox);
+                }
+            } else {
+                console.error('[RESPONDER] No se encontró replies-' + parentId);
+            }
+            const meta = document.getElementById('comment-meta-' + parentId);
+            if(meta && !meta.querySelector('.btn-replies-toggle')){
+                const btn = document.createElement('button');
+                btn.type='button';
+                btn.className='btn btn-sm btn-link text-decoration-none text-muted btn-replies-toggle ms-1 p-0 align-baseline';
+                btn.setAttribute('data-target', '#replies-' + parentId);
+                btn.setAttribute('aria-label','Toggle replies');
+                btn.innerHTML='<i class="ri-arrow-up-s-line"></i>';
+                meta.appendChild(btn);
+                console.log('[RESPONDER] Botón toggle creado');
+            } else if(meta){
+                const icon = meta.querySelector('.btn-replies-toggle i');
+                if(icon){
+                    icon.classList.remove('ri-arrow-down-s-line');
+                    icon.classList.add('ri-arrow-up-s-line');
+                    console.log('[RESPONDER] Icono actualizado a flecha arriba');
+                }
+            }
+            const rc = document.querySelector('.replies-count[data-comment-id="' + parentId + '"]');
+            if(rc){
+              const newCount = data.replies_count || (parseInt(rc.textContent||'0') + 1);
+              rc.textContent = String(newCount);
+              console.log('[RESPONDER] Contador replies actualizado a', newCount);
+              // Actualizar también el contador en el meta
+              const metaReplies = document.querySelector(`#comment-meta-${parentId} .replies-count`);
+              if(metaReplies) metaReplies.textContent = String(newCount);
+            }
+            const badge = document.getElementById('comments-total-badge');
+            if(badge && data.total !== undefined){ badge.setAttribute('data-count', String(data.total)); badge.textContent = data.total + ' ' + ('{% trans "total" %}'); console.log('[RESPONDER] Badge total actualizado:', data.total); }
+            const txt = rf.querySelector('textarea[name="texto"]');
+            if(txt) txt.value='';
+            const replyBox = rf.closest('[id^="reply-box-"]');
+            if(replyBox){
+                replyBox.classList.add('d-none');
+                console.log('[RESPONDER] Caja de respuesta cerrada');
+            }
+        } else {
+            console.error('[RESPONDER] Error del servidor:', data ? data.error : 'sin data');
+            alert((data && data.error) || '{% trans "No se pudo guardar la respuesta." %}');
+        }
+    }catch(err){
+        console.error('[RESPONDER] Error en fetch:', err);
+        alert('{% trans "Error de red al guardar respuesta." %}');
+    } finally {
+        if(btn){ btn.disabled=false; btn.innerHTML=prevBtn; }
+    }
+});
+
+// Interceptar crear comentario (AJAX)
+(function(){
+    const form = document.getElementById('comment-form');
+    if(!form) return;
+    const alertBox = document.getElementById('comment-alert');
+    function showAlert(msg, level){ if(!alertBox) return; const lvl=level||'danger'; alertBox.innerHTML = `<div class="alert alert-${lvl} alert-dismissible fade show" role="alert">${msg}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`; setTimeout(()=>{ try{ const el = alertBox.querySelector('.alert'); if(el && window.bootstrap && bootstrap.Alert){ bootstrap.Alert.getOrCreateInstance(el).close(); } }catch(_){} alertBox.innerHTML=''; }, 3500); }
+        form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const url = form.getAttribute('action'); const fd = new FormData(form); const txt = form.querySelector('textarea[name="texto"]'); const val=(txt && txt.value.trim())||''; if(val.length<2){ showAlert('{% trans "El comentario no puede estar vacío." %}','warning'); return; }
+        try{
+                const resp = await fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, credentials:'same-origin', body: fd});
+                if(resp.redirected){ window.location.href = resp.url; return; }
+                const data = await resp.json();
+            if(data && data.ok){
+                const feed = document.getElementById('comments-feed'); if(feed){ const wrap=document.createElement('div'); wrap.innerHTML=data.html; const el=wrap.firstElementChild; if(el){ el.classList.add('flash-highlight'); feed.prepend(el); try{ el.scrollIntoView({behavior:'smooth', block:'nearest'});}catch(_){} } }
+                if(txt) txt.value=''; showAlert('{% trans "Comentario publicado." %}','success');
+                const badge = document.getElementById('comments-total-badge'); if(badge && data.total !== undefined){ badge.setAttribute('data-count', String(data.total)); badge.textContent = data.total + ' ' + ('{% trans "total" %}'); }
+            } else { showAlert((data && data.error) || '{% trans "Error al publicar el comentario." %}','danger'); }
+        }catch(_){ showAlert('{% trans "Error de red" %}','danger'); }
+    });
+})();
 </script>
 {% endblock %}

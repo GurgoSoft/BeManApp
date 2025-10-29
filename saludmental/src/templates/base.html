@@ -190,60 +190,300 @@
 {% endif %}
 
     <!-- Menú hamburguesa para móviles -->
-<div class="offcanvas offcanvas-end d-lg-none" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
-    <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="mobileMenuLabel">{% trans 'Menú' %}</h5>
+<div class="offcanvas offcanvas-end d-lg-none" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel" style="width: 300px;">
+    <div class="offcanvas-header border-bottom">
+        {% if user.is_authenticated %}
+            <div class="d-flex align-items-center gap-3 w-100">
+                {% if user.foto_perfil %}
+                    <img src="{{ user.foto_perfil.url }}" alt="Perfil" class="rounded-circle border" style="width:50px; height:50px; object-fit:cover;">
+                {% else %}
+                    <img src="{% static 'img/default_avatar.png' %}" alt="Perfil" class="rounded-circle border" style="width:50px; height:50px; object-fit:cover;">
+                {% endif %}
+                <div class="flex-grow-1">
+                    <h6 class="mb-0">{{ user.username|default:user.email }}</h6>
+                    <small class="text-muted">{{ user.email }}</small>
+                </div>
+            </div>
+        {% else %}
+            <h5 class="offcanvas-title" id="mobileMenuLabel">{% trans 'Menú' %}</h5>
+        {% endif %}
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
     </div>
-    <div class="offcanvas-body">
-                <!-- Tema fijo oscuro: sin toggle en móvil -->
+    
+    <div class="offcanvas-body p-0">
         {% if user.is_authenticated %}
-            <a href="{% url 'editar_perfil' %}" class="btn btn-link w-100 text-start mb-2 d-flex align-items-center" title="{% trans 'Editar perfil' %}">
-                {% if user.foto_perfil %}
-                    <img src="{{ user.foto_perfil.url }}" alt="Perfil" class="rounded-circle border me-2" style="width:32px; height:32px; object-fit:cover;">
-                {% else %}
-                    <img src="{% static 'img/default_avatar.png' %}" alt="Perfil" class="rounded-circle border me-2" style="width:32px; height:32px; object-fit:cover;">
-                {% endif %}
-                {% trans 'Editar perfil' %}
-            </a>
-                        <a href="{% url 'logout' %}" class="btn btn-link w-100 text-start mb-2"><i class="ri-logout-box-r-line me-2"></i>{% trans 'Cerrar sesión' %}</a>
-                        <!-- Selector de idioma móvil (dropdown como escritorio) -->
-                        <div class="mb-3">
-                            <div class="fw-semibold small mb-1 d-flex align-items-center"><i class="ri-translate-2 me-2"></i>{% trans 'Idioma' %}</div>
-                            <div class="dropdown w-100">
-                                {% get_current_language as LANGUAGE_CODE %}
-                                {% get_available_languages as LANGUAGES %}
-                                <button class="btn btn-outline-primary dropdown-toggle w-100 text-start" type="button" id="langDropdownMobile" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="ri-translate-2 me-1"></i>{% trans 'Idioma' %}: {% for lang in LANGUAGES %}{% if lang.0 == LANGUAGE_CODE %}{{ lang.1 }}{% endif %}{% endfor %}
-                                </button>
-                                <ul class="dropdown-menu w-100" aria-labelledby="langDropdownMobile">
-                                    {% for lang in LANGUAGES %}
-                                        <li>
-                                            <form action="{% url 'set_language' %}" method="post" class="d-block">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="language" value="{{ lang.0 }}">
-                                                <button type="submit" class="dropdown-item d-flex justify-content-between align-items-center {% if lang.0 == LANGUAGE_CODE %}active{% endif %}">
-                                                    <span>{{ lang.1 }}</span>
-                                                    {% if lang.0 == LANGUAGE_CODE %}<i class="ri-check-line"></i>{% endif %}
-                                                </button>
-                                            </form>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
+            <!-- Perfil y acciones rápidas -->
+            <div class="px-3 py-3 border-bottom">
+                <a href="{% url 'editar_perfil' %}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="ri-edit-line me-2"></i>{% trans 'Editar perfil' %}
+                </a>
+            </div>
+            
+            <!-- Estadísticas del usuario (AJAX) -->
+            <div class="px-3 py-3 border-bottom" id="user-stats-mobile">
+                <div class="row g-2 text-center">
+                    <div class="col-4">
+                        <div class="p-2 bg-primary bg-opacity-10 rounded">
+                            <i class="ri-article-line fs-5 text-primary d-block mb-1"></i>
+                            <div class="fw-bold" id="user-stories-count">-</div>
+                            <small class="text-muted">{% trans 'Historias' %}</small>
                         </div>
-                        <a href="#" class="btn btn-link w-100 text-start"><i class="ri-map-pin-2-line me-2"></i>{% trans 'Cambiar región' %}</a>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-success bg-opacity-10 rounded">
+                            <i class="ri-chat-3-line fs-5 text-success d-block mb-1"></i>
+                            <div class="fw-bold" id="user-comments-count">-</div>
+                            <small class="text-muted">{% trans 'Comentarios' %}</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-warning bg-opacity-10 rounded">
+                            <i class="ri-thumb-up-line fs-5 text-warning d-block mb-1"></i>
+                            <div class="fw-bold" id="user-likes-count">-</div>
+                            <small class="text-muted">{% trans 'Likes' %}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navegación principal -->
+            <div class="list-group list-group-flush">
+                <a href="{% url 'home' %}" class="list-group-item list-group-item-action border-0">
+                    <i class="ri-home-line me-2"></i>{% trans 'Inicio' %}
+                </a>
+                <a href="{% url 'historias_list' %}" class="list-group-item list-group-item-action border-0">
+                    <i class="ri-article-line me-2"></i>{% trans 'Historias' %}
+                </a>
+                <a href="{% url 'agenda_index' %}" class="list-group-item list-group-item-action border-0">
+                    <i class="ri-calendar-event-line me-2"></i>{% trans 'Eventos' %}
+                </a>
+                <a href="#" class="list-group-item list-group-item-action border-0">
+                    <i class="ri-questionnaire-line me-2"></i>{% trans 'Podcast' %}
+                </a>
+            </div>
+            
+            <!-- Notificaciones (AJAX) -->
+            <div class="px-3 py-3 border-top border-bottom">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="mb-0">
+                        <i class="ri-notification-3-line me-2"></i>{% trans 'Notificaciones' %}
+                    </h6>
+                    <span class="badge bg-danger rounded-pill" id="notif-count-mobile">0</span>
+                </div>
+                <div id="notif-list-mobile" class="small">
+                    <div class="text-muted text-center py-2">
+                        <i class="ri-notification-off-line fs-5 d-block mb-1"></i>
+                        {% trans 'No hay notificaciones nuevas' %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Configuración -->
+            <div class="list-group list-group-flush">
+                <div class="list-group-item border-0">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <small class="text-muted fw-semibold">
+                            <i class="ri-translate-2 me-1"></i>{% trans 'IDIOMA' %}
+                        </small>
+                    </div>
+                    <div class="dropdown w-100">
+                        {% get_current_language as LANGUAGE_CODE %}
+                        {% get_available_languages as LANGUAGES %}
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="langDropdownMobile" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% for lang in LANGUAGES %}{% if lang.0 == LANGUAGE_CODE %}{{ lang.1 }}{% endif %}{% endfor %}
+                        </button>
+                        <ul class="dropdown-menu w-100" aria-labelledby="langDropdownMobile">
+                            {% for lang in LANGUAGES %}
+                                <li>
+                                    <form action="{% url 'set_language' %}" method="post" class="d-block">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="language" value="{{ lang.0 }}">
+                                        <button type="submit" class="dropdown-item d-flex justify-content-between align-items-center {% if lang.0 == LANGUAGE_CODE %}active{% endif %}">
+                                            <span>{{ lang.1 }}</span>
+                                            {% if lang.0 == LANGUAGE_CODE %}<i class="ri-check-line"></i>{% endif %}
+                                        </button>
+                                    </form>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <a href="{% url 'logout' %}" class="list-group-item list-group-item-action border-0 text-danger">
+                    <i class="ri-logout-box-r-line me-2"></i>{% trans 'Cerrar sesión' %}
+                </a>
+            </div>
+            
         {% else %}
-            <a href="{% url 'login' %}" class="btn btn-outline-primary w-100 mb-2">{% trans 'Iniciar sesión' %}</a>
-            <a href="{% url 'register' %}" class="btn btn-primary w-100">{% trans 'Registrarse' %}</a>
+            <!-- Usuario no autenticado -->
+            <div class="p-3">
+                <div class="text-center mb-4">
+                    <i class="ri-user-line fs-1 text-muted d-block mb-2"></i>
+                    <p class="text-muted">{% trans 'Inicia sesión para acceder a todas las funciones' %}</p>
+                </div>
+                <a href="{% url 'login' %}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="ri-login-box-line me-2"></i>{% trans 'Iniciar sesión' %}
+                </a>
+                <a href="{% url 'register' %}" class="btn btn-primary w-100">
+                    <i class="ri-user-add-line me-2"></i>{% trans 'Registrarse' %}
+                </a>
+            </div>
+            
+            <!-- Navegación pública -->
+            <div class="list-group list-group-flush mt-3">
+                <a href="{% url 'home' %}" class="list-group-item list-group-item-action border-0">
+                    <i class="ri-home-line me-2"></i>{% trans 'Inicio' %}
+                </a>
+                <a href="{% url 'historias_list' %}" class="list-group-item list-group-item-action border-0">
+                    <i class="ri-article-line me-2"></i>{% trans 'Historias' %}
+                </a>
+                <a href="{% url 'agenda_index' %}" class="list-group-item list-group-item-action border-0">
+                    <i class="ri-calendar-event-line me-2"></i>{% trans 'Eventos' %}
+                </a>
+            </div>
+            
+            <!-- Selector de idioma -->
+            <div class="px-3 py-3 border-top mt-3">
+                <small class="text-muted fw-semibold d-block mb-2">
+                    <i class="ri-translate-2 me-1"></i>{% trans 'IDIOMA' %}
+                </small>
+                <div class="dropdown w-100">
+                    {% get_current_language as LANGUAGE_CODE %}
+                    {% get_available_languages as LANGUAGES %}
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="langDropdownMobileGuest" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% for lang in LANGUAGES %}{% if lang.0 == LANGUAGE_CODE %}{{ lang.1 }}{% endif %}{% endfor %}
+                    </button>
+                    <ul class="dropdown-menu w-100" aria-labelledby="langDropdownMobileGuest">
+                        {% for lang in LANGUAGES %}
+                            <li>
+                                <form action="{% url 'set_language' %}" method="post" class="d-block">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="language" value="{{ lang.0 }}">
+                                    <button type="submit" class="dropdown-item d-flex justify-content-between align-items-center {% if lang.0 == LANGUAGE_CODE %}active{% endif %}">
+                                        <span>{{ lang.1 }}</span>
+                                        {% if lang.0 == LANGUAGE_CODE %}<i class="ri-check-line"></i>{% endif %}
+                                    </button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         {% endif %}
     </div>
 </div>
+
+<script>
+// Sidebar móvil dinámico con AJAX
+(function() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (!mobileMenu) return;
+    
+    let dataLoaded = false;
+    
+    // Helper CSRF
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
+    }
+    const csrftoken = getCookie('csrftoken');
+    
+    // Cargar datos del usuario cuando se abre el sidebar
+    mobileMenu.addEventListener('show.bs.offcanvas', async function() {
+        if (dataLoaded) return; // Solo cargar una vez
+        
+        {% if user.is_authenticated %}
+        // Cargar estadísticas del usuario
+        try {
+            const statsRes = await fetch('{% url "user_stats_api" %}', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            });
+            if (statsRes.ok) {
+                const stats = await statsRes.json();
+                document.getElementById('user-stories-count').textContent = stats.historias || 0;
+                document.getElementById('user-comments-count').textContent = stats.comentarios || 0;
+                document.getElementById('user-likes-count').textContent = stats.likes || 0;
+            }
+        } catch (e) {
+            console.error('Error loading user stats:', e);
+        }
+        
+        // Cargar notificaciones recientes
+        try {
+            const notifRes = await fetch('{% url "notificaciones_recientes_api" %}', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            });
+            if (notifRes.ok) {
+                const notifs = await notifRes.json();
+                const countBadge = document.getElementById('notif-count-mobile');
+                const notifList = document.getElementById('notif-list-mobile');
+                
+                if (notifs.count > 0) {
+                    countBadge.textContent = notifs.count;
+                    countBadge.classList.remove('d-none');
+                    
+                    let html = '';
+                    notifs.notificaciones.slice(0, 3).forEach(n => {
+                        const iconClass = n.tipo === 'comentario' ? 'ri-chat-3-line' : 
+                                        n.tipo === 'like' ? 'ri-thumb-up-line' : 
+                                        'ri-notification-line';
+                        html += `
+                            <div class="d-flex align-items-start gap-2 p-2 border-bottom ${n.leida ? '' : 'bg-primary bg-opacity-10'}">
+                                <i class="${iconClass} text-primary mt-1"></i>
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="small">${n.mensaje}</div>
+                                    <small class="text-muted">${n.tiempo}</small>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    notifList.innerHTML = html;
+                } else {
+                    countBadge.textContent = '0';
+                    countBadge.classList.add('d-none');
+                }
+            }
+        } catch (e) {
+            console.error('Error loading notifications:', e);
+        }
+        
+        dataLoaded = true;
+        {% endif %}
+    });
+})();
+</script>
 
     <!-- Main -->
     <main class="container my-5 fade-in">
         {% block content %}{% endblock %}
     </main>
+
+    <!-- Modal de confirmación para eliminar -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">
+                        <i class="ri-alert-line text-warning me-2"></i>{% trans 'Confirmar eliminación' %}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmDeleteMessage" class="mb-0">{% trans '¿Estás seguro de que deseas eliminar este elemento?' %}</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="ri-close-line me-1"></i>{% trans 'Cancelar' %}
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="ri-delete-bin-line me-1"></i>{% trans 'Eliminar' %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="text-center py-4 border-top">
@@ -261,6 +501,39 @@
                 localStorage.removeItem('theme');
             }
         } catch (e) {}
+    })();
+    
+    // Modal de confirmación global para eliminar
+    (function() {
+        const modal = document.getElementById('confirmDeleteModal');
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        const messageEl = document.getElementById('confirmDeleteMessage');
+        
+        if (!modal || !confirmBtn || !messageEl) return;
+        
+        const bsModal = new bootstrap.Modal(modal);
+        let currentCallback = null;
+        
+        // Función global para mostrar el modal
+        window.showDeleteConfirmation = function(message, onConfirm) {
+            messageEl.textContent = message || '¿Estás seguro de que deseas eliminar este elemento?';
+            currentCallback = onConfirm;
+            bsModal.show();
+        };
+        
+        // Cuando se confirma
+        confirmBtn.addEventListener('click', function() {
+            if (currentCallback) {
+                currentCallback();
+                currentCallback = null;
+            }
+            bsModal.hide();
+        });
+        
+        // Limpiar callback al cerrar
+        modal.addEventListener('hidden.bs.modal', function() {
+            currentCallback = null;
+        });
     })();
     </script>
     {% block extra_js %}{% endblock %}

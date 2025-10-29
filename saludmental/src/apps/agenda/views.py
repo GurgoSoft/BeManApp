@@ -372,6 +372,8 @@ def evento_detalle(request, pk):
         .prefetch_related('respuestas__usuario')
         .order_by('-likes_count', '-replies_count', '-fecha')
     )
+    # Total de comentarios incluyendo respuestas
+    comentarios_total = EventoComentario.objects.filter(evento=evento).count()
     fotos = evento.fotos.order_by('-fecha_subida')[:12]
     inscritos_count = Inscripcion.objects.filter(evento=evento).count()
     user_likes = set()
@@ -386,6 +388,7 @@ def evento_detalle(request, pk):
         'avg_rating': round(float(avg_rating), 2),
         'user_rating': user_rating or 0,
         'comentarios': comentarios,
+        'comentarios_total': comentarios_total,
         'user_likes': user_likes,
         'fotos': fotos,
         'inscritos_count': inscritos_count,
@@ -399,14 +402,28 @@ def calificar_evento(request, pk):
         estrellas = int(request.POST.get('estrellas', '0'))
     except ValueError:
         estrellas = 0
+    
+    # Si estrellas = 0, eliminar calificación (descalificar)
+    if estrellas == 0:
+        EventoCalificacion.objects.filter(evento=evento, usuario=request.user).delete()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            avg = evento.calificaciones.aggregate(avg=Avg('estrellas'))['avg'] or 0
+            return JsonResponse({'ok': True, 'avg_rating': round(float(avg), 2), 'estrellas': 0})
+        messages.info(request, _("Calificación eliminada."))
+        return redirect('agenda_evento_detalle', pk=pk)
+    
+    # Validar rango 1-5
     if estrellas < 1 or estrellas > 5:
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'ok': False, 'error': _('Calificación inválida (1 a 5).')}, status=400)
         messages.error(request, _("Calificación inválida (1 a 5)."))
         return redirect('agenda_evento_detalle', pk=pk)
+    
+    # Guardar o actualizar calificación
     obj, _ = EventoCalificacion.objects.update_or_create(
         evento=evento, usuario=request.user, defaults={'estrellas': estrellas}
     )
+    
     # Responder AJAX con promedio actualizado
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         avg = evento.calificaciones.aggregate(avg=Avg('estrellas'))['avg'] or 0
@@ -446,7 +463,8 @@ def comentar_evento(request, pk):
     # Responder AJAX con el HTML del comentario para prepend en el feed
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         html = render_to_string('agenda/_comentario_item.html', {'c': comentario, 'user_likes': set()}, request=request)
-        return JsonResponse({'ok': True, 'html': html})
+        total = EventoComentario.objects.filter(evento=evento).count()
+        return JsonResponse({'ok': True, 'html': html, 'total': total})
     messages.success(request, _("Comentario publicado."))
     return redirect('agenda_evento_detalle', pk=pk)
 
@@ -472,22 +490,32 @@ def responder_evento_comentario(request, pk):
     parent = get_object_or_404(EventoComentario, pk=pk)
     texto = (request.POST.get('texto') or '').strip()
     if not texto:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': _("El texto no puede estar vacío.")}, status=400)
         messages.error(request, _("El texto no puede estar vacío."))
     else:
         try:
             from apps.foro.moderation import moderate_text
             res = moderate_text(texto)
             if not res.allowed:
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'ok': False, 'error': _("Tu respuesta contiene contenido no permitido.")}, status=400)
                 messages.error(request, _("Tu respuesta contiene contenido no permitido."))
                 return redirect('agenda_evento_detalle', pk=parent.evento_id)
         except Exception:
             try:
                 if contains_banned_words(texto):
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                        return JsonResponse({'ok': False, 'error': _("Tu respuesta contiene palabras no permitidas.")}, status=400)
                     messages.error(request, _("Tu respuesta contiene palabras no permitidas."))
                     return redirect('agenda_evento_detalle', pk=parent.evento_id)
             except Exception:
                 pass
-        EventoComentario.objects.create(evento=parent.evento, usuario=request.user, texto=texto, parent=parent)
+        reply = EventoComentario.objects.create(evento=parent.evento, usuario=request.user, texto=texto, parent=parent)
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            html = render_to_string('agenda/_comentario_item.html', {'c': reply, 'user_likes': set()}, request=request)
+            total = EventoComentario.objects.filter(evento=parent.evento).count()
+            return JsonResponse({'ok': True, 'html': html, 'parent_id': parent.pk, 'total': total})
         messages.success(request, _("Respuesta publicada."))
     return redirect('agenda_evento_detalle', pk=parent.evento_id)
 
@@ -498,23 +526,31 @@ def editar_evento_comentario(request, pk):
     comentario = get_object_or_404(EventoComentario, pk=pk, usuario=request.user)
     texto = (request.POST.get('texto') or '').strip()
     if not texto:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': _("El texto no puede estar vacío.")}, status=400)
         messages.error(request, _("El texto no puede estar vacío."))
     else:
         try:
             from apps.foro.moderation import moderate_text
             res = moderate_text(texto)
             if not res.allowed:
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'ok': False, 'error': _("Tu comentario contiene contenido no permitido.")}, status=400)
                 messages.error(request, _("Tu comentario contiene contenido no permitido."))
                 return redirect('agenda_evento_detalle', pk=comentario.evento_id)
         except Exception:
             try:
                 if contains_banned_words(texto):
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                        return JsonResponse({'ok': False, 'error': _("Tu comentario contiene palabras no permitidas.")}, status=400)
                     messages.error(request, _("Tu comentario contiene palabras no permitidas."))
                     return redirect('agenda_evento_detalle', pk=comentario.evento_id)
             except Exception:
                 pass
         comentario.texto = texto
         comentario.save()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': True, 'comentario_id': comentario.pk, 'texto': comentario.texto})
         messages.success(request, _("Comentario actualizado."))
     return redirect('agenda_evento_detalle', pk=comentario.evento_id)
 
@@ -526,7 +562,15 @@ def eliminar_evento_comentario(request, pk):
     if request.user != comentario.usuario and not request.user.is_staff:
         return HttpResponseForbidden()
     evento_pk = comentario.evento_id
+    parent_id = getattr(comentario.parent, 'pk', None)
     comentario.delete()
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        total = EventoComentario.objects.filter(evento_id=evento_pk).count()
+        # Si es respuesta, recalcular cantidad de respuestas del padre
+        replies_count = None
+        if parent_id:
+            replies_count = EventoComentario.objects.filter(parent_id=parent_id).count()
+        return JsonResponse({'ok': True, 'deleted_id': pk, 'total': total, 'parent_id': parent_id, 'replies_count': replies_count})
     messages.success(request, _("Comentario eliminado."))
     return redirect('agenda_evento_detalle', pk=evento_pk)
 

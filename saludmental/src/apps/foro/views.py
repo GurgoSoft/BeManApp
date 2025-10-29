@@ -10,10 +10,30 @@ from apps.usuarios.models import Notificacion
 from django.http import JsonResponse, HttpResponseForbidden
 from django.db.models import Count
 from django.urls import reverse
+from django.template.loader import render_to_string
 
 def historias_list(request):
-    historias = Historia.objects.filter(oculto=False)
-    return render(request, "foro/historias_list.html", {"historias": historias})
+    historias = (
+        Historia.objects
+        .filter(oculto=False)
+        .annotate(
+            likes_count=Count('like_set', distinct=True),
+            comentarios_count=Count('comentario', distinct=True)
+        )
+        .order_by('-fecha')
+    )
+    
+    # Lista de historias con like del usuario
+    user_historia_likes = []
+    if request.user.is_authenticated:
+        user_historia_likes = list(
+            Like.objects.filter(usuario=request.user).values_list('historia_id', flat=True)
+        )
+    
+    return render(request, "foro/historias_list.html", {
+        "historias": historias,
+        "user_historia_likes": user_historia_likes
+    })
 
 @login_required
 def crear_historia(request):
@@ -64,12 +84,15 @@ def historia_detalle(request, pk):
         )
     }
 
+    comentarios_total = Comentario.objects.filter(historia=historia).count()
+
     return render(request, "foro/historia_detalle.html", {
         "historia": historia,
         "comentarios": comentarios,
         "liked_story": liked_story,
         "user_likes": user_likes,
         "comment_like_counts": comment_like_counts,
+        "comentarios_total": comentarios_total,
     })
 
 @login_required
@@ -81,9 +104,18 @@ def like_historia(request, pk):
     if not created:
         like.delete()
         liked = False
+    else:
+        # Crear notificación si es un nuevo like y no es el autor
+        if historia.usuario != request.user:
+            Notificacion.objects.create(
+                usuario=historia.usuario,
+                mensaje=f"{request.user.username} le dio like a tu historia '{historia.titulo}'",
+                tipo='like',
+                url=reverse('historia_detalle', kwargs={'pk': historia.pk})
+            )
     likes_count = historia.like_set.count()
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({"liked": liked, "likes_count": likes_count})
+        return JsonResponse({"liked": liked, "likes_count": likes_count, "historia_id": historia.pk})
     next_url = request.POST.get("next") or request.META.get("HTTP_REFERER") or reverse("historia_detalle", kwargs={"pk": pk})
     return redirect(next_url)
 
@@ -96,6 +128,15 @@ def like_comentario(request, pk):
     if not created:
         like.delete()
         liked = False
+    else:
+        # Crear notificación si es un nuevo like y no es el autor
+        if comentario.usuario != request.user:
+            Notificacion.objects.create(
+                usuario=comentario.usuario,
+                mensaje=f"{request.user.username} le dio like a tu comentario",
+                tipo='like',
+                url=reverse('historia_detalle', kwargs={'pk': comentario.historia.pk}) + f"#comment-{comentario.pk}"
+            )
     # Contar nuevamente usando el related manager correcto tras posible toggle
     likes_count = LikeComentario.objects.filter(comentario=comentario).count()
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -110,44 +151,91 @@ def eliminar_comentario(request, pk):
     if request.user != comentario.usuario and request.user != comentario.historia.usuario:
         return HttpResponseForbidden()
     historia_pk = comentario.historia_id
+    parent_id = comentario.parent_id
     comentario.delete()
     messages.success(request, _("Comentario eliminado."))
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        total = Comentario.objects.filter(historia_id=historia_pk).count()
+        replies_count = 0
+        if parent_id:
+            replies_count = Comentario.objects.filter(parent_id=parent_id).count()
+        return JsonResponse({"ok": True, "deleted_id": pk, "total": total, "parent_id": parent_id, "replies_count": replies_count})
     return redirect("historia_detalle", pk=historia_pk)
 
 @login_required
 @require_POST
 def editar_comentario(request, pk):
-    comentario = get_object_or_404(Comentario, pk=pk, usuario=request.user)
+    comentario = get_object_or_404(Comentario, pk=pk)
+    # Permitir editar si es autor del comentario, autor de la historia o staff
+    if not (request.user == comentario.usuario or request.user == comentario.historia.usuario or request.user.is_staff):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({"ok": False, "error": _("No tienes permiso para editar este comentario."), "comentario_id": comentario.pk}, status=403)
+        return HttpResponseForbidden()
     texto = (request.POST.get("texto") or "").strip()
+    ok = False
+    error = None
     if not texto:
-        messages.error(request, _("El texto no puede estar vacío."))
+        error = _("El texto no puede estar vacío.")
+        messages.error(request, error)
     else:
         mod = moderate_text(texto)
         if not mod.allowed:
-            messages.error(request, _("Tu comentario contiene contenido no permitido."))
+            error = _("Tu comentario contiene contenido no permitido.")
+            messages.error(request, error)
         else:
             comentario.texto = texto
             comentario.save()
             messages.success(request, _("Comentario actualizado."))
+            ok = True
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({"ok": ok, "comentario_id": comentario.pk, "texto": comentario.texto, "error": error})
     return redirect("historia_detalle", pk=comentario.historia_id)
 
 @login_required
+@require_POST
 def comentar_historia(request, pk):
     historia = get_object_or_404(Historia, pk=pk)
     if request.method == "POST":
         if request.user == historia.usuario:
-            messages.error(request, _("No puedes comentar tu propia historia."))
+            msg = _("No puedes comentar tu propia historia.")
+            messages.error(request, msg)
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"ok": False, "error": msg}, status=400)
         else:
             texto = (request.POST.get("texto") or "").strip()
             if not texto:
-                messages.error(request, _("El comentario no puede estar vacío."))
+                msg = _("El comentario no puede estar vacío.")
+                messages.error(request, msg)
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({"ok": False, "error": msg}, status=400)
             else:
                 mod = moderate_text(texto)
                 if not mod.allowed:
-                    messages.error(request, _("Tu comentario contiene contenido no permitido."))
+                    msg = _("Tu comentario contiene contenido no permitido.")
+                    messages.error(request, msg)
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                        return JsonResponse({"ok": False, "error": msg}, status=400)
                 else:
-                    Comentario.objects.create(historia=historia, usuario=request.user, texto=texto)
+                    c = Comentario.objects.create(historia=historia, usuario=request.user, texto=texto)
+                    
+                    # Crear notificación para el autor de la historia
+                    if historia.usuario != request.user:
+                        Notificacion.objects.create(
+                            usuario=historia.usuario,
+                            mensaje=f"{request.user.username} comentó en tu historia '{historia.titulo}'",
+                            tipo='comentario',
+                            url=reverse('historia_detalle', kwargs={'pk': historia.pk}) + f"#comment-{c.pk}"
+                        )
+                    
                     messages.success(request, _("Comentario publicado."))
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                        html = render_to_string('foro/_comentario_item.html', {
+                            'c': c,
+                            'user_likes': set(),
+                            'comment_like_counts': {},
+                        }, request=request)
+                        total = Comentario.objects.filter(historia=historia).count()
+                        return JsonResponse({"ok": True, "html": html, "total": total})
     return redirect("historia_detalle", pk=pk)
 
 @login_required
@@ -165,19 +253,44 @@ def responder_comentario(request, pk):
     parent = get_object_or_404(Comentario, pk=pk)
     texto = (request.POST.get("texto") or "").strip()
     if not texto:
-        messages.error(request, _("El texto no puede estar vacío."))
+        msg = _("El texto no puede estar vacío.")
+        messages.error(request, msg)
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({"ok": False, "error": msg}, status=400)
     else:
         mod = moderate_text(texto)
         if not mod.allowed:
-            messages.error(request, _("Tu respuesta contiene contenido no permitido."))
+            msg = _("Tu respuesta contiene contenido no permitido.")
+            messages.error(request, msg)
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"ok": False, "error": msg}, status=400)
         else:
-            Comentario.objects.create(
+            c = Comentario.objects.create(
                 historia=parent.historia,
                 usuario=request.user,
                 texto=texto,
                 parent=parent,
             )
+            
+            # Crear notificación para el autor del comentario padre
+            if parent.usuario != request.user:
+                Notificacion.objects.create(
+                    usuario=parent.usuario,
+                    mensaje=f"{request.user.username} respondió a tu comentario",
+                    tipo='respuesta',
+                    url=reverse('historia_detalle', kwargs={'pk': parent.historia.pk}) + f"#comment-{c.pk}"
+                )
+            
             messages.success(request, _("Respuesta publicada."))
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                html = render_to_string('foro/_comentario_item.html', {
+                    'c': c,
+                    'user_likes': set(),
+                    'comment_like_counts': {},
+                }, request=request)
+                total = Comentario.objects.filter(historia=parent.historia).count()
+                replies_count = Comentario.objects.filter(parent=parent).count()
+                return JsonResponse({"ok": True, "html": html, "parent_id": parent.pk, "total": total, "replies_count": replies_count})
     return redirect("historia_detalle", pk=parent.historia_id)
 
 @login_required

@@ -315,6 +315,27 @@ iframe { background: transparent; }
 }
 .btn-like-active i, .btn-like-inactive i { line-height: 1; }
 
+/* Animaciones para replies (despliegue tipo slide) */
+.replies-anim {
+  overflow: hidden;
+  transition: max-height .28s ease, opacity .22s ease;
+}
+.replies-anim.is-collapsing {
+  opacity: .0;
+}
+.replies-anim.is-expanding {
+  opacity: 1;
+}
+
+/* Realce al insertar un nuevo comentario/respuesta */
+.flash-highlight {
+  animation: flashIn .9s ease-out;
+}
+@keyframes flashIn {
+  0% { background: rgba(212,175,55,.35); }
+  100% { background: transparent; }
+}
+
 /* Versión xs */
 .btn-xs { padding: 2px 6px; font-size: .675rem; border-radius: .35rem; }
 

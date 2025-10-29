@@ -22,32 +22,29 @@
           {% endwith %}
         </small>
       </div>
-  <div class="mt-1 comment-text" data-comment-id="{{ c.pk }}">{{ c.texto }}</div>
+      <div class="mt-1 comment-text" data-comment-id="{{ c.pk }}">{{ c.texto }}</div>
       <div class="d-flex align-items-center gap-2 mt-2">
         {% if user.is_authenticated %}
-          <form method="post" action="{% url 'agenda_like_comentario' c.pk %}" class="d-inline like-form">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-like-comentario btn-icon {% if c.pk in user_likes %}btn-like-active{% else %}btn-like-inactive{% endif %}"
-                    data-like-url="{% url 'agenda_like_comentario' c.pk %}" data-comment-id="{{ c.pk }}" aria-label="{% trans 'Dar like' %}">
-              <i class="ri-thumb-up-line"></i>
-              <span class="comment-like-count" data-comment-id="{{ c.pk }}">{{ c.likes_count|default:0 }}</span>
-            </button>
-          </form>
+          <button type="button" class="btn btn-sm btn-like-comentario btn-icon {% if c.pk in user_likes %}btn-like-active{% else %}btn-like-inactive{% endif %}"
+                  data-like-url="{% url 'like_comentario' c.pk %}" data-comment-id="{{ c.pk }}" aria-label="{% trans 'Dar like' %}">
+            <i class="ri-thumb-up-line"></i>
+            <span class="comment-like-count" data-comment-id="{{ c.pk }}">{{ c.likes_count|default:0 }}</span>
+          </button>
           <button type="button" class="btn btn-sm btn-outline-primary btn-reply-toggle" data-target="#reply-box-{{ c.pk }}"><i class="ri-reply-line"></i></button>
-          {% if user == c.usuario or user.is_staff %}
+          {% if user == c.usuario %}
             <button type="button" class="btn btn-sm btn-outline-info btn-edit-toggle" data-target="#edit-box-{{ c.pk }}"><i class="ri-edit-line"></i></button>
           {% endif %}
-          {% if user == c.usuario or user.is_staff %}
-          <form method="post" action="{% url 'agenda_eliminar_comentario' c.pk %}" class="d-inline delete-form" data-comment-id="{{ c.pk }}" data-confirm="{% trans '¿Eliminar este comentario?' %}">
+          {% if user == c.usuario or user == c.historia.usuario %}
+          <form method="post" action="{% url 'eliminar_comentario' c.pk %}" class="d-inline delete-form" data-comment-id="{{ c.pk }}" data-confirm="{% trans '¿Eliminar este comentario?' %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-sm btn-outline-danger"><i class="ri-delete-bin-line"></i></button>
           </form>
           {% endif %}
         {% endif %}
       </div>
-      {% if user.is_authenticated and user == c.usuario or user.is_staff %}
+      {% if user.is_authenticated and user == c.usuario %}
       <div id="edit-box-{{ c.pk }}" class="mt-2 d-none">
-        <form method="post" action="{% url 'agenda_editar_comentario' c.pk %}" class="edit-form" data-comment-id="{{ c.pk }}">
+        <form method="post" action="{% url 'editar_comentario' c.pk %}" class="edit-form" data-comment-id="{{ c.pk }}">
           {% csrf_token %}
           <textarea name="texto" class="form-control form-control-sm" rows="2">{{ c.texto }}</textarea>
           <div class="d-flex gap-2 mt-2">
@@ -59,7 +56,7 @@
       {% endif %}
       {% if user.is_authenticated %}
       <div id="reply-box-{{ c.pk }}" class="mt-2 d-none">
-        <form method="post" action="{% url 'agenda_responder_comentario' c.pk %}" class="reply-form">
+        <form method="post" action="{% url 'responder_comentario' c.pk %}" class="reply-form">
           {% csrf_token %}
           <textarea name="texto" class="form-control form-control-sm" rows="2" required placeholder="{% trans 'Escribe una respuesta...' %}"></textarea>
           <div class="d-flex gap-2 mt-2">
@@ -71,8 +68,7 @@
       {% endif %}
       <div id="replies-{{ c.pk }}" class="replies replies-anim mt-3 ps-3 border-start d-none" style="--bs-border-color:rgba(255,255,255,.08)">
         {% for r in c.respuestas.all %}
-          {# Recursivo: reusar el mismo parcial para replies, con misma UI (like, responder, editar, eliminar) #}
-          {% include 'agenda/_comentario_item.html' with c=r %}
+          {% include 'foro/_comentario_item.html' with c=r %}
         {% endfor %}
       </div>
     </div>
