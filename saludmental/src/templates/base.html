@@ -78,6 +78,26 @@
 /* Centrar y separar ligeramente el botón de Spotify dentro del recuadro */
 .ticketmaster-card { text-align: center; }
 .ticketmaster-card .spotify-btn { margin-top: 8px; }
+
+/* Layout para footer siempre abajo */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+#main-content {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+}
 </style>
     <!-- Tema personalizado -->
     <link href="{% static 'css/theme.css' %}" rel="stylesheet">
@@ -213,8 +233,8 @@
     <div class="offcanvas-body p-0">
         {% if user.is_authenticated %}
             <!-- Perfil y acciones rápidas -->
-            <div class="px-3 py-3 border-bottom">
-                <a href="{% url 'editar_perfil' %}" class="btn btn-outline-primary w-100 mb-2">
+            <div class="px-3 py-3 border-bottom" style="background-color: rgba(212, 175, 55, 0.05);">
+                <a href="{% url 'editar_perfil' %}" class="btn btn-outline-secondary w-100 mb-2">
                     <i class="ri-edit-line me-2"></i>{% trans 'Editar perfil' %}
                 </a>
             </div>
@@ -223,23 +243,23 @@
             <div class="px-3 py-3 border-bottom" id="user-stats-mobile">
                 <div class="row g-2 text-center">
                     <div class="col-4">
-                        <div class="p-2 bg-primary bg-opacity-10 rounded">
-                            <i class="ri-article-line fs-5 text-primary d-block mb-1"></i>
-                            <div class="fw-bold" id="user-stories-count">-</div>
+                        <div class="p-2 rounded" style="background-color: rgba(108, 117, 125, 0.15);">
+                            <i class="ri-article-line fs-5 text-secondary d-block mb-1"></i>
+                            <div class="fw-bold text-white" id="user-stories-count">-</div>
                             <small class="text-muted">{% trans 'Historias' %}</small>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="p-2 bg-success bg-opacity-10 rounded">
-                            <i class="ri-chat-3-line fs-5 text-success d-block mb-1"></i>
-                            <div class="fw-bold" id="user-comments-count">-</div>
+                        <div class="p-2 rounded" style="background-color: rgba(108, 117, 125, 0.15);">
+                            <i class="ri-chat-3-line fs-5 text-secondary d-block mb-1"></i>
+                            <div class="fw-bold text-white" id="user-comments-count">-</div>
                             <small class="text-muted">{% trans 'Comentarios' %}</small>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="p-2 bg-warning bg-opacity-10 rounded">
-                            <i class="ri-thumb-up-line fs-5 text-warning d-block mb-1"></i>
-                            <div class="fw-bold" id="user-likes-count">-</div>
+                        <div class="p-2 rounded" style="background-color: rgba(212, 175, 55, 0.15);">
+                            <i class="ri-thumb-up-line fs-5" style="color: var(--bm-dorado);" d-block mb-1"></i>
+                            <div class="fw-bold" style="color: var(--bm-dorado);" id="user-likes-count">-</div>
                             <small class="text-muted">{% trans 'Likes' %}</small>
                         </div>
                     </div>
@@ -248,31 +268,36 @@
             
             <!-- Navegación principal -->
             <div class="list-group list-group-flush">
-                <a href="{% url 'home' %}" class="list-group-item list-group-item-action border-0">
-                    <i class="ri-home-line me-2"></i>{% trans 'Inicio' %}
+                {% if user.is_staff %}
+                <a href="{% url 'agenda_admin_dashboard' %}" class="list-group-item list-group-item-action border-0 sidebar-link" style="background-color: rgba(212, 175, 55, 0.1);">
+                    <i class="ri-dashboard-line me-2" style="color: var(--bm-dorado);"></i><strong style="color: var(--bm-dorado);">{% trans 'Dashboard Admin' %}</strong>
                 </a>
-                <a href="{% url 'historias_list' %}" class="list-group-item list-group-item-action border-0">
-                    <i class="ri-article-line me-2"></i>{% trans 'Historias' %}
+                {% endif %}
+                <a href="{% url 'home' %}" class="list-group-item list-group-item-action border-0 sidebar-link">
+                    <i class="ri-home-line me-2 text-secondary"></i>{% trans 'Inicio' %}
                 </a>
-                <a href="{% url 'agenda_index' %}" class="list-group-item list-group-item-action border-0">
-                    <i class="ri-calendar-event-line me-2"></i>{% trans 'Eventos' %}
+                <a href="{% url 'historias_list' %}" class="list-group-item list-group-item-action border-0 sidebar-link">
+                    <i class="ri-article-line me-2 text-secondary"></i>{% trans 'Historias' %}
                 </a>
-                <a href="#" class="list-group-item list-group-item-action border-0">
-                    <i class="ri-questionnaire-line me-2"></i>{% trans 'Podcast' %}
+                <a href="{% url 'agenda_index' %}" class="list-group-item list-group-item-action border-0 sidebar-link">
+                    <i class="ri-calendar-event-line me-2 text-secondary"></i>{% trans 'Eventos' %}
+                </a>
+                <a href="{% url 'podcast_index' %}" class="list-group-item list-group-item-action border-0 sidebar-link">
+                    <i class="ri-mic-line me-2 text-secondary"></i>{% trans 'Podcast' %}
                 </a>
             </div>
             
             <!-- Notificaciones (AJAX) -->
             <div class="px-3 py-3 border-top border-bottom">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h6 class="mb-0">
-                        <i class="ri-notification-3-line me-2"></i>{% trans 'Notificaciones' %}
+                    <h6 class="mb-0 text-white">
+                        <i class="ri-notification-3-line me-2 text-secondary"></i>{% trans 'Notificaciones' %}
                     </h6>
-                    <span class="badge bg-danger rounded-pill" id="notif-count-mobile">0</span>
+                    <span class="badge bg-secondary rounded-pill" id="notif-count-mobile">0</span>
                 </div>
                 <div id="notif-list-mobile" class="small">
                     <div class="text-muted text-center py-2">
-                        <i class="ri-notification-off-line fs-5 d-block mb-1"></i>
+                        <i class="ri-notification-off-line fs-5 d-block mb-1 text-secondary"></i>
                         {% trans 'No hay notificaciones nuevas' %}
                     </div>
                 </div>
@@ -283,7 +308,7 @@
                 <div class="list-group-item border-0">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <small class="text-muted fw-semibold">
-                            <i class="ri-translate-2 me-1"></i>{% trans 'IDIOMA' %}
+                            <i class="ri-translate-2 me-1 text-secondary"></i>{% trans 'IDIOMA' %}
                         </small>
                     </div>
                     <div class="dropdown w-100">
@@ -309,7 +334,7 @@
                     </div>
                 </div>
                 
-                <a href="{% url 'logout' %}" class="list-group-item list-group-item-action border-0 text-danger">
+                <a href="{% url 'logout' %}" class="list-group-item list-group-item-action border-0 sidebar-link text-secondary">
                     <i class="ri-logout-box-r-line me-2"></i>{% trans 'Cerrar sesión' %}
                 </a>
             </div>
@@ -318,34 +343,34 @@
             <!-- Usuario no autenticado -->
             <div class="p-3">
                 <div class="text-center mb-4">
-                    <i class="ri-user-line fs-1 text-muted d-block mb-2"></i>
+                    <i class="ri-user-line fs-1 text-secondary d-block mb-2"></i>
                     <p class="text-muted">{% trans 'Inicia sesión para acceder a todas las funciones' %}</p>
                 </div>
-                <a href="{% url 'login' %}" class="btn btn-outline-primary w-100 mb-2">
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary w-100 mb-2">
                     <i class="ri-login-box-line me-2"></i>{% trans 'Iniciar sesión' %}
                 </a>
-                <a href="{% url 'register' %}" class="btn btn-primary w-100">
+                <a href="{% url 'register' %}" class="btn w-100" style="background-color: var(--bm-dorado); color: var(--bm-azul-900); border: none;">
                     <i class="ri-user-add-line me-2"></i>{% trans 'Registrarse' %}
                 </a>
             </div>
             
             <!-- Navegación pública -->
             <div class="list-group list-group-flush mt-3">
-                <a href="{% url 'home' %}" class="list-group-item list-group-item-action border-0">
-                    <i class="ri-home-line me-2"></i>{% trans 'Inicio' %}
+                <a href="{% url 'home' %}" class="list-group-item list-group-item-action border-0 sidebar-link">
+                    <i class="ri-home-line me-2 text-secondary"></i>{% trans 'Inicio' %}
                 </a>
-                <a href="{% url 'historias_list' %}" class="list-group-item list-group-item-action border-0">
-                    <i class="ri-article-line me-2"></i>{% trans 'Historias' %}
+                <a href="{% url 'historias_list' %}" class="list-group-item list-group-item-action border-0 sidebar-link">
+                    <i class="ri-article-line me-2 text-secondary"></i>{% trans 'Historias' %}
                 </a>
-                <a href="{% url 'agenda_index' %}" class="list-group-item list-group-item-action border-0">
-                    <i class="ri-calendar-event-line me-2"></i>{% trans 'Eventos' %}
+                <a href="{% url 'agenda_index' %}" class="list-group-item list-group-item-action border-0 sidebar-link">
+                    <i class="ri-calendar-event-line me-2 text-secondary"></i>{% trans 'Eventos' %}
                 </a>
             </div>
             
             <!-- Selector de idioma -->
             <div class="px-3 py-3 border-top mt-3">
                 <small class="text-muted fw-semibold d-block mb-2">
-                    <i class="ri-translate-2 me-1"></i>{% trans 'IDIOMA' %}
+                    <i class="ri-translate-2 me-1 text-secondary"></i>{% trans 'IDIOMA' %}
                 </small>
                 <div class="dropdown w-100">
                     {% get_current_language as LANGUAGE_CODE %}
@@ -455,10 +480,13 @@
 })();
 </script>
 
-    <!-- Main -->
-    <main class="container my-5 fade-in">
-        {% block content %}{% endblock %}
-    </main>
+    <!-- Main Content Wrapper -->
+    <div id="main-content">
+        <!-- Main -->
+        <main class="container my-5 fade-in">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
 
     <!-- Modal de confirmación para eliminar -->
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
@@ -485,10 +513,292 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="text-center py-4 border-top">
-    <p class="mb-0">© 2025 {% trans 'Be Man Be Woman' %} - {% trans 'Todos los derechos reservados' %}</p>
+    <!-- Footer Profesional -->
+    <footer class="border-top mt-5" style="background-color: var(--bm-azul-800, #0f2233);">
+        <div class="container py-5">
+            <!-- Versión Desktop -->
+            <div class="row g-4 d-none d-md-flex">
+                <!-- Sobre Nosotros -->
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="text-white mb-3">
+                        <i class="ri-mental-health-line me-2"></i>Be Man Be Woman
+                    </h5>
+                    <p class="text-muted small">
+                        {% trans 'Plataforma de apoyo para la salud mental y bienestar emocional. Comparte, conecta y encuentra ayuda profesional.' %}
+                    </p>
+                    <div class="d-flex gap-2 mt-3">
+                        <span class="badge bg-secondary"><i class="ri-community-line me-1"></i>{% trans 'Comunidad' %}</span>
+                        <span class="badge bg-secondary"><i class="ri-shield-check-line me-1"></i>{% trans 'Seguro' %}</span>
+                        <span class="badge bg-secondary"><i class="ri-24-hours-line me-1"></i>24/7</span>
+                    </div>
+                </div>
+
+                <!-- Enlaces Rápidos -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="text-white mb-3">{% trans 'Enlaces' %}</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="{% url 'home' %}" class="text-muted text-decoration-none footer-link">
+                                <i class="ri-home-4-line me-1"></i>{% trans 'Inicio' %}
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'historias_list' %}" class="text-muted text-decoration-none footer-link">
+                                <i class="ri-discuss-line me-1"></i>{% trans 'Foro' %}
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'agenda_index' %}" class="text-muted text-decoration-none footer-link">
+                                <i class="ri-calendar-event-line me-1"></i>{% trans 'Eventos' %}
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'podcast_index' %}" class="text-muted text-decoration-none footer-link">
+                                <i class="ri-mic-line me-1"></i>{% trans 'Podcasts' %}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Recursos -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-white mb-3">{% trans 'Recursos' %}</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="#" class="text-muted text-decoration-none footer-link">
+                                <i class="ri-question-line me-1"></i>{% trans 'Ayuda' %}
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-muted text-decoration-none footer-link">
+                                <i class="ri-file-text-line me-1"></i>{% trans 'Términos y Condiciones' %}
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-muted text-decoration-none footer-link">
+                                <i class="ri-shield-user-line me-1"></i>{% trans 'Privacidad' %}
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-muted text-decoration-none footer-link">
+                                <i class="ri-phone-line me-1"></i>{% trans 'Contacto' %}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Redes Sociales -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-white mb-3">{% trans 'Síguenos' %}</h6>
+                    <p class="text-muted small mb-3">
+                        {% trans 'Mantente conectado en nuestras redes sociales' %}
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="https://www.facebook.com/share/1A1CSHTtZW/" target="_blank" rel="noopener" 
+                           class="btn btn-outline-secondary btn-sm social-btn" title="Facebook">
+                            <i class="ri-facebook-fill"></i>
+                        </a>
+                        <a href="https://www.instagram.com/circulomasculinodetitanes?utm_source=qr&igsh=Yjhvamo4enBpdWtv" target="_blank" rel="noopener" 
+                           class="btn btn-outline-secondary btn-sm social-btn" title="Instagram">
+                            <i class="ri-instagram-fill"></i>
+                        </a>
+                        <a href="https://www.tiktok.com/@circulodetitanes?_t=ZS-90y4tqKE13w&_r=1" target="_blank" rel="noopener" 
+                           class="btn btn-outline-secondary btn-sm social-btn" title="TikTok">
+                            <i class="ri-tiktok-fill"></i>
+                        </a>
+                        <a href="https://www.threads.com/@circulomasculinodetitanes" target="_blank" rel="noopener" 
+                           class="btn btn-outline-secondary btn-sm social-btn" title="Threads">
+                            <i class="ri-at-line"></i>
+                        </a>
+                        <a href="https://wa.me/573133169313" target="_blank" rel="noopener" 
+                           class="btn btn-outline-secondary btn-sm social-btn" title="WhatsApp">
+                            <i class="ri-whatsapp-fill"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Versión Móvil Simplificada -->
+            <div class="d-md-none text-center">
+                <!-- Logo y Título -->
+                <div class="mb-4">
+                    <h5 class="text-white mb-2">
+                        <i class="ri-mental-health-line me-2"></i>Be Man Be Woman
+                    </h5>
+                    <p class="text-muted small mb-0">
+                        {% trans 'Plataforma de apoyo para la salud mental' %}
+                    </p>
+                </div>
+
+                <!-- Redes Sociales -->
+                <div class="mb-4">
+                    <p class="text-muted small mb-2">{% trans 'Síguenos' %}</p>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a href="https://www.facebook.com/share/1A1CSHTtZW/" target="_blank" rel="noopener" 
+                           class="btn btn-outline-secondary btn-sm social-btn-mobile" title="Facebook">
+                            <i class="ri-facebook-fill"></i>
+                        </a>
+                        <a href="https://www.instagram.com/circulomasculinodetitanes/?utm_source=qr&igsh=Yjhvamo4enBpdWtv#" target="_blank" rel="noopener" 
+                           class="btn btn-outline-secondary btn-sm social-btn-mobile" title="Instagram">
+                            <i class="ri-instagram-fill"></i>
+                        </a>
+                        <a href="https://www.tiktok.com/@circulodetitanes?_t=ZS-90y4tqKE13w&_r=1" target="_blank" rel="noopener" 
+                           class="btn btn-outline-secondary btn-sm social-btn-mobile" title="TikTok">
+                            <i class="ri-tiktok-fill"></i>
+                        </a>
+                        <a href="https://www.threads.com/@circulomasculinodetitanes" target="_blank" rel="noopener" 
+                           class="btn btn-outline-secondary btn-sm social-btn-mobile" title="Threads">
+                            <i class="ri-at-line"></i>
+                        </a>
+                        <a href="https://wa.me/573133169313" target="_blank" rel="noopener" 
+                           class="btn btn-outline-secondary btn-sm social-btn-mobile" title="WhatsApp">
+                            <i class="ri-whatsapp-fill"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Enlaces Rápidos Compactos -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-center gap-3 flex-wrap small">
+                        <a href="{% url 'home' %}" class="text-muted text-decoration-none">{% trans 'Inicio' %}</a>
+                        <span class="text-muted">•</span>
+                        <a href="{% url 'historias_list' %}" class="text-muted text-decoration-none">{% trans 'Foro' %}</a>
+                        <span class="text-muted">•</span>
+                        <a href="{% url 'agenda_index' %}" class="text-muted text-decoration-none">{% trans 'Eventos' %}</a>
+                        <span class="text-muted">•</span>
+                        <a href="#" class="text-muted text-decoration-none">{% trans 'Ayuda' %}</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Separador -->
+            <hr class="my-4 border-secondary">
+
+            <!-- Derechos y Créditos -->
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <p class="text-muted small mb-0">
+                        © 2025 <strong class="text-white">Be Man Be Woman</strong> - 
+                        {% trans 'Todos los derechos reservados' %}
+                    </p>
+                </div>
+            </div>
+        </div>
     </footer>
+
+    <style>
+        /* Sidebar Links */
+        .sidebar-link {
+            transition: all 0.3s ease;
+            color: var(--bm-blanco, #f8f9fa);
+            background-color: transparent;
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(212, 175, 55, 0.1);
+            color: var(--bm-dorado, #d4af37) !important;
+            border-left: 3px solid var(--bm-dorado, #d4af37);
+            padding-left: 1.25rem;
+        }
+        
+        .sidebar-link i {
+            transition: color 0.3s ease;
+        }
+        
+        .sidebar-link:hover i {
+            color: var(--bm-dorado, #d4af37) !important;
+        }
+        
+        /* Admin link especial en sidebar */
+        .sidebar-link[style*="background-color: rgba(212, 175, 55, 0.1)"] {
+            border-left: 3px solid var(--bm-dorado, #d4af37);
+        }
+        
+        .sidebar-link[style*="background-color: rgba(212, 175, 55, 0.1)"]:hover {
+            background-color: rgba(212, 175, 55, 0.2) !important;
+        }
+        
+        /* Offcanvas personalizado */
+        .offcanvas {
+            background-color: var(--bm-azul-800, #0f2233);
+        }
+        
+        .offcanvas-header {
+            border-color: rgba(108, 117, 125, 0.2);
+        }
+        
+        .offcanvas-body .border-bottom,
+        .offcanvas-body .border-top {
+            border-color: rgba(108, 117, 125, 0.2) !important;
+        }
+        
+        /* Footer Hover Effects */
+        .footer-link {
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .footer-link:hover {
+            color: #888 !important;
+            transform: translateX(5px);
+        }
+        
+        /* Social Buttons */
+        .social-btn {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+        .social-btn:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: #fff !important;
+        }
+        
+        /* Social Buttons Mobile */
+        .social-btn-mobile {
+            width: 45px;
+            height: 45px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            font-size: 1.3rem;
+            border-width: 2px;
+        }
+        .social-btn-mobile:active {
+            transform: scale(0.95);
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: #fff !important;
+        }
+        
+        /* Footer Responsive */
+        @media (max-width: 768px) {
+            footer {
+                padding: 2rem 0 !important;
+            }
+            footer .py-5 {
+                padding-top: 2rem !important;
+                padding-bottom: 2rem !important;
+            }
+            footer .small {
+                font-size: 0.85rem !important;
+            }
+            footer hr {
+                margin: 1.5rem 0 !important;
+            }
+        }
+    </style>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -537,43 +847,127 @@
     })();
     </script>
     {% block extra_js %}{% endblock %}
-            {% if user.is_authenticated and WHATSAPP_HELP_ENABLED and WHATSAPP_SUPPORT_URL %}
-                <div class="wa-popup" id="waPopup" aria-live="polite">
-                    <a href="{{ WHATSAPP_SUPPORT_URL }}" target="_blank" rel="noopener" class="wa-fab" id="waFab" aria-label="Abrir chat de WhatsApp">
-                        <i class="ri-whatsapp-fill"></i>
-                    </a>
-                    <div class="wa-bubble" id="waBubble">
-                        <i class="ri-whatsapp-line" style="color:#25D366"></i>
-                        <div>
-                            <div class="fw-bold mb-1">¿Necesitas ayuda?</div>
-                            <small class="text-muted">Chatea con soporte por WhatsApp</small>
-                        </div>
-                        <a href="{{ WHATSAPP_SUPPORT_URL }}" target="_blank" rel="noopener" class="btn btn-sm btn-success ms-1">Abrir</a>
-                        <button class="wa-close ms-1" id="waClose" aria-label="Cerrar"><i class="ri-close-line"></i></button>
-                    </div>
-                </div>
-            <script>
-                        (function(){
-                    try{
-                        const POPUP_KEY = 'wa_help_shown';
-                                const bubble = document.getElementById('waBubble');
-                                const fab = document.getElementById('waFab');
-                                const closeBtn = document.getElementById('waClose');
-                                if(!bubble || !fab) return;
-                        // Mostrar el globito solo una vez por sesión
-                        if(!sessionStorage.getItem(POPUP_KEY)){
-                            requestAnimationFrame(()=> bubble.classList.add('show'));
-                            sessionStorage.setItem(POPUP_KEY, '1');
-                            // ocultarlo automáticamente luego de unos segundos
-                            setTimeout(()=> bubble.classList.remove('show'), 4200);
-                        }
-                                // Accesibilidad: mostrar al enfocar con teclado, ocultar al salir
-                                fab.addEventListener('focus', ()=> bubble.classList.add('show'));
-                                fab.addEventListener('blur', ()=> bubble.classList.remove('show'));
-                                if(closeBtn){ closeBtn.addEventListener('click', ()=> bubble.classList.remove('show')); }
-                    } catch(e) {}
-                })();
-            </script>
-            {% endif %}
+    
+    {% if user.is_authenticated and WHATSAPP_HELP_ENABLED and WHATSAPP_SUPPORT_URL %}
+    <!-- WhatsApp flotante: solo visible en home durante 10 segundos -->
+    <div class="wa-popup" id="waPopup" aria-live="polite" style="display:none;">
+        <a href="{{ WHATSAPP_SUPPORT_URL }}" target="_blank" rel="noopener" class="wa-fab" id="waFab" aria-label="Abrir chat de WhatsApp">
+            <i class="ri-whatsapp-fill"></i>
+        </a>
+        <div class="wa-bubble" id="waBubble">
+            <i class="ri-whatsapp-line" style="color:#25D366"></i>
+            <div>
+                <div class="fw-bold mb-1">¿Necesitas ayuda?</div>
+                <small class="text-muted">Chatea con soporte por WhatsApp</small>
+            </div>
+            <a href="{{ WHATSAPP_SUPPORT_URL }}" target="_blank" rel="noopener" class="btn btn-sm btn-success ms-1">Abrir</a>
+            <button class="wa-close ms-1" id="waClose" aria-label="Cerrar"><i class="ri-close-line"></i></button>
+        </div>
+    </div>
+    
+    <script>
+    (function(){
+        try{
+            const POPUP_KEY = 'wa_help_shown_home';
+            const SHOW_DURATION = 10000; // 10 segundos
+            const popup = document.getElementById('waPopup');
+            const bubble = document.getElementById('waBubble');
+            const fab = document.getElementById('waFab');
+            const closeBtn = document.getElementById('waClose');
+            
+            if(!bubble || !fab || !popup) return;
+            
+            // Detectar si estamos en el home
+            const isHome = window.location.pathname === '/' || 
+                          window.location.pathname === '/es/' || 
+                          window.location.pathname === '/en/';
+            
+            if(!isHome) {
+                // Si NO estamos en home, no mostrar nada
+                popup.style.display = 'none';
+                return;
+            }
+            
+            // Función para ocultar con animación
+            function hideBubble() {
+                bubble.classList.add('hiding');
+                bubble.classList.remove('show');
+                setTimeout(() => {
+                    bubble.classList.remove('hiding');
+                }, 300);
+            }
+            
+            // Función para mostrar con animación
+            function showBubble() {
+                bubble.classList.remove('hiding');
+                bubble.classList.add('show');
+            }
+            
+            // Mostrar popup solo en home y solo una vez por sesión
+            if(!sessionStorage.getItem(POPUP_KEY)){
+                popup.style.display = 'block';
+                
+                // Mostrar bubble después de 1 segundo con animación
+                setTimeout(() => {
+                    showBubble();
+                }, 1000);
+                
+                // Ocultar automáticamente después de 10 segundos
+                setTimeout(() => {
+                    hideBubble();
+                }, SHOW_DURATION + 1000);
+                
+                // Marcar como mostrado
+                sessionStorage.setItem(POPUP_KEY, '1');
+            } else {
+                // Si ya se mostró, solo mostrar el FAB (sin bubble)
+                popup.style.display = 'block';
+            }
+            
+            // Cerrar bubble manualmente
+            if(closeBtn){
+                closeBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    hideBubble();
+                });
+            }
+            
+            // Mostrar bubble al hacer hover en el FAB
+            let hoverTimeout;
+            fab.addEventListener('mouseenter', () => {
+                clearTimeout(hoverTimeout);
+                showBubble();
+            });
+            
+            fab.addEventListener('mouseleave', () => {
+                hoverTimeout = setTimeout(() => {
+                    hideBubble();
+                }, 2000); // Esperar 2 segundos antes de ocultar
+            });
+            
+            // Mantener visible si el mouse está sobre el bubble
+            bubble.addEventListener('mouseenter', () => {
+                clearTimeout(hoverTimeout);
+            });
+            
+            bubble.addEventListener('mouseleave', () => {
+                hoverTimeout = setTimeout(() => {
+                    hideBubble();
+                }, 1000);
+            });
+            
+            // Accesibilidad: mostrar al enfocar con teclado
+            fab.addEventListener('focus', () => showBubble());
+            fab.addEventListener('blur', () => {
+                setTimeout(() => hideBubble(), 2000);
+            });
+            
+        } catch(e) {
+            console.error('Error en WhatsApp popup:', e);
+        }
+    })();
+    </script>
+    {% endif %}
 </body>
 </html>

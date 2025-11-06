@@ -1,79 +1,303 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
 {% block title %}{% trans "Dashboard de Administración" %}{% endblock %}
+{% block extra_css %}
+<link href="{% static 'css/admin-dashboard.css' %}" rel="stylesheet">
+{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <div>
-    <h1 class="mb-1">{% trans "Panel de administración" %}</h1>
-    <p class="text-muted mb-0">{% trans "Resumen de actividad y eventos" %}</p>
-  </div>
-  <div class="d-flex gap-2">
-    <a href="{% url 'admin_evento_create' %}" class="btn btn-primary"><i class="ri-add-line me-1"></i>{% trans "Crear evento" %}</a>
-    <a href="{% url 'admin_evento_list' %}" class="btn btn-outline-primary">{% trans "Gestionar eventos" %}</a>
-  </div>
-</div>
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1"><i class="ri-dashboard-line me-2"></i>{% trans "Panel de Administración" %}</h1>
+            <p class="text-muted mb-0">{% trans "Resumen general de la plataforma" %}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_evento_create' %}" class="btn btn-primary">
+                <i class="ri-add-circle-line me-1"></i>{% trans "Crear Evento" %}
+            </a>
+            <a href="{% url 'admin_evento_list' %}" class="btn btn-outline-secondary">
+                <i class="ri-list-check me-1"></i>{% trans "Ver Todos" %}
+            </a>
+        </div>
+    </div>
 
-<div class="row g-3 mb-4">
-  <div class="col-6 col-md-3">
-    <div class="card card-hover">
-      <div class="card-body">
-        <div class="text-muted small">{% trans "Usuarios" %}</div>
-        <div class="fs-3 fw-bold">{{ usuarios_count }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-md-3">
-    <div class="card card-hover">
-      <div class="card-body">
-        <div class="text-muted small">{% trans "Inscripciones" %}</div>
-        <div class="fs-3 fw-bold">{{ inscripciones_count }}</div>
-      </div>
-    </div>
-  </div>
-</div>
+    <!-- Estadísticas Principales -->
+    <div class="row g-3 mb-4">
+        <!-- Usuarios -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <a href="{% url 'admin_usuarios_list' %}" class="text-decoration-none stat-card-link">
+                <div class="card border-0 shadow-sm h-100 stat-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted small mb-1">{% trans "Usuarios Registrados" %}</p>
+                                <h2 class="mb-0 fw-bold text-white">{{ usuarios_count }}</h2>
+                            </div>
+                            <div class="rounded-circle bg-secondary bg-opacity-25 p-3">
+                                <i class="ri-user-line fs-4 text-secondary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
 
-<div class="row g-4">
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-header">{% trans "Próximos eventos" %}</div>
-      <ul class="list-group list-group-flush">
-        {% for e in proximos %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <div class="d-flex flex-column">
-            <a href="{% url 'agenda_evento_detalle' e.pk %}" class="fw-semibold text-reset text-decoration-none">{{ e.titulo|default:e.nombre }}</a>
-            <span class="text-muted small"><i class="ri-time-line me-1"></i>{{ e.fecha|date:"d M Y, H:i" }}</span>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-primary" title="Inscritos">{{ e.inscritos }}</span>
-            <a href="{% url 'admin_evento_edit' e.pk %}" class="btn btn-sm btn-outline-primary">{% trans "Editar" %}</a>
-          </div>
-        </li>
-        {% empty %}
-        <li class="list-group-item text-muted">{% trans "Sin próximos eventos" %}</li>
-        {% endfor %}
-      </ul>
+        <!-- Eventos -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <a href="{% url 'admin_evento_list' %}" class="text-decoration-none stat-card-link">
+                <div class="card border-0 shadow-sm h-100 stat-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted small mb-1">{% trans "Total Eventos" %}</p>
+                                <h2 class="mb-0 fw-bold text-white">{{ eventos_count }}</h2>
+                            </div>
+                            <div class="rounded-circle bg-secondary bg-opacity-25 p-3">
+                                <i class="ri-calendar-event-line fs-4 text-secondary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Inscripciones -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <a href="{% url 'admin_inscripciones_list' %}" class="text-decoration-none stat-card-link">
+                <div class="card border-0 shadow-sm h-100 stat-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted small mb-1">{% trans "Inscripciones" %}</p>
+                                <h2 class="mb-0 fw-bold text-white">{{ inscripciones_count }}</h2>
+                            </div>
+                            <div class="rounded-circle bg-secondary bg-opacity-25 p-3">
+                                <i class="ri-user-add-line fs-4 text-secondary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Rating Promedio -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <a href="{% url 'admin_calificaciones_list' %}" class="text-decoration-none stat-card-link">
+                <div class="card border-0 shadow-sm h-100 stat-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted small mb-1">{% trans "Rating Promedio" %}</p>
+                                <h2 class="mb-0 fw-bold" style="color: var(--bm-dorado);">{{ rating_promedio }}<small class="fs-6 text-muted">/5</small></h2>
+                            </div>
+                            <div class="rounded-circle bg-opacity-25 p-3" style="background-color: rgba(212, 175, 55, 0.15);">
+                                <i class="ri-star-line fs-4" style="color: var(--bm-dorado);"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
-  </div>
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-header">{% trans "Eventos recientes" %}</div>
-      <ul class="list-group list-group-flush">
-        {% for e in pasados %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <div class="d-flex flex-column">
-            <a href="{% url 'agenda_evento_detalle' e.pk %}" class="fw-semibold text-reset text-decoration-none">{{ e.titulo|default:e.nombre }}</a>
-            <span class="text-muted small"><i class="ri-time-line me-1"></i>{{ e.fecha|date:"d M Y, H:i" }}</span>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-secondary" title="Inscritos">{{ e.inscritos }}</span>
-            <a href="{% url 'admin_evento_edit' e.pk %}" class="btn btn-sm btn-outline-primary">{% trans "Editar" %}</a>
-          </div>
-        </li>
-        {% empty %}
-        <li class="list-group-item text-muted">{% trans "Sin historial" %}</li>
-        {% endfor %}
-      </ul>
+
+    <!-- Estadísticas Secundarias -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <a href="{% url 'admin_historias_list' %}" class="text-decoration-none stat-card-link">
+                <div class="card border-0 shadow-sm stat-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small mb-1">{% trans "Historias Publicadas" %}</p>
+                                <h4 class="mb-0 fw-bold">{{ historias_count }}</h4>
+                            </div>
+                            <i class="ri-article-line fs-3 text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-4">
+            <a href="{% url 'admin_comentarios_list' %}" class="text-decoration-none stat-card-link">
+                <div class="card border-0 shadow-sm stat-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small mb-1">{% trans "Total Comentarios" %}</p>
+                                <h4 class="mb-0 fw-bold">{{ comentarios_total }}</h4>
+                            </div>
+                            <i class="ri-chat-3-line fs-3 text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-4">
+            <a href="{% url 'admin_notificaciones_list' %}" class="text-decoration-none stat-card-link">
+                <div class="card border-0 shadow-sm stat-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small mb-1">{% trans "Notificaciones Pendientes" %}</p>
+                                <h4 class="mb-0 fw-bold">{{ notificaciones_pendientes }}</h4>
+                            </div>
+                            <i class="ri-notification-3-line fs-3 text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
-  </div>
+
+    <!-- Sección de Eventos Populares -->
+    {% if mas_populares %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-0 pt-3">
+            <h5 class="mb-0"><i class="ri-trophy-line me-2 text-secondary"></i>{% trans "Eventos Más Populares" %}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                {% for evento in mas_populares %}
+                <div class="col-12 col-md-4">
+                    <a href="{% url 'agenda_evento_detalle' evento.pk %}" class="text-decoration-none">
+                        <div class="card h-100 border stat-card">
+                            <div class="card-body">
+                                <h6 class="card-title text-white">{{ evento.titulo|default:evento.nombre }}</h6>
+                                <p class="card-text text-muted small mb-2">
+                                    <i class="ri-calendar-line me-1"></i>{{ evento.fecha|date:"d M Y, H:i" }}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-secondary">
+                                        <i class="ri-user-line me-1"></i>{{ evento.inscritos }} {% trans "inscritos" %}
+                                    </span>
+                                    <span class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation(); window.location.href='{% url 'admin_evento_edit' evento.pk %}'">
+                                        <i class="ri-edit-line me-1"></i>{% trans "Editar" %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Eventos Próximos y Recientes -->
+    <div class="row g-4 mb-4">
+        <!-- Próximos Eventos -->
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="mb-0"><i class="ri-calendar-check-line me-2 text-secondary"></i>{% trans "Próximos Eventos" %}</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for e in proximos %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'agenda_evento_detalle' e.pk %}" class="fw-semibold text-decoration-none" style="color: var(--bm-dorado);">
+                                        {{ e.titulo|default:e.nombre }}
+                                    </a>
+                                    <div class="text-muted small mt-1">
+                                        <i class="ri-time-line me-1"></i>{{ e.fecha|date:"d M Y, H:i" }}
+                                        <span class="ms-2"><i class="ri-user-line me-1"></i>{{ e.inscritos }} {% trans "inscritos" %}</span>
+                                    </div>
+                                </div>
+                                <a href="{% url 'admin_evento_edit' e.pk %}" class="btn btn-sm btn-outline-secondary ms-2">
+                                    <i class="ri-edit-line"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item text-muted text-center py-4">
+                            <i class="ri-calendar-line fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                            {% trans "No hay eventos próximos" %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Eventos Recientes -->
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="mb-0"><i class="ri-history-line me-2 text-secondary"></i>{% trans "Eventos Recientes" %}</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for e in pasados %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'agenda_evento_detalle' e.pk %}" class="fw-semibold text-decoration-none text-white">
+                                        {{ e.titulo|default:e.nombre }}
+                                    </a>
+                                    <div class="text-muted small mt-1">
+                                        <i class="ri-time-line me-1"></i>{{ e.fecha|date:"d M Y, H:i" }}
+                                        <span class="ms-2"><i class="ri-user-line me-1"></i>{{ e.inscritos }} {% trans "asistentes" %}</span>
+                                    </div>
+                                </div>
+                                <a href="{% url 'admin_evento_edit' e.pk %}" class="btn btn-sm btn-outline-secondary ms-2">
+                                    <i class="ri-edit-line"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item text-muted text-center py-4">
+                            <i class="ri-history-line fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                            {% trans "No hay historial de eventos" %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actividad Reciente del Foro -->
+    {% if historias_recientes %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-0 pt-3">
+            <h5 class="mb-0"><i class="ri-message-3-line me-2 text-secondary"></i>{% trans "Actividad Reciente en el Foro" %}</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                {% for historia in historias_recientes %}
+                <div class="list-group-item">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="flex-shrink-0">
+                            {% if historia.usuario.foto_perfil %}
+                            <img src="{{ historia.usuario.foto_perfil.url }}" alt="{{ historia.usuario.username }}" 
+                                 class="rounded-circle border border-secondary" width="40" height="40" style="object-fit: cover;">
+                            {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="ri-user-line text-white"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <a href="{% url 'historia_detalle' historia.pk %}" class="fw-semibold text-decoration-none text-white">
+                                {{ historia.titulo }}
+                            </a>
+                            <div class="text-muted small mt-1">
+                                {% trans "Por" %} <strong class="text-secondary">{{ historia.usuario.username }}</strong> • 
+                                {{ historia.fecha|timesince }} {% trans "atrás" %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

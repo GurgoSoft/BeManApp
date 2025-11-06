@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% trans "Gestión de Calificaciones" %}{% endblock %}
+{% block extra_css %}
+<link href="{% static 'css/admin-dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1"><i class="ri-star-line me-2" style="color: var(--bm-dorado);"></i>{% trans "Gestión de Calificaciones" %}</h1>
+            <p class="text-muted mb-0">{% trans "Todas las calificaciones de eventos" %}</p>
+        </div>
+        <a href="{% url 'agenda_admin_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="ri-arrow-left-line me-1"></i>{% trans "Dashboard" %}
+        </a>
+    </div>
+
+    <!-- Tabla de calificaciones -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: rgba(108, 117, 125, 0.05);">
+                        <tr>
+                            <th class="border-0 py-3 ps-4">{% trans "Usuario" %}</th>
+                            <th class="border-0 py-3">{% trans "Evento" %}</th>
+                            <th class="border-0 py-3">{% trans "Calificación" %}</th>
+                            <th class="border-0 py-3">{% trans "Fecha" %}</th>
+                            <th class="border-0 py-3 text-end pe-4">{% trans "Acciones" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cal in calificaciones %}
+                        <tr class="evento-row">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if cal.usuario.foto_perfil %}
+                                    <img src="{{ cal.usuario.foto_perfil.url }}" class="rounded-circle border border-secondary" style="width:32px;height:32px;object-fit:cover;"/>
+                                    {% else %}
+                                    <div class="bg-secondary bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;">
+                                        <i class="ri-user-line text-secondary"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span class="text-white">{{ cal.usuario.username }}</span>
+                                </div>
+                            </td>
+                            <td class="text-white">{{ cal.evento.titulo|default:cal.evento.nombre|truncatewords:8 }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-1">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= cal.estrellas %}
+                                            <i class="ri-star-fill" style="color: var(--bm-dorado);"></i>
+                                        {% else %}
+                                            <i class="ri-star-line text-secondary"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-1 text-white fw-bold">{{ cal.estrellas }}</span>
+                                </div>
+                            </td>
+                            <td class="text-muted">{{ cal.fecha|date:"d M Y, H:i" }}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'agenda_evento_detalle' cal.evento.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Ver evento' %}">
+                                    <i class="ri-eye-line"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="ri-star-line fs-1 d-block mb-3 text-secondary opacity-50"></i>
+                                <p class="text-muted mb-0">{% trans "No hay calificaciones registradas" %}</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info adicional -->
+    <div class="mt-3 text-muted small">
+        <i class="ri-information-line me-1"></i>
+        {% trans "Total de calificaciones" %}: <strong class="text-white">{{ calificaciones|length }}</strong>
+    </div>
+</div>
+
+<style>
+    .evento-row {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid rgba(108, 117, 125, 0.1);
+    }
+    
+    .evento-row:hover {
+        background-color: rgba(108, 117, 125, 0.05);
+    }
+    
+    .evento-row:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}

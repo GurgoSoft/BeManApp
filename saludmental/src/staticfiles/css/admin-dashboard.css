@@ -1,0 +1,138 @@
+/* Admin Dashboard Styles - Tema Profesional */
+
+/* Variables de colores del tema */
+:root {
+    --admin-primary: var(--bm-dorado, #d4af37);
+    --admin-secondary: #6c757d;
+    --admin-dark: var(--bm-azul-900, #0d1b2a);
+    --admin-light: var(--bm-gris, #b8c4cf);
+}
+
+/* Cards de estadísticas con efecto hover */
+.card {
+    transition: all 0.3s ease;
+    background-color: var(--bm-azul-800, #0f2233);
+}
+
+.card.shadow-sm:hover {
+    box-shadow: 0 0.5rem 1rem rgba(212, 175, 55, 0.2) !important;
+    transform: translateY(-2px);
+}
+
+/* Badges sobrios */
+.badge.bg-secondary {
+    background-color: #495057 !important;
+}
+
+/* Botones outline sobrios */
+.btn-outline-secondary {
+    color: var(--admin-light);
+    border-color: var(--admin-secondary);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--admin-secondary);
+    border-color: var(--admin-secondary);
+    color: #fff;
+}
+
+/* Ajuste de padding para list-group-item */
+.list-group-item {
+    padding: 1rem;
+    transition: background-color 0.2s ease;
+    background-color: transparent;
+    border-color: rgba(108, 117, 125, 0.2);
+}
+
+.list-group-item:hover {
+    background-color: rgba(108, 117, 125, 0.1);
+}
+
+/* Mejor espaciado en móvil */
+@media (max-width: 576px) {
+    .card-body h2 {
+        font-size: 1.5rem;
+    }
+    
+    .card-body .fs-4 {
+        font-size: 1.25rem !important;
+    }
+}
+
+/* Cards de eventos más compactas */
+.card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.card-text.small {
+    font-size: 0.875rem;
+}
+
+/* Iconos con opacidad profesional */
+.text-secondary {
+    opacity: 0.85;
+}
+
+/* Estados vacíos más visuales */
+.list-group-item.text-center {
+    padding: 2rem 1rem;
+}
+
+.list-group-item i.fs-1 {
+    font-size: 3rem !important;
+}
+
+/* Sombras sutiles para cards */
+.card.border-0 {
+    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(108, 117, 125, 0.15) !important;
+}
+
+/* Header del dashboard */
+h1 i {
+    opacity: 0.7;
+    color: var(--admin-secondary);
+}
+
+/* Responsive para container-fluid */
+.container-fluid {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Círculos de iconos con fondo sutil */
+.bg-opacity-25 {
+    background-color: rgba(108, 117, 125, 0.15) !important;
+}
+
+/* Enlaces con color dorado */
+a[style*="color: var(--bm-dorado)"] {
+    transition: opacity 0.2s ease;
+}
+
+a[style*="color: var(--bm-dorado)"]:hover {
+    opacity: 0.8;
+}
+
+/* Card headers sobrios */
+.card-header {
+    background-color: rgba(108, 117, 125, 0.05);
+}
+
+.card-header h5 {
+    color: var(--bm-blanco, #f8f9fa);
+}
+
+/* Bordes de imágenes profesionales */
+.border-secondary {
+    border-color: rgba(108, 117, 125, 0.3) !important;
+}

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% trans "Gestión de Comentarios" %}{% endblock %}
+{% block extra_css %}
+<link href="{% static 'css/admin-dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1"><i class="ri-chat-3-line me-2 text-secondary"></i>{% trans "Gestión de Comentarios" %}</h1>
+            <p class="text-muted mb-0">{% trans "Comentarios del foro y eventos" %}</p>
+        </div>
+        <a href="{% url 'agenda_admin_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="ri-arrow-left-line me-1"></i>{% trans "Dashboard" %}
+        </a>
+    </div>
+
+    <!-- Comentarios del Foro -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-0 pt-3">
+            <h5 class="mb-0"><i class="ri-article-line me-2 text-secondary"></i>{% trans "Comentarios del Foro" %}</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: rgba(108, 117, 125, 0.05);">
+                        <tr>
+                            <th class="border-0 py-3 ps-4">{% trans "Usuario" %}</th>
+                            <th class="border-0 py-3">{% trans "Comentario" %}</th>
+                            <th class="border-0 py-3">{% trans "Historia" %}</th>
+                            <th class="border-0 py-3">{% trans "Fecha" %}</th>
+                            <th class="border-0 py-3 text-end pe-4">{% trans "Acciones" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for com in comentarios_foro %}
+                        <tr class="evento-row">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if com.usuario.foto_perfil %}
+                                    <img src="{{ com.usuario.foto_perfil.url }}" class="rounded-circle border border-secondary" style="width:32px;height:32px;object-fit:cover;"/>
+                                    {% else %}
+                                    <div class="bg-secondary bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;">
+                                        <i class="ri-user-line text-secondary"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span class="text-white">{{ com.usuario.username }}</span>
+                                </div>
+                            </td>
+                            <td class="text-white">{{ com.contenido|truncatewords:10 }}</td>
+                            <td class="text-muted">{{ com.historia.titulo|truncatewords:5 }}</td>
+                            <td class="text-muted">{{ com.fecha|date:"d M Y, H:i" }}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'historia_detalle' com.historia.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Ver historia' %}">
+                                    <i class="ri-eye-line"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="ri-chat-3-line fs-1 d-block mb-3 text-secondary opacity-50"></i>
+                                <p class="text-muted mb-0">{% trans "No hay comentarios del foro" %}</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comentarios de Eventos -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 pt-3">
+            <h5 class="mb-0"><i class="ri-calendar-line me-2 text-secondary"></i>{% trans "Comentarios de Eventos" %}</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: rgba(108, 117, 125, 0.05);">
+                        <tr>
+                            <th class="border-0 py-3 ps-4">{% trans "Usuario" %}</th>
+                            <th class="border-0 py-3">{% trans "Comentario" %}</th>
+                            <th class="border-0 py-3">{% trans "Evento" %}</th>
+                            <th class="border-0 py-3">{% trans "Fecha" %}</th>
+                            <th class="border-0 py-3 text-end pe-4">{% trans "Acciones" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for com in comentarios_eventos %}
+                        <tr class="evento-row">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if com.usuario.foto_perfil %}
+                                    <img src="{{ com.usuario.foto_perfil.url }}" class="rounded-circle border border-secondary" style="width:32px;height:32px;object-fit:cover;"/>
+                                    {% else %}
+                                    <div class="bg-secondary bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;">
+                                        <i class="ri-user-line text-secondary"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span class="text-white">{{ com.usuario.username }}</span>
+                                </div>
+                            </td>
+                            <td class="text-white">{{ com.texto|truncatewords:10 }}</td>
+                            <td class="text-muted">{{ com.evento.titulo|default:com.evento.nombre|truncatewords:5 }}</td>
+                            <td class="text-muted">{{ com.fecha|date:"d M Y, H:i" }}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'agenda_evento_detalle' com.evento.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Ver evento' %}">
+                                    <i class="ri-eye-line"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="ri-calendar-line fs-1 d-block mb-3 text-secondary opacity-50"></i>
+                                <p class="text-muted mb-0">{% trans "No hay comentarios de eventos" %}</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .evento-row {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid rgba(108, 117, 125, 0.1);
+    }
+    
+    .evento-row:hover {
+        background-color: rgba(108, 117, 125, 0.05);
+    }
+    
+    .evento-row:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}

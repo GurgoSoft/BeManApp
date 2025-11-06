@@ -17,6 +17,13 @@ urlpatterns = [
     path('admin/eventos/<int:pk>/editar/', views.admin_evento_edit, name='admin_evento_edit'),
     path('admin/eventos/<int:pk>/eliminar/', views.admin_evento_delete, name='admin_evento_delete'),
     path('admin/eventos/<int:pk>/fotos/', views.admin_evento_fotos, name='admin_evento_fotos'),
+    # Admin - Gestión de datos
+    path('admin/usuarios/', views.admin_usuarios_list, name='admin_usuarios_list'),
+    path('admin/inscripciones/', views.admin_inscripciones_list, name='admin_inscripciones_list'),
+    path('admin/historias/', views.admin_historias_list, name='admin_historias_list'),
+    path('admin/comentarios/', views.admin_comentarios_list, name='admin_comentarios_list'),
+    path('admin/notificaciones/', views.admin_notificaciones_list, name='admin_notificaciones_list'),
+    path('admin/calificaciones/', views.admin_calificaciones_list, name='admin_calificaciones_list'),
     # Inscripciones
     path('inscribirme/<int:pk>/', views.inscribirme, name='agenda_inscribirme'),
 ]

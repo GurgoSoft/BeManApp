@@ -254,18 +254,46 @@ def _notificar_inscripcion(evento: Evento, usuario, lang_code: str | None = None
 
 @user_passes_test(_is_staff)
 def admin_dashboard(request):
+    from apps.foro.models import Historia, Comentario as ForoComentario
+    from django.db.models import Avg, Sum
+    
     ahora = timezone.now()
     eventos = Evento.objects.order_by('-fecha').annotate(inscritos=Count('inscripcion'))
+    
+    # Estadísticas generales
     usuarios_count = request.user.__class__.objects.count()
     inscripciones_count = Inscripcion.objects.count()
-    proximos = eventos.filter(fecha__gte=ahora)[:6]
-    pasados = eventos.filter(fecha__lt=ahora)[:6]
+    eventos_count = eventos.count()
+    historias_count = Historia.objects.count()
+    comentarios_foro = ForoComentario.objects.count()
+    comentarios_eventos = EventoComentario.objects.count()
+    notificaciones_pendientes = Notificacion.objects.filter(leida=False).count()
+    
+    # Eventos
+    proximos = eventos.filter(fecha__gte=ahora)[:5]
+    pasados = eventos.filter(fecha__lt=ahora).order_by('-fecha')[:5]
+    
+    # Calificaciones promedio
+    rating_promedio = EventoCalificacion.objects.aggregate(promedio=Avg('estrellas'))['promedio'] or 0
+    
+    # Eventos más populares (por inscripciones)
+    mas_populares = eventos.order_by('-inscritos')[:3]
+    
+    # Actividad reciente
+    historias_recientes = Historia.objects.select_related('usuario').order_by('-fecha')[:5]
+    
     return render(request, 'agenda/admin_dashboard.html', {
-        'eventos': eventos[:10],
         'usuarios_count': usuarios_count,
         'inscripciones_count': inscripciones_count,
+        'eventos_count': eventos_count,
+        'historias_count': historias_count,
+        'comentarios_total': comentarios_foro + comentarios_eventos,
+        'notificaciones_pendientes': notificaciones_pendientes,
+        'rating_promedio': round(rating_promedio, 1),
         'proximos': proximos,
         'pasados': pasados,
+        'mas_populares': mas_populares,
+        'historias_recientes': historias_recientes,
     })
 
 
@@ -347,8 +375,8 @@ def evento_detalle(request, pk):
     if not evento or not evento.publicado:
         messages.info(request, _("El evento no está disponible."))
         return redirect('home')
-    # Si el evento ya pasó, redirige al home con mensaje
-    if evento.fecha < timezone.now():
+    # Si el evento ya pasó, redirige al home con mensaje (EXCEPTO para admin)
+    if evento.fecha < timezone.now() and not (request.user.is_authenticated and request.user.is_staff):
         messages.info(request, _("Este evento ya pasó."))
         return redirect('home')
     inscrito = False
@@ -586,3 +614,47 @@ def admin_evento_fotos(request, pk):
         return redirect('admin_evento_fotos', pk=pk)
     fotos = evento.fotos.order_by('-fecha_subida')
     return render(request, 'agenda/admin_evento_fotos.html', {'evento': evento, 'fotos': fotos})
+
+
+# ============ VISTAS ADMIN PERSONALIZADAS ============
+@user_passes_test(_is_staff)
+def admin_usuarios_list(request):
+    usuarios = CustomUser.objects.order_by('-date_joined')
+    return render(request, 'agenda/admin_usuarios_list.html', {'usuarios': usuarios})
+
+
+@user_passes_test(_is_staff)
+def admin_inscripciones_list(request):
+    inscripciones = Inscripcion.objects.select_related('usuario', 'evento').order_by('-fecha_inscripcion')
+    return render(request, 'agenda/admin_inscripciones_list.html', {'inscripciones': inscripciones})
+
+
+@user_passes_test(_is_staff)
+def admin_historias_list(request):
+    from apps.foro.models import Historia
+    historias = Historia.objects.select_related('usuario').order_by('-fecha')
+    return render(request, 'agenda/admin_historias_list.html', {'historias': historias})
+
+
+@user_passes_test(_is_staff)
+def admin_comentarios_list(request):
+    from apps.foro.models import Comentario as ForoComentario
+    comentarios_foro = ForoComentario.objects.select_related('usuario', 'historia').order_by('-fecha')
+    comentarios_eventos = EventoComentario.objects.select_related('usuario', 'evento').order_by('-fecha')
+    return render(request, 'agenda/admin_comentarios_list.html', {
+        'comentarios_foro': comentarios_foro,
+        'comentarios_eventos': comentarios_eventos,
+    })
+
+
+@user_passes_test(_is_staff)
+def admin_notificaciones_list(request):
+    # Solo notificaciones del admin actual
+    notificaciones = Notificacion.objects.filter(usuario=request.user).order_by('-fecha')
+    return render(request, 'agenda/admin_notificaciones_list.html', {'notificaciones': notificaciones})
+
+
+@user_passes_test(_is_staff)
+def admin_calificaciones_list(request):
+    calificaciones = EventoCalificacion.objects.select_related('usuario', 'evento').order_by('-fecha')
+    return render(request, 'agenda/admin_calificaciones_list.html', {'calificaciones': calificaciones})
