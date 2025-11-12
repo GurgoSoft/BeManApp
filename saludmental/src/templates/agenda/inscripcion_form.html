@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% trans "Inscribirse al Evento" %}{% endblock %}
+{% block extra_css %}
+<link href="{% static 'css/admin-dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <!-- Información del evento -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if evento.imagen %}
+                        <img src="{{ evento.imagen.url }}" alt="{{ evento.titulo }}" class="img-fluid rounded mb-3" style="max-height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <h3 class="mb-2">{{ evento.titulo|default:evento.nombre }}</h3>
+                        <p class="text-muted mb-2">
+                            <i class="ri-calendar-line me-1"></i>{{ evento.fecha|date:"d M Y, H:i" }}
+                        </p>
+                        {% if evento.tipo_evento == 'presencial' %}
+                        <p class="text-muted mb-0">
+                            <i class="ri-map-pin-line me-1"></i>{% trans "Evento presencial" %}
+                        </p>
+                        {% else %}
+                        <p class="text-muted mb-0">
+                            <i class="ri-vidicon-line me-1"></i>{% trans "Evento virtual" %}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de inscripción -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h4 class="mb-0 text-center">
+                        <i class="ri-edit-line me-2" style="color: var(--bm-dorado);"></i>
+                        {% trans "Completa tu inscripción" %}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" id="inscripcionForm">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.nombre_completo.id_for_label }}" class="form-label">
+                                {% trans "Nombre completo" %} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.nombre_completo }}
+                            {% if form.nombre_completo.errors %}
+                            <div class="text-danger small mt-1">{{ form.nombre_completo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                                {% trans "Teléfono de contacto" %}
+                            </label>
+                            {{ form.telefono }}
+                            <small class="form-text text-muted">{% trans "Opcional. Para contactarte en caso necesario." %}</small>
+                            {% if form.telefono.errors %}
+                            <div class="text-danger small mt-1">{{ form.telefono.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.notas.id_for_label }}" class="form-label">
+                                {% trans "Notas adicionales" %}
+                            </label>
+                            {{ form.notas }}
+                            <small class="form-text text-muted">{% trans "Opcional. Cualquier comentario o pregunta." %}</small>
+                            {% if form.notas.errors %}
+                            <div class="text-danger small mt-1">{{ form.notas.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="alert alert-info border-0" style="background-color: rgba(212, 175, 55, 0.1);">
+                            <i class="ri-information-line me-2" style="color: var(--bm-dorado);"></i>
+                            {% if evento.tipo_evento == 'presencial' %}
+                                {% trans "Una vez inscrito, podrás ver la ubicación exacta del evento en el mapa." %}
+                            {% else %}
+                                {% trans "Una vez inscrito, recibirás el enlace para unirte al evento virtual." %}
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-lg" style="background-color: var(--bm-dorado); color: var(--bm-azul-900); border: none;">
+                                <i class="ri-check-line me-2"></i>{% trans "Confirmar inscripción" %}
+                            </button>
+                            <a href="{% url 'agenda_evento_detalle' evento.pk %}" class="btn btn-outline-secondary">
+                                <i class="ri-arrow-left-line me-2"></i>{% trans "Volver al evento" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

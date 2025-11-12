@@ -1,100 +1,152 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load i18n %}
+{% load static %}
 
-{% block title %}{% trans "Registrarse - Be Man Be Woman" %}{% endblock %}
+{% block title %}{% trans "Registrarse - Iterum" %}{% endblock %}
 
 {% block content %}
-
-<div class="auth-wrap">
-  <div class="auth-card">
-    <h2 class="auth-title">{% trans "Crea tu cuenta" %}</h2>
-    <p class="auth-subtitle">{% trans "Únete a la comunidad y empieza ahora." %}</p>
-
-    <form method="post" action="{% url 'register' %}" novalidate>
-      {% csrf_token %}
-
-      <div class="form-grid grid-2">
-        <div class="field">
-          <label class="label" for="first_name">{% trans "Nombre" %}</label>
-          <div class="input-icon">
-            <i class="ri-user-3-line icon-left"></i>
-            <input id="first_name" name="first_name" type="text" class="form-control" required autocomplete="given-name" />
-          </div>
-        </div>
-        <div class="field">
-          <label class="label" for="last_name">{% trans "Apellido" %}</label>
-          <div class="input-icon">
-            <i class="ri-user-3-line icon-left"></i>
-            <input id="last_name" name="last_name" type="text" class="form-control" required autocomplete="family-name" />
-          </div>
-        </div>
-      </div>
-
-      <div class="field" style="margin-top:6px">
-        <label class="label" for="email">{% trans "Correo" %}</label>
-        <div class="input-icon">
-          <i class="ri-mail-line icon-left"></i>
-          <input id="email" name="email" type="email" class="form-control" required autocomplete="email" />
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="label" for="username">{% trans "Usuario" %}</label>
-        <div class="input-icon">
-          <i class="ri-at-line icon-left"></i>
-          <input id="username" name="username" type="text" class="form-control" required autocomplete="username" />
-        </div>
-      </div>
-
-      <div class="form-grid grid-2" style="margin-top:6px">
-        <div class="field">
-          <label class="label" for="password1">{% trans "Contraseña" %}</label>
-          <div class="input-icon">
-            <i class="ri-shield-keyhole-line icon-left"></i>
-            <input id="password1" name="password1" type="password" class="form-control" required autocomplete="new-password" />
-            <button type="button" class="btn-eye" aria-label="{% trans 'Mostrar/ocultar contraseña' %}" data-toggle-eye="#password1">
-              <i class="ri-eye-line"></i>
-            </button>
-          </div>
-          <div class="strength"><i id="pw-bar"></i></div>
-        </div>
-        <div class="field">
-          <label class="label" for="password2">{% trans "Confirmar Contraseña" %}</label>
-          <div class="input-icon">
-            <i class="ri-shield-keyhole-line icon-left"></i>
-            <input id="password2" name="password2" type="password" class="form-control" required autocomplete="new-password" />
-            <button type="button" class="btn-eye" aria-label="{% trans 'Mostrar/ocultar contraseña' %}" data-toggle-eye="#password2">
-              <i class="ri-eye-line"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <button type="submit" class="btn btn-primary w-100 fw-bold py-2">{% trans "Crear cuenta" %}</button>
-    </form>
-
-    <div class="auth-foot">
-      <small>{% trans "¿Ya tienes cuenta?" %} <a href="{% url 'login' %}">{% trans "Inicia sesión" %}</a></small>
-    </div>
-  </div>
+<style>
+.auth-container{min-height:calc(100vh - 200px);display:flex;align-items:center;justify-content:center;padding:2rem 1rem;max-width:1400px;margin:0 auto}
+.auth-card{background:var(--bm-azul-900,#0d1b2a);border:2px solid var(--bm-dorado,#d4af37);border-radius:20px;padding:2.5rem 2rem;max-width:540px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.auth-logo{text-align:center;margin-bottom:1.5rem}
+.auth-logo img{height:50px;margin-bottom:0.75rem}
+.auth-logo h1{font-size:1.5rem;font-weight:700;color:var(--bm-dorado,#d4af37);margin:0}
+.auth-title{font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:0.5rem;text-align:center}
+.auth-subtitle{color:#adb5bd;text-align:center;margin-bottom:1.5rem;font-size:0.9rem}
+.field{margin-bottom:1.25rem}
+.field label{display:block;font-weight:600;color:#fff;margin-bottom:0.4rem;font-size:0.85rem}
+.input-wrapper{position:relative}
+.input-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#adb5bd;font-size:1.1rem;pointer-events:none;z-index:1}
+.field input{width:100%;padding:0.75rem 2.75rem;height:45px;border:2px solid var(--bm-dorado,#d4af37);border-radius:10px;font-size:0.95rem;background:var(--bm-azul-800,#1b263b)!important;color:#fff!important;transition:all 0.3s}
+.field input::placeholder{color:#6c757d}
+.field input:focus{border-color:var(--bm-dorado,#d4af37);box-shadow:0 0 0 0.2rem rgba(212,175,55,0.3);outline:none}
+.toggle-password{position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;color:#adb5bd;cursor:pointer!important;font-size:1.1rem;padding:0.5rem;transition:color 0.2s;z-index:2}
+.toggle-password:hover{color:var(--bm-dorado,#d4af37)}
+.row-fields{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.password-strength{height:4px;background:#e9ecef;border-radius:2px;margin-top:0.5rem;overflow:hidden}
+.password-strength-bar{height:100%;width:0;background:linear-gradient(90deg,#dc3545,#ffc107,#28a745);transition:width 0.3s}
+.btn-auth{background:linear-gradient(135deg,var(--bm-dorado,#d4af37) 0%,#c9a132 100%);border:none;color:#0d1b2a;font-weight:700;padding:0.875rem;border-radius:10px;font-size:1rem;transition:all 0.3s;box-shadow:0 4px 15px rgba(212,175,55,0.3);width:100%;margin-top:0.5rem;cursor:pointer}
+.btn-auth:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,175,55,0.4)}
+.auth-footer{text-align:center;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--bm-dorado,#d4af37);color:#adb5bd;font-size:0.9rem}
+.auth-footer a{color:var(--bm-dorado,#d4af37);font-weight:600;text-decoration:none}
+.auth-footer a:hover{text-decoration:underline}
+@media (max-width:576px){.auth-card{padding:2rem 1.5rem}.row-fields{grid-template-columns:1fr}.auth-title{font-size:1.25rem}}
+</style>
+<div class="auth-container">
+<div class="auth-card">
+<div class="auth-logo">
+<img src="{% static 'img/iterum.png' %}" alt="Iterum">
+<h1>Iterum</h1>
 </div>
-
+<h2 class="auth-title">{% trans "Crea tu cuenta" %}</h2>
+<p class="auth-subtitle">{% trans "Únete a la comunidad en segundos" %}</p>
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+{{ message }}
+<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+<form method="post" action="{% url 'register' %}">
+{% csrf_token %}
+<div class="row-fields">
+<div class="field">
+<label for="first_name">{% trans "Nombre" %}</label>
+<div class="input-wrapper">
+<i class="ri-user-line input-icon"></i>
+<input type="text" id="first_name" name="first_name" required autocomplete="given-name">
+</div>
+</div>
+<div class="field">
+<label for="last_name">{% trans "Apellido" %}</label>
+<div class="input-wrapper">
+<i class="ri-user-line input-icon"></i>
+<input type="text" id="last_name" name="last_name" required autocomplete="family-name">
+</div>
+</div>
+</div>
+<div class="field">
+<label for="email">{% trans "Correo electrónico" %}</label>
+<div class="input-wrapper">
+<i class="ri-mail-line input-icon"></i>
+<input type="email" id="email" name="email" placeholder="usuario@ejemplo.com" required autocomplete="email">
+</div>
+</div>
+<div class="field">
+<label for="username">{% trans "Nombre de usuario" %}</label>
+<div class="input-wrapper">
+<i class="ri-at-line input-icon"></i>
+<input type="text" id="username" name="username" required autocomplete="username">
+</div>
+</div>
+<div class="row-fields">
+<div class="field">
+<label for="password1">{% trans "Contraseña" %}</label>
+<div class="input-wrapper">
+<i class="ri-lock-line input-icon"></i>
+<input type="password" id="password1" name="password1" required autocomplete="new-password">
+<button type="button" class="toggle-password" id="togglePass">
+<i class="ri-eye-line"></i>
+</button>
+</div>
+<div class="password-strength">
+<div class="password-strength-bar" id="strengthBar"></div>
+</div>
+</div>
+<div class="field">
+<label for="password2">{% trans "Confirmar contraseña" %}</label>
+<div class="input-wrapper">
+<i class="ri-lock-line input-icon"></i>
+<input type="password" id="password2" name="password2" required autocomplete="new-password">
+</div>
+</div>
+</div>
+<button type="submit" class="btn-auth">{% trans "Crear cuenta" %}</button>
+</form>
+<div class="auth-footer">
+{% trans "¿Ya tienes cuenta?" %} <a href="{% url 'login' %}">{% trans "Inicia sesión aquí" %}</a>
+</div>
+</div>
+</div>
 <script>
-  // Toggle de contraseña e indicador de fortaleza
-  document.querySelectorAll('[data-toggle-eye]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const input = document.querySelector(btn.getAttribute('data-toggle-eye'));
-      const icon = btn.querySelector('i');
-      const show = input.type === 'password';
-      input.type = show ? 'text' : 'password';
-  icon.classList.toggle('ri-eye-line', !show);
-  icon.classList.toggle('ri-eye-off-line', show);
-    });
-  });
-  const pw = document.getElementById('password1');
-  const bar = document.getElementById('pw-bar');
-  function scorePassword(v){ let s=0; if(!v) return 0; if(v.length>=8)s+=25; if(/[A-Z]/.test(v))s+=20; if(/[0-9]/.test(v))s+=20; if(/[^A-Za-z0-9]/.test(v))s+=20; if(v.length>=12)s+=15; return Math.min(s,100); }
-  function updateBar(){ if(bar && pw) bar.style.width = scorePassword(pw.value)+'%'; }
-  if(pw){ pw.addEventListener('input', updateBar); updateBar(); }
+document.addEventListener('DOMContentLoaded',function(){
+var btn=document.getElementById('togglePass');
+var pass1=document.getElementById('password1');
+var pass2=document.getElementById('password2');
+if(btn&&pass1&&pass2){
+btn.addEventListener('click',function(e){
+e.preventDefault();
+var icon=this.querySelector('i');
+if(pass1.type==='password'){
+pass1.type='text';
+pass2.type='text';
+icon.classList.remove('ri-eye-line');
+icon.classList.add('ri-eye-off-line');
+}else{
+pass1.type='password';
+pass2.type='password';
+icon.classList.remove('ri-eye-off-line');
+icon.classList.add('ri-eye-line');
+}
+});
+}
+var password1=document.getElementById('password1');
+var strengthBar=document.getElementById('strengthBar');
+if(password1&&strengthBar){
+password1.addEventListener('input',function(){
+var strength=0;
+var val=this.value;
+if(!val)strength=0;
+else{
+if(val.length>=8)strength+=25;
+if(/[a-z]/.test(val)&&/[A-Z]/.test(val))strength+=25;
+if(/[0-9]/.test(val))strength+=25;
+if(/[^A-Za-z0-9]/.test(val))strength+=25;
+}
+strengthBar.style.width=Math.min(strength,100)+'%';
+});
+}
+});
 </script>
 {% endblock %}

@@ -1,78 +1,105 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load i18n %}
+{% load static %}
 
-{% block title %}{% trans "Iniciar sesión - Be Man Be Woman" %}{% endblock %}
+{% block title %}{% trans "Iniciar sesión - Iterum" %}{% endblock %}
 
 {% block content %}
-
-<div class="auth-wrap">
-  <div class="auth-card">
-    <h2 class="auth-title">{% trans "Bienvenid@ de nuevo" %}</h2>
-    <p class="auth-subtitle">{% trans "Ingresa para continuar." %}</p>
-
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
-          <i class="ri-error-warning-fill"></i>
-          <span>{{ message }}</span>
-          <button type="button" class="btn btn-sm ms-auto btn-outline-light" onclick="this.parentElement.remove()">
-            <i class="ri-close-line"></i>
-          </button>
-        </div>
-      {% endfor %}
-    {% endif %}
-
-    <form method="post" action="{% url 'login' %}" novalidate>
-      {% csrf_token %}
-
-      <div class="field">
-        <label for="username" class="label">{% trans "Usuario o Correo" %}</label>
-        <div class="input-icon">
-          <i class="ri-user-3-line icon-left"></i>
-          <input type="text" class="form-control" id="username" name="username" placeholder="{% trans 'Tu usuario o correo' %}" required autocomplete="username" autofocus>
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="password" class="label">{% trans "Contraseña" %}</label>
-        <div class="input-icon">
-          <i class="ri-shield-keyhole-line icon-left"></i>
-          <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
-          <button type="button" class="btn-eye" aria-label="{% trans 'Mostrar/ocultar contraseña' %}" id="togglePass">
-            <i class="ri-eye-line"></i>
-          </button>
-        </div>
-      </div>
-
-      <div class="auth-aux">
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="1" id="remember" name="remember">
-          <label class="form-check-label" for="remember">{% trans "Recordarme" %}</label>
-        </div>
-        <a href="#" class="auth-link">{% trans "¿Olvidaste tu contraseña?" %}</a>
-      </div>
-
-      <button type="submit" class="btn btn-primary w-100 fw-bold py-2">{% trans "Iniciar sesión" %}</button>
-    </form>
-
-    <div class="auth-foot">
-      <small>{% trans "¿No tienes cuenta?" %} <a href="{% url 'register' %}">{% trans "Regístrate" %}</a></small>
-    </div>
-  </div>
+<style>
+.auth-container{min-height:calc(100vh - 200px);display:flex;align-items:center;justify-content:center;padding:2rem 1rem;max-width:1400px;margin:0 auto}
+.auth-card{background:var(--bm-azul-900,#0d1b2a);border:2px solid var(--bm-dorado,#d4af37);border-radius:20px;padding:3rem 2.5rem;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.auth-logo{text-align:center;margin-bottom:2rem}
+.auth-logo img{height:60px;margin-bottom:1rem}
+.auth-logo h1{font-size:1.75rem;font-weight:700;color:var(--bm-dorado,#d4af37);margin:0}
+.auth-title{font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:0.5rem;text-align:center}
+.auth-subtitle{color:#adb5bd;text-align:center;margin-bottom:2rem;font-size:0.95rem}
+.field{margin-bottom:1.5rem}
+.field label{display:block;font-weight:600;color:#fff;margin-bottom:0.5rem;font-size:0.9rem}
+.input-wrapper{position:relative}
+.input-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#adb5bd;font-size:1.2rem;pointer-events:none;z-index:1}
+.field input{width:100%;padding:0.875rem 3rem;height:50px;border:2px solid var(--bm-dorado,#d4af37);border-radius:10px;font-size:1rem;background:var(--bm-azul-800,#1b263b)!important;color:#fff!important;transition:all 0.3s}
+.field input::placeholder{color:#6c757d}
+.field input:focus{border-color:var(--bm-dorado,#d4af37);box-shadow:0 0 0 0.2rem rgba(212,175,55,0.3);outline:none}
+.toggle-password{position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;color:#adb5bd;cursor:pointer!important;font-size:1.2rem;padding:0.5rem;transition:color 0.2s;z-index:2}
+.toggle-password:hover{color:var(--bm-dorado,#d4af37)}
+.auth-options{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;font-size:0.9rem}
+.auth-options a{color:var(--bm-dorado,#d4af37);text-decoration:none;font-weight:600}
+.auth-options a:hover{text-decoration:underline}
+.btn-auth{background:linear-gradient(135deg,var(--bm-dorado,#d4af37) 0%,#c9a132 100%);border:none;color:#0d1b2a;font-weight:700;padding:0.875rem;border-radius:10px;font-size:1rem;transition:all 0.3s;box-shadow:0 4px 15px rgba(212,175,55,0.3);width:100%;cursor:pointer}
+.btn-auth:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,175,55,0.4)}
+.auth-footer{text-align:center;margin-top:2rem;padding-top:2rem;border-top:1px solid var(--bm-dorado,#d4af37);color:#adb5bd;font-size:0.9rem}
+.auth-footer a{color:var(--bm-dorado,#d4af37);font-weight:600;text-decoration:none}
+.auth-footer a:hover{text-decoration:underline}
+@media (max-width:576px){.auth-card{padding:2rem 1.5rem}.auth-title{font-size:1.35rem}}
+</style>
+<div class="auth-container">
+<div class="auth-card">
+<div class="auth-logo">
+<img src="{% static 'img/iterum.png' %}" alt="Iterum">
+<h1>Iterum</h1>
 </div>
-
+<h2 class="auth-title">{% trans "Bienvenid@ de nuevo" %}</h2>
+<p class="auth-subtitle">{% trans "Ingresa tus credenciales para continuar" %}</p>
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+{{ message }}
+<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+<form method="post" action="{% url 'login' %}">
+{% csrf_token %}
+<div class="field">
+<label for="username">{% trans "Usuario o Correo" %}</label>
+<div class="input-wrapper">
+<i class="ri-user-line input-icon"></i>
+<input type="text" id="username" name="username" placeholder="{% trans 'usuario@ejemplo.com' %}" required autocomplete="username" autofocus>
+</div>
+</div>
+<div class="field">
+<label for="password">{% trans "Contraseña" %}</label>
+<div class="input-wrapper">
+<i class="ri-lock-line input-icon"></i>
+<input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+<button type="button" class="toggle-password" id="togglePass">
+<i class="ri-eye-line"></i>
+</button>
+</div>
+</div>
+<div class="auth-options">
+<div class="form-check">
+<input class="form-check-input" type="checkbox" id="remember" name="remember">
+<label class="form-check-label" for="remember">{% trans "Recordarme" %}</label>
+</div>
+<a href="#">{% trans "¿Olvidaste tu contraseña?" %}</a>
+</div>
+<button type="submit" class="btn-auth">{% trans "Iniciar sesión" %}</button>
+</form>
+<div class="auth-footer">
+{% trans "¿No tienes cuenta?" %} <a href="{% url 'register' %}">{% trans "Regístrate aquí" %}</a>
+</div>
+</div>
+</div>
 <script>
-  // Toggle contraseña
-  (function(){
-    const btn = document.getElementById('togglePass');
-    const input = document.getElementById('password');
-    btn.addEventListener('click', ()=>{
-      const show = input.type === 'password';
-      input.type = show ? 'text' : 'password';
-      const icon = btn.querySelector('i');
-      icon.classList.toggle('ri-eye-line', !show);
-      icon.classList.toggle('ri-eye-off-line', show);
-    });
-  })();
+document.addEventListener('DOMContentLoaded',function(){
+var btn=document.getElementById('togglePass');
+var pass=document.getElementById('password');
+if(btn&&pass){
+btn.addEventListener('click',function(e){
+e.preventDefault();
+var icon=this.querySelector('i');
+if(pass.type==='password'){
+pass.type='text';
+icon.classList.remove('ri-eye-line');
+icon.classList.add('ri-eye-off-line');
+}else{
+pass.type='password';
+icon.classList.remove('ri-eye-off-line');
+icon.classList.add('ri-eye-line');
+}
+});
+}
+});
 </script>
 {% endblock %}

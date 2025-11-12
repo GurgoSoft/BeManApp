@@ -17,6 +17,7 @@ urlpatterns = [
     path('admin/eventos/<int:pk>/editar/', views.admin_evento_edit, name='admin_evento_edit'),
     path('admin/eventos/<int:pk>/eliminar/', views.admin_evento_delete, name='admin_evento_delete'),
     path('admin/eventos/<int:pk>/fotos/', views.admin_evento_fotos, name='admin_evento_fotos'),
+    path('foto/<int:pk>/eliminar/', views.eliminar_evento_foto, name='eliminar_evento_foto'),
     # Admin - Gestión de datos
     path('admin/usuarios/', views.admin_usuarios_list, name='admin_usuarios_list'),
     path('admin/inscripciones/', views.admin_inscripciones_list, name='admin_inscripciones_list'),

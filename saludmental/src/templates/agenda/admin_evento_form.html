@@ -2,6 +2,27 @@
 {% load i18n %}
 {% load form_extras %}
 {% block title %}{{ modo|title }} {% trans "Evento" %}{% endblock %}
+{% block extra_head %}
+<!-- Google Maps Places API -->
+<script>
+// Handler de errores de autenticación
+window.gm_authFailure = function() {
+  console.error('❌ ERROR DE AUTENTICACIÓN: La API Key no es válida o las APIs no están habilitadas');
+  console.log('👉 Ve a: https://console.cloud.google.com/apis/library');
+  console.log('👉 Habilita: Maps JavaScript API y Places API');
+};
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAc7L-zDl-Izz1RmyCRniU97l8ehcknvLs&libraries=places&language=es&region=CO" 
+        onerror="console.error('❌ ERROR DE RED: No se pudo cargar el script de Google Maps')"></script>
+<script>
+// Verificar si se cargó correctamente
+if (typeof google !== 'undefined' && google.maps) {
+  console.log('✅ Google Maps script cargado exitosamente');
+} else {
+  console.error('❌ Google Maps no está disponible después de cargar el script');
+}
+</script>
+{% endblock %}
 {% block content %}
 <h1 class="mb-3">{{ modo|title }} {% trans "Evento" %}</h1>
 
@@ -64,6 +85,13 @@
       <div class="card-header"><i class="ri-calendar-event-line me-1"></i>{% trans "Logística" %}</div>
       <div class="card-body row g-3">
         <div class="col-md-6">
+          <label class="form-label" for="id_tipo_evento">{% trans "Tipo de evento" %}</label>
+          {{ form.tipo_evento|add_class:"form-select" }}
+          {% if form.tipo_evento.errors %}
+            <div class="invalid-feedback d-block">{{ form.tipo_evento.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+        <div class="col-md-6">
           <label class="form-label" for="id_fecha">{% trans "Fecha y hora" %}</label>
           <div class="input-group">
             <span class="input-group-text"><i class="ri-time-line"></i></span>
@@ -74,16 +102,42 @@
           {% endif %}
           <div class="form-text">{% trans "Si es hoy, mínimo 2 horas de anticipación; otros días, al menos 5 minutos (máx. 2 años)." %}</div>
         </div>
-        <div class="col-md-6">
-          <label class="form-label" for="id_lugar">{% trans "Lugar" %}</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="ri-map-pin-2-line"></i></span>
-            {{ form.lugar|add_class:"form-control" }}
-          </div>
+        
+        <!-- Campos para evento presencial -->
+        <div class="col-12 evento-presencial-fields">
+          <label class="form-label" for="id_lugar">{% trans "Dirección del lugar" %}</label>
+          {{ form.lugar|add_class:"form-control" }}
           {% if form.lugar.errors %}
             <div class="invalid-feedback d-block">{{ form.lugar.errors|join:', ' }}</div>
           {% endif %}
+          <div class="form-text">
+            <i class="ri-map-pin-line me-1"></i>
+            {% trans "Comienza a escribir la dirección y selecciona una opción de las sugerencias." %}
+          </div>
+          {{ form.latitud }}
+          {{ form.longitud }}
         </div>
+
+        <!-- Campos para evento virtual -->
+        <div class="col-12 evento-virtual-fields" style="display:none;">
+          <label class="form-label" for="id_plataforma_virtual">{% trans "Plataforma virtual" %}</label>
+          {{ form.plataforma_virtual|add_class:"form-select" }}
+          {% if form.plataforma_virtual.errors %}
+            <div class="invalid-feedback d-block">{{ form.plataforma_virtual.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+        <div class="col-12 evento-virtual-fields" style="display:none;">
+          <label class="form-label" for="id_link_virtual">{% trans "Link de la reunión" %}</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="ri-vidicon-line"></i></span>
+            {{ form.link_virtual|add_class:"form-control" }}
+          </div>
+          {% if form.link_virtual.errors %}
+            <div class="invalid-feedback d-block">{{ form.link_virtual.errors|join:', ' }}</div>
+          {% endif %}
+          <div class="form-text">{% trans "Link completo (ej: https://zoom.us/j/123456789)" %}</div>
+        </div>
+
         <div class="col-md-6">
           <label class="form-label" for="id_precio">{% trans "Precio" %}</label>
           <div class="input-group">
@@ -122,6 +176,8 @@
 </form>
 
 <script>
+let autocomplete; // Variable global para el autocomplete
+
 (function(){
   const $ = (sel) => document.querySelector(sel);
   const titulo = $('#id_titulo');
@@ -129,12 +185,31 @@
   const desc = $('#id_descripcion_corta');
   const fecha = $('#id_fecha');
   const precio = $('#id_precio');
+  const tipoEvento = $('#id_tipo_evento');
   const tituloCount = $('#titulo-count');
   const descCount = $('#desc-count');
   const slugBtn = $('#slugify-btn');
   const imgInput = $('#id_imagen');
   const preview = $('#preview-img');
+  const presencialFields = document.querySelectorAll('.evento-presencial-fields');
+  const virtualFields = document.querySelectorAll('.evento-virtual-fields');
+  const lugarInput = $('#id_lugar');
+  const latInput = $('#id_latitud');
+  const lngInput = $('#id_longitud');
   let userTouchedSlug = false;
+
+  function toggleEventoFields() {
+    if (!tipoEvento) return;
+    const tipo = tipoEvento.value;
+    
+    if (tipo === 'virtual') {
+      presencialFields.forEach(el => el.style.display = 'none');
+      virtualFields.forEach(el => el.style.display = 'block');
+    } else {
+      presencialFields.forEach(el => el.style.display = 'block');
+      virtualFields.forEach(el => el.style.display = 'none');
+    }
+  }
 
   function slugify(str){
     return (str||'')
@@ -177,6 +252,7 @@
       precio.value = '0';
     }
   }
+  
   titulo && titulo.addEventListener('input', ()=> updateCount(titulo, tituloCount, 120));
   desc && desc.addEventListener('input', ()=> updateCount(desc, descCount, 500));
   nombre && nombre.addEventListener('input', ()=> { userTouchedSlug = true; });
@@ -185,10 +261,64 @@
   fecha && fecha.addEventListener('change', validateFecha);
   precio && precio.addEventListener('input', numbersOnly);
   precio && precio.addEventListener('blur', normalizePrecio);
+  tipoEvento && tipoEvento.addEventListener('change', toggleEventoFields);
+  
   // init
   updateCount(titulo, tituloCount, 120);
   updateCount(desc, descCount, 500);
   validateFecha();
+  toggleEventoFields();
+  
+  // Inicializar Google Places Autocomplete
+  if (lugarInput) {
+    console.log('🔍 Verificando Google Maps...');
+    
+    if (typeof google === 'undefined') {
+      console.error('❌ Google Maps no se cargó. Verifica la API Key y que las APIs estén habilitadas.');
+      return;
+    }
+    
+    if (!google.maps || !google.maps.places) {
+      console.error('❌ Google Maps Places no está disponible');
+      return;
+    }
+    
+    console.log('✅ Google Maps disponible, inicializando autocomplete...');
+    
+    try {
+      autocomplete = new google.maps.places.Autocomplete(lugarInput, {
+        componentRestrictions: { country: 'co' },
+        fields: ['formatted_address', 'geometry', 'name', 'address_components'],
+        language: 'es',
+        types: ['address']
+      });
+      
+      console.log('✅ Autocomplete creado, agregando listener...');
+      
+      autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+        console.log('📍 Place changed:', place);
+        
+        if (!place.geometry) {
+          console.warn('⚠️ No se encontraron detalles para:', place.name);
+          return;
+        }
+        
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        
+        if (latInput) latInput.value = lat;
+        if (lngInput) lngInput.value = lng;
+        
+        console.log('✅ Coordenadas guardadas:', { lat, lng, direccion: place.formatted_address });
+      });
+      
+      console.log('✅ Autocomplete configurado correctamente');
+    } catch (error) {
+      console.error('❌ Error al configurar autocomplete:', error);
+    }
+  }
+  
   if(imgInput && preview){
     imgInput.addEventListener('change', (e)=>{
       const f = e.target.files?.[0];
@@ -205,4 +335,5 @@
   }
 })();
 </script>
+
 {% endblock %}

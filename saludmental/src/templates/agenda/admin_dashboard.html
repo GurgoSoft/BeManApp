@@ -197,22 +197,22 @@
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         {% for e in proximos %}
-                        <div class="list-group-item">
+                        <a href="{% url 'agenda_evento_detalle' e.pk %}" class="list-group-item list-group-item-action text-decoration-none">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
-                                    <a href="{% url 'agenda_evento_detalle' e.pk %}" class="fw-semibold text-decoration-none" style="color: var(--bm-dorado);">
+                                    <h6 class="mb-1 fw-semibold" style="color: var(--bm-dorado);">
                                         {{ e.titulo|default:e.nombre }}
-                                    </a>
-                                    <div class="text-muted small mt-1">
+                                    </h6>
+                                    <div class="text-muted small">
                                         <i class="ri-time-line me-1"></i>{{ e.fecha|date:"d M Y, H:i" }}
                                         <span class="ms-2"><i class="ri-user-line me-1"></i>{{ e.inscritos }} {% trans "inscritos" %}</span>
                                     </div>
                                 </div>
-                                <a href="{% url 'admin_evento_edit' e.pk %}" class="btn btn-sm btn-outline-secondary ms-2">
+                                <a href="{% url 'admin_evento_edit' e.pk %}" class="btn btn-sm btn-outline-secondary ms-2" onclick="event.stopPropagation();">
                                     <i class="ri-edit-line"></i>
                                 </a>
                             </div>
-                        </div>
+                        </a>
                         {% empty %}
                         <div class="list-group-item text-muted text-center py-4">
                             <i class="ri-calendar-line fs-1 d-block mb-2 text-secondary opacity-50"></i>
@@ -233,22 +233,22 @@
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         {% for e in pasados %}
-                        <div class="list-group-item">
+                        <a href="{% url 'agenda_evento_detalle' e.pk %}" class="list-group-item list-group-item-action text-decoration-none">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
-                                    <a href="{% url 'agenda_evento_detalle' e.pk %}" class="fw-semibold text-decoration-none text-white">
+                                    <h6 class="mb-1 fw-semibold text-white">
                                         {{ e.titulo|default:e.nombre }}
-                                    </a>
-                                    <div class="text-muted small mt-1">
+                                    </h6>
+                                    <div class="text-muted small">
                                         <i class="ri-time-line me-1"></i>{{ e.fecha|date:"d M Y, H:i" }}
                                         <span class="ms-2"><i class="ri-user-line me-1"></i>{{ e.inscritos }} {% trans "asistentes" %}</span>
                                     </div>
                                 </div>
-                                <a href="{% url 'admin_evento_edit' e.pk %}" class="btn btn-sm btn-outline-secondary ms-2">
-                                    <i class="ri-edit-line"></i>
-                                </a>
+                                <span class="badge bg-secondary ms-2 align-self-center">
+                                    <i class="ri-check-line me-1"></i>{% trans "Finalizado" %}
+                                </span>
                             </div>
-                        </div>
+                        </a>
                         {% empty %}
                         <div class="list-group-item text-muted text-center py-4">
                             <i class="ri-history-line fs-1 d-block mb-2 text-secondary opacity-50"></i>

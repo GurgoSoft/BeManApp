@@ -2,11 +2,22 @@ from django.db import models
 from django.conf import settings
 
 class Evento(models.Model):
+    TIPO_EVENTO_CHOICES = [
+        ('presencial', 'Presencial'),
+        ('virtual', 'Virtual'),
+    ]
+    
     nombre = models.CharField(max_length=200)
     # Campos nuevos para administración y visualización
     titulo = models.CharField(max_length=200, blank=True, default="")
     descripcion_corta = models.CharField(max_length=280, blank=True, default="")
     lugar = models.CharField(max_length=200, blank=True, default="")
+    # Nuevos campos para geolocalización y eventos virtuales
+    tipo_evento = models.CharField(max_length=20, choices=TIPO_EVENTO_CHOICES, default='presencial')
+    latitud = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitud = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    link_virtual = models.URLField(max_length=500, blank=True, default="")  # Zoom, Meet, etc.
+    plataforma_virtual = models.CharField(max_length=50, blank=True, default="")  # "Zoom", "Google Meet", etc.
     imagen = models.ImageField(upload_to="eventos/", null=True, blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     fecha = models.DateTimeField()
@@ -20,6 +31,10 @@ class Inscripcion(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE)
     fecha_inscripcion = models.DateTimeField(auto_now_add=True)
+    # Campos adicionales del formulario
+    nombre_completo = models.CharField(max_length=200, blank=True, default="")
+    telefono = models.CharField(max_length=20, blank=True, default="")
+    notas = models.TextField(blank=True, default="")
 
     class Meta:
         unique_together = ("usuario", "evento")
@@ -30,6 +45,12 @@ class EventoFoto(models.Model):
     imagen = models.ImageField(upload_to="eventos/fotos/")
     subido_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_subida = models.DateTimeField(auto_now_add=True)
+    hash_md5 = models.CharField(max_length=32, blank=True, default="", db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['evento', 'hash_md5']),
+        ]
 
     def __str__(self):
         return f"Foto {self.pk} de {self.evento}"

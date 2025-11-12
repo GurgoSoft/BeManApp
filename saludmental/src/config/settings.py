@@ -150,7 +150,7 @@ MESSAGE_TAGS = {
 # Puedes sobrescribirlo con una variable de entorno WHATSAPP_SUPPORT_NUMBER
 WHATSAPP_SUPPORT_NUMBER = os.getenv("WHATSAPP_SUPPORT_NUMBER", "573133169313")
 # Mensaje por defecto que se pre-llena al abrir el chat (puede sobrescribirse por env)
-WHATSAPP_DEFAULT_MESSAGE = os.getenv("WHATSAPP_DEFAULT_MESSAGE", "Hola, necesito ayuda con Be Man Be Woman.")
+WHATSAPP_DEFAULT_MESSAGE = os.getenv("WHATSAPP_DEFAULT_MESSAGE", "Hola, necesito ayuda con Iterum.")
 # Habilitar/deshabilitar el popup de ayuda (puede sobrescribirse por env)
 WHATSAPP_HELP_ENABLED = os.getenv("WHATSAPP_HELP_ENABLED", "True").lower() in {"1","true","yes","on"}
 

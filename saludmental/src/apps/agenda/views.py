@@ -19,7 +19,9 @@ from decimal import Decimal, InvalidOperation
 from datetime import timedelta
 from django.db.models import Avg
 from django.views.decorators.http import require_POST
+import hashlib
 from django.http import HttpResponseForbidden
+import requests
 try:
     # Reusar detección de lenguaje inapropiado si existe
     from apps.foro.profanity import contains_banned_words
@@ -48,7 +50,8 @@ class EventoForm(forms.ModelForm):
         model = Evento
         fields = [
             'imagen', 'titulo', 'nombre', 'descripcion_corta',
-            'lugar', 'fecha', 'precio'
+            'tipo_evento', 'lugar', 'latitud', 'longitud',
+            'link_virtual', 'plataforma_virtual', 'fecha', 'precio'
         ]
         widgets = {
             'imagen': forms.ClearableFileInput(attrs={
@@ -71,11 +74,31 @@ class EventoForm(forms.ModelForm):
                 'placeholder': _('Qué aprenderán, a quién va dirigido y beneficios (máx. 500).'),
                 'class': 'form-control'
             }),
+            'tipo_evento': forms.Select(attrs={
+                'class': 'form-select'
+            }),
             'lugar': forms.TextInput(attrs={
                 'placeholder': _('Dirección exacta o enlace de Zoom/Meet'),
                 'maxlength': 120,
+                'class': 'form-control',
+                'id': 'id_lugar'
+            }),
+            'latitud': forms.HiddenInput(attrs={'id': 'id_latitud'}),
+            'longitud': forms.HiddenInput(attrs={'id': 'id_longitud'}),
+            'link_virtual': forms.URLInput(attrs={
+                'placeholder': _('https://zoom.us/j/123456789 o https://meet.google.com/abc-defg-hij'),
                 'class': 'form-control'
             }),
+            'plataforma_virtual': forms.Select(attrs={
+                'class': 'form-select'
+            }, choices=[
+                ('', _('Seleccionar plataforma')),
+                ('Zoom', 'Zoom'),
+                ('Google Meet', 'Google Meet'),
+                ('Microsoft Teams', 'Microsoft Teams'),
+                ('Discord', 'Discord'),
+                ('Otro', _('Otro'))
+            ]),
             'fecha': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',
                 'class': 'form-control',
@@ -95,6 +118,11 @@ class EventoForm(forms.ModelForm):
         # Precio por defecto 0 (COP)
         if not getattr(self.instance, 'pk', None) or self.instance.precio is None:
             self.fields['precio'].initial = 0
+        
+        # Formatear fecha para datetime-local cuando se edita
+        if self.instance and self.instance.pk and self.instance.fecha:
+            # Formato: YYYY-MM-DDTHH:MM (sin segundos ni zona horaria)
+            self.initial['fecha'] = self.instance.fecha.strftime('%Y-%m-%dT%H:%M')
 
     def clean_titulo(self):
         titulo = (self.cleaned_data.get('titulo') or '').strip()
@@ -258,26 +286,27 @@ def admin_dashboard(request):
     from django.db.models import Avg, Sum
     
     ahora = timezone.now()
-    eventos = Evento.objects.order_by('-fecha').annotate(inscritos=Count('inscripcion'))
     
     # Estadísticas generales
     usuarios_count = request.user.__class__.objects.count()
     inscripciones_count = Inscripcion.objects.count()
-    eventos_count = eventos.count()
+    eventos_count = Evento.objects.count()
     historias_count = Historia.objects.count()
     comentarios_foro = ForoComentario.objects.count()
     comentarios_eventos = EventoComentario.objects.count()
     notificaciones_pendientes = Notificacion.objects.filter(leida=False).count()
     
-    # Eventos
-    proximos = eventos.filter(fecha__gte=ahora)[:5]
-    pasados = eventos.filter(fecha__lt=ahora).order_by('-fecha')[:5]
+    # Eventos próximos (futuros) ordenados por fecha ascendente (más cercanos primero)
+    proximos = Evento.objects.filter(fecha__gte=ahora).annotate(inscritos=Count('inscripcion')).order_by('fecha')[:5]
+    
+    # Eventos pasados (recientes) ordenados por fecha descendente (más recientes primero)
+    pasados = Evento.objects.filter(fecha__lt=ahora).annotate(inscritos=Count('inscripcion')).order_by('-fecha')[:5]
     
     # Calificaciones promedio
     rating_promedio = EventoCalificacion.objects.aggregate(promedio=Avg('estrellas'))['promedio'] or 0
     
     # Eventos más populares (por inscripciones)
-    mas_populares = eventos.order_by('-inscritos')[:3]
+    mas_populares = Evento.objects.annotate(inscritos=Count('inscripcion')).order_by('-inscritos')[:3]
     
     # Actividad reciente
     historias_recientes = Historia.objects.select_related('usuario').order_by('-fecha')[:5]
@@ -299,8 +328,11 @@ def admin_dashboard(request):
 
 @user_passes_test(_is_staff)
 def admin_evento_list(request):
-    eventos = Evento.objects.order_by('-fecha')
-    return render(request, 'agenda/admin_evento_list.html', {'eventos': eventos})
+    eventos = Evento.objects.order_by('-fecha').prefetch_related('inscripcion_set__usuario')
+    return render(request, 'agenda/admin_evento_list.html', {
+        'eventos': eventos,
+        'now': timezone.now()
+    })
 
 
 @user_passes_test(_is_staff)
@@ -312,9 +344,13 @@ def admin_evento_create(request):
             evento.publicado = True
             evento.fecha_publicacion = timezone.now()
             evento.save()
+            
+            # Las coordenadas vienen del Google Places Autocomplete en el formulario
+            # Ya no necesitamos buscarlas con Nominatim
+            
             lang_code = get_language_from_request(request)
-            creadas = _notificar_publicacion(evento, lang_code, publisher=request.user)
-            messages.success(request, _("Evento publicado correctamente. Notificaciones enviadas: %d") % creadas)
+            _notificar_publicacion(evento, lang_code, publisher=request.user)
+            messages.success(request, _("Evento creado y publicado."))
             return redirect('admin_evento_list')
     else:
         form = EventoForm()
@@ -324,21 +360,33 @@ def admin_evento_create(request):
 @user_passes_test(_is_staff)
 def admin_evento_edit(request, pk):
     evento = get_object_or_404(Evento, pk=pk)
+    
+    # Bloquear edición de eventos pasados
+    if evento.fecha < timezone.now():
+        messages.error(request, _("No se pueden editar eventos que ya finalizaron."))
+        return redirect('admin_evento_list')
+    
     if request.method == 'POST':
         form = EventoForm(request.POST, request.FILES, instance=evento)
         if form.is_valid():
             antes_publicado = bool(evento.publicado)
             evento = form.save(commit=False)
-            # Siempre mantener publicado
             evento.publicado = True
-            # Publicación transicional: si antes no estaba publicado y ahora sí
+            
+            # Publicación transicional
             if not antes_publicado and evento.publicado:
                 evento.fecha_publicacion = timezone.now()
-                evento.save()
+            
+            evento.save()
+            
+            # Las coordenadas vienen del Google Places Autocomplete en el formulario
+            # Ya no necesitamos buscarlas con Nominatim
+            
+            # Notificar si es necesario
+            if not antes_publicado and evento.publicado:
                 lang_code = get_language_from_request(request)
-                _ = _notificar_publicacion(evento, lang_code, publisher=request.user)
-            else:
-                evento.save()
+                _notificar_publicacion(evento, lang_code, publisher=request.user)
+            
             messages.success(request, _("Evento actualizado y publicado."))
             return redirect('admin_evento_list')
     else:
@@ -356,16 +404,202 @@ def admin_evento_delete(request, pk):
     return render(request, 'agenda/admin_evento_delete.html', {'evento': evento})
 
 
+@user_passes_test(_is_staff)
+def admin_evento_fotos(request, pk):
+    """Vista para que el admin suba fotos desde el modal del detalle del evento"""
+    evento = get_object_or_404(Evento, pk=pk)
+    
+    # Solo acepta POST para subir fotos
+    if request.method == 'POST':
+        fotos = request.FILES.getlist('fotos')
+        
+        # Si es AJAX, devolver JSON
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if not fotos:
+                return JsonResponse({
+                    'success': False,
+                    'message': _("No seleccionaste ninguna foto.")
+                })
+            else:
+                count = 0
+                duplicadas = []
+                
+                for foto in fotos:
+                    # Calcular hash MD5 del archivo
+                    foto.seek(0)  # Asegurar que estamos al inicio del archivo
+                    md5_hash = hashlib.md5()
+                    for chunk in foto.chunks():
+                        md5_hash.update(chunk)
+                    file_hash = md5_hash.hexdigest()
+                    
+                    # Verificar si ya existe una foto con el mismo hash en este evento
+                    if EventoFoto.objects.filter(evento=evento, hash_md5=file_hash).exists():
+                        duplicadas.append(foto.name)
+                        continue
+                    
+                    # Crear la foto con el hash
+                    EventoFoto.objects.create(
+                        evento=evento,
+                        imagen=foto,
+                        subido_por=request.user,
+                        hash_md5=file_hash
+                    )
+                    count += 1
+                
+                # Preparar mensaje
+                if count > 0 and len(duplicadas) > 0:
+                    mensaje = _(f"{count} foto(s) agregada(s). {len(duplicadas)} foto(s) duplicada(s) omitida(s).")
+                elif count > 0:
+                    mensaje = _(f"{count} foto(s) agregada(s) exitosamente.")
+                elif len(duplicadas) > 0:
+                    mensaje = _("Todas las fotos ya existen en este evento.")
+                else:
+                    mensaje = _("No se agregaron fotos.")
+                
+                return JsonResponse({
+                    'success': count > 0,
+                    'message': mensaje,
+                    'count': count,
+                    'duplicadas': duplicadas
+                })
+        else:
+            # Fallback para requests normales
+            if not fotos:
+                messages.warning(request, _("No seleccionaste ninguna foto."))
+            else:
+                count = 0
+                duplicadas = []
+                
+                for foto in fotos:
+                    # Calcular hash MD5
+                    foto.seek(0)
+                    md5_hash = hashlib.md5()
+                    for chunk in foto.chunks():
+                        md5_hash.update(chunk)
+                    file_hash = md5_hash.hexdigest()
+                    
+                    # Verificar duplicados
+                    if EventoFoto.objects.filter(evento=evento, hash_md5=file_hash).exists():
+                        duplicadas.append(foto.name)
+                        continue
+                    
+                    EventoFoto.objects.create(
+                        evento=evento,
+                        imagen=foto,
+                        subido_por=request.user,
+                        hash_md5=file_hash
+                    )
+                    count += 1
+                
+                if count > 0 and len(duplicadas) > 0:
+                    messages.success(request, _(f"{count} foto(s) agregada(s). {len(duplicadas)} duplicada(s) omitida(s)."))
+                elif count > 0:
+                    messages.success(request, _(f"{count} foto(s) agregada(s) exitosamente."))
+                elif len(duplicadas) > 0:
+                    messages.warning(request, _("Todas las fotos ya existen en este evento."))
+    
+    # Siempre redirigir al detalle del evento (no hay página de fotos)
+    return redirect('agenda_evento_detalle', pk=pk)
+
+
+@user_passes_test(_is_staff)
+def eliminar_evento_foto(request, pk):
+    """
+    Elimina una foto de un evento.
+    Solo accesible para administradores.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': _("Método no permitido")}, status=405)
+    
+    # Verificar que sea una solicitud AJAX
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        messages.error(request, _("Solicitud inválida"))
+        return redirect('admin_dashboard')
+    
+    try:
+        foto = get_object_or_404(EventoFoto, pk=pk)
+        evento = foto.evento
+        
+        # Validar que no sea la última foto
+        total_fotos = evento.fotos.count()
+        tiene_portada = bool(evento.imagen)
+        
+        # Si solo hay 1 foto y no hay portada, no se puede eliminar
+        if total_fotos == 1 and not tiene_portada:
+            return JsonResponse({
+                'success': False,
+                'message': _("No puedes eliminar la única foto del evento. Debe haber al menos una imagen.")
+            }, status=400)
+        
+        # Eliminar la foto
+        foto.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': _("Foto eliminada exitosamente")
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': _("Error al eliminar la foto: ") + str(e)
+        }, status=500)
+
+
 # ============ INSCRIPCIONES ============
+class InscripcionForm(forms.ModelForm):
+    class Meta:
+        model = Inscripcion
+        fields = ['nombre_completo', 'telefono', 'notas']
+        widgets = {
+            'nombre_completo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Nombre completo'),
+                'required': True
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Teléfono de contacto (opcional)'),
+                'type': 'tel'
+            }),
+            'notas': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': _('¿Algo que quieras comentarnos? (opcional)'),
+                'rows': 3
+            }),
+        }
+
 @login_required
 def inscribirme(request, pk):
     evento = get_object_or_404(Evento, pk=pk)
-    ins, created = Inscripcion.objects.get_or_create(usuario=request.user, evento=evento)
-    messages.success(request, _("Inscripción confirmada."))
-    if created:
-        lang_code = get_language_from_request(request)
-        _notificar_inscripcion(evento, request.user, lang_code)
-    return redirect('agenda_index')
+    
+    # Verificar si ya está inscrito
+    if Inscripcion.objects.filter(usuario=request.user, evento=evento).exists():
+        messages.info(request, _("Ya estás inscrito en este evento."))
+        return redirect('agenda_evento_detalle', pk=pk)
+    
+    if request.method == 'POST':
+        form = InscripcionForm(request.POST)
+        if form.is_valid():
+            inscripcion = form.save(commit=False)
+            inscripcion.usuario = request.user
+            inscripcion.evento = evento
+            inscripcion.save()
+            messages.success(request, _("¡Inscripción confirmada! Ahora puedes ver toda la información del evento."))
+            lang_code = get_language_from_request(request)
+            _notificar_inscripcion(evento, request.user, lang_code)
+            return redirect('agenda_evento_detalle', pk=pk)
+    else:
+        # Pre-llenar con datos del usuario
+        initial_data = {
+            'nombre_completo': request.user.get_full_name() or request.user.username,
+            'telefono': getattr(request.user, 'phone_number', '')
+        }
+        form = InscripcionForm(initial=initial_data)
+    
+    return render(request, 'agenda/inscripcion_form.html', {
+        'form': form,
+        'evento': evento
+    })
 
 
 # ============ DETALLE PÚBLICO ============
@@ -420,6 +654,7 @@ def evento_detalle(request, pk):
         'user_likes': user_likes,
         'fotos': fotos,
         'inscritos_count': inscritos_count,
+        'now': timezone.now(),
     })
 
 
