@@ -11,6 +11,13 @@ from django.urls import reverse
 from django.utils.formats import date_format
 from .models import Evento, Inscripcion, EventoFoto, EventoCalificacion, EventoComentario, EventoLikeComentario
 from apps.usuarios.models import Notificacion, CustomUser
+from apps.usuarios.email_utils import (
+    enviar_notificacion_evento_publicado,
+    enviar_notificacion_inscripcion_evento,
+    enviar_notificacion_comentario_evento,
+    enviar_notificacion_like_comentario,
+    enviar_notificacion_respuesta_comentario
+)
 from django import forms
 from django.db.models import Count
 from django.core.exceptions import ValidationError
@@ -254,6 +261,28 @@ def _notificar_publicacion(evento: Evento, lang_code: str | None = None, publish
     if not objs:
         return 0
     Notificacion.objects.bulk_create(objs, ignore_conflicts=True)
+    
+    # Enviar emails a los usuarios (no staff)
+    from django.contrib.sites.shortcuts import get_current_site
+    from django.http import HttpRequest
+    
+    # Crear una request falsa para build_absolute_uri si no hay publisher
+    if publisher and hasattr(publisher, '_request'):
+        request_obj = publisher._request
+    else:
+        # Construir URL completa manualmente
+        url_completa = f"https://iterum.com{user_url}"  # Ajusta el dominio según tu configuración
+    
+    for u in usuarios:
+        if hasattr(u, 'email') and u.email:
+            # Construir URL absoluta (ajustar según configuración)
+            url_completa = f"http://localhost:8000{user_url}"  # Cambiar en producción
+            enviar_notificacion_evento_publicado(
+                usuario_destinatario=u,
+                evento_titulo=evento.titulo or evento.nombre,
+                url_evento=url_completa
+            )
+    
     return len(objs)
 
 def _notificar_inscripcion(evento: Evento, usuario, lang_code: str | None = None) -> int:
@@ -277,6 +306,18 @@ def _notificar_inscripcion(evento: Evento, usuario, lang_code: str | None = None
     if not objs:
         return 0
     Notificacion.objects.bulk_create(objs, ignore_conflicts=True)
+    
+    # Enviar emails al staff
+    url_completa = f"http://localhost:8000{admin_url}"  # Cambiar en producción
+    for adm in staff:
+        if getattr(adm, 'pk', None) != getattr(usuario, 'pk', None) and hasattr(adm, 'email') and adm.email:
+            enviar_notificacion_inscripcion_evento(
+                usuario_staff=adm,
+                usuario_inscrito=usuario,
+                evento_titulo=evento.titulo or evento.nombre,
+                url_evento=url_completa
+            )
+    
     return len(objs)
 
 
@@ -395,13 +436,13 @@ def admin_evento_edit(request, pk):
 
 
 @user_passes_test(_is_staff)
+@user_passes_test(_is_staff)
+@require_POST
 def admin_evento_delete(request, pk):
     evento = get_object_or_404(Evento, pk=pk)
-    if request.method == 'POST':
-        evento.delete()
-        messages.success(request, _("Evento eliminado."))
-        return redirect('admin_evento_list')
-    return render(request, 'agenda/admin_evento_delete.html', {'evento': evento})
+    evento.delete()
+    messages.success(request, _("Evento eliminado exitosamente."))
+    return redirect('admin_evento_list')
 
 
 @user_passes_test(_is_staff)
@@ -723,6 +764,20 @@ def comentar_evento(request, pk):
         except Exception:
             pass
     comentario = EventoComentario.objects.create(evento=evento, usuario=request.user, texto=texto)
+    
+    # Notificar a los administradores del evento cuando alguien comenta
+    staff_usuarios = CustomUser.objects.filter(is_active=True, is_staff=True).exclude(pk=request.user.pk)
+    url_relativa = reverse('agenda_evento_detalle', kwargs={'pk': evento.pk}) + f"#comment-{comentario.pk}"
+    for staff_user in staff_usuarios:
+        if hasattr(staff_user, 'email') and staff_user.email:
+            url_completa = request.build_absolute_uri(url_relativa)
+            enviar_notificacion_comentario_evento(
+                usuario_destinatario=staff_user,
+                usuario_origen=request.user.username,
+                evento_titulo=evento.titulo or evento.nombre,
+                url_comentario=url_completa
+            )
+    
     # Responder AJAX con el HTML del comentario para prepend en el feed
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         html = render_to_string('agenda/_comentario_item.html', {'c': comentario, 'user_likes': set()}, request=request)
@@ -741,6 +796,16 @@ def like_evento_comentario(request, pk):
     if not created:
         like.delete()
         liked = False
+    else:
+        # Enviar notificación por email si es un nuevo like y no es el autor
+        if comentario.usuario != request.user:
+            url_relativa = reverse('agenda_evento_detalle', kwargs={'pk': comentario.evento_id}) + f"#comment-{comentario.pk}"
+            url_completa = request.build_absolute_uri(url_relativa)
+            enviar_notificacion_like_comentario(
+                usuario_destinatario=comentario.usuario,
+                usuario_origen=request.user.username,
+                url_comentario=url_completa
+            )
     likes_count = EventoLikeComentario.objects.filter(comentario=comentario).count()
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({'liked': liked, 'likes_count': likes_count, 'comentario_id': comentario.pk})
@@ -775,6 +840,17 @@ def responder_evento_comentario(request, pk):
             except Exception:
                 pass
         reply = EventoComentario.objects.create(evento=parent.evento, usuario=request.user, texto=texto, parent=parent)
+        
+        # Enviar notificación por email al autor del comentario padre
+        if parent.usuario != request.user:
+            url_relativa = reverse('agenda_evento_detalle', kwargs={'pk': parent.evento_id}) + f"#comment-{reply.pk}"
+            url_completa = request.build_absolute_uri(url_relativa)
+            enviar_notificacion_respuesta_comentario(
+                usuario_destinatario=parent.usuario,
+                usuario_origen=request.user.username,
+                url_respuesta=url_completa
+            )
+        
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             html = render_to_string('agenda/_comentario_item.html', {'c': reply, 'user_likes': set()}, request=request)
             total = EventoComentario.objects.filter(evento=parent.evento).count()
@@ -856,6 +932,22 @@ def admin_evento_fotos(request, pk):
 def admin_usuarios_list(request):
     usuarios = CustomUser.objects.order_by('-date_joined')
     return render(request, 'agenda/admin_usuarios_list.html', {'usuarios': usuarios})
+
+
+@user_passes_test(_is_staff)
+@require_POST
+def admin_usuario_delete(request, pk):
+    usuario = get_object_or_404(CustomUser, pk=pk)
+    
+    # No permitir eliminar admins
+    if usuario.is_staff:
+        messages.error(request, _('No se puede eliminar usuarios administradores.'))
+        return redirect('admin_usuarios_list')
+    
+    username = usuario.username
+    usuario.delete()
+    messages.success(request, _(f'Usuario "{username}" eliminado exitosamente.'))
+    return redirect('admin_usuarios_list')
 
 
 @user_passes_test(_is_staff)

@@ -65,7 +65,7 @@
   <div class="row g-4">
     {% for e in pasados %}
       <div class="col-md-6 col-lg-4 d-flex">
-        <div class="card w-100 equal-card">
+        <div class="card w-100 equal-card card-hover position-relative">
           {% if e.imagen %}
             <img src="{{ e.imagen.url }}" class="card-img-top" alt="{{ e.titulo|default:e.nombre }}" style="height:160px; object-fit:cover; filter: grayscale(40%);">
           {% else %}
@@ -77,7 +77,7 @@
                 <i class="ri-calendar-check-line"></i>
               </div>
               <div>
-                <h6 class="mb-1"><a href="{% url 'agenda_evento_detalle' e.pk %}" class="text-reset text-decoration-none">{{ e.titulo|default:e.nombre }}</a></h6>
+                <h6 class="mb-1"><a href="{% url 'agenda_evento_detalle' e.pk %}" class="stretched-link text-reset text-decoration-none">{{ e.titulo|default:e.nombre }}</a></h6>
                 <div class="text-muted small"><i class="ri-time-line me-1"></i>{{ e.fecha|date:"D d M Y, H:i" }}</div>
               </div>
             </div>

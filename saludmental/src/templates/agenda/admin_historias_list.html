@@ -63,9 +63,17 @@
                                 {% endif %}
                             </td>
                             <td class="text-end pe-4">
-                                <a href="{% url 'historia_detalle' historia.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Ver historia' %}">
-                                    <i class="ri-eye-line"></i>
-                                </a>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'historia_detalle' historia.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Ver historia' %}">
+                                        <i class="ri-eye-line"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal{{ historia.pk }}"
+                                            title="{% trans 'Eliminar historia' %}">
+                                        <i class="ri-delete-bin-line"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -88,6 +96,52 @@
         {% trans "Total de historias" %}: <strong class="text-white">{{ historias|length }}</strong>
     </div>
 </div>
+
+<!-- Modales de confirmación de eliminación -->
+{% for historia in historias %}
+<div class="modal fade" id="deleteModal{{ historia.pk }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ historia.pk }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-danger" id="deleteModalLabel{{ historia.pk }}">
+                    <i class="ri-alert-line me-2"></i>{% trans "Confirmar eliminación" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger bg-danger bg-opacity-10 border-danger mb-3">
+                    <i class="ri-error-warning-line me-2"></i>
+                    <strong>{% trans "¡Atención!" %}</strong> {% trans "Esta acción no se puede deshacer." %}
+                </div>
+                <p class="text-white mb-2">{% trans "¿Estás seguro de que deseas eliminar esta historia?" %}</p>
+                <div class="bg-secondary bg-opacity-10 rounded p-3 mb-3">
+                    <p class="mb-1"><strong class="text-secondary">{% trans "Título:" %}</strong></p>
+                    <p class="text-white mb-2">{{ historia.titulo }}</p>
+                    <p class="mb-1"><strong class="text-secondary">{% trans "Autor:" %}</strong></p>
+                    <p class="text-white mb-2">{{ historia.usuario.username }}</p>
+                    <p class="mb-1"><strong class="text-secondary">{% trans "Fecha:" %}</strong></p>
+                    <p class="text-white mb-0">{{ historia.fecha|date:"d M Y, H:i" }}</p>
+                </div>
+                <p class="text-muted small mb-0">
+                    <i class="ri-information-line me-1"></i>
+                    {% trans "Se eliminarán también todos los comentarios, likes y datos relacionados con esta historia." %}
+                </p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="ri-close-line me-1"></i>{% trans "Cancelar" %}
+                </button>
+                <form method="post" action="{% url 'eliminar_historia' historia.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="ri-delete-bin-line me-1"></i>{% trans "Eliminar historia" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 <style>
     .evento-row {

@@ -9,6 +9,7 @@ from django import forms
 from django.http import JsonResponse
 
 from apps.foro.models import Historia, Like
+from .email_utils import enviar_email_bienvenida
 from apps.agenda.models import Evento
 from django.utils import timezone
 from .forms import PerfilForm
@@ -54,39 +55,69 @@ def login_view(request):
 
 def register_view(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        email = request.POST.get("email")
-        first_name = request.POST.get("first_name")
-        last_name = request.POST.get("last_name")
-        password1 = request.POST.get("password1")
-        password2 = request.POST.get("password2")
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip().lower()
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        password1 = request.POST.get("password1", "")
+        password2 = request.POST.get("password2", "")
 
         # Validaciones básicas
+        if not username or not email or not password1:
+            messages.error(request, "Todos los campos obligatorios deben estar llenos")
+            return redirect("register")
+        
+        if len(username) < 3:
+            messages.error(request, "El nombre de usuario debe tener al menos 3 caracteres")
+            return redirect("register")
+        
+        if not email or '@' not in email:
+            messages.error(request, "Debes ingresar un correo electrónico válido")
+            return redirect("register")
+        
+        if len(password1) < 6:
+            messages.error(request, "La contraseña debe tener al menos 6 caracteres")
+            return redirect("register")
+
         if password1 != password2:
             messages.error(request, "Las contraseñas no coinciden")
             return redirect("register")
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Ese usuario ya existe")
+        # Validar unicidad (case insensitive para email)
+        if User.objects.filter(username__iexact=username).exists():
+            messages.error(request, "Este nombre de usuario ya está registrado")
             return redirect("register")
 
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "Ese correo ya está registrado")
+        if User.objects.filter(email__iexact=email).exists():
+            messages.error(request, "Este correo electrónico ya está registrado")
             return redirect("register")
 
         # Crear usuario
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password1,
-            first_name=first_name,
-            last_name=last_name
-        )
-        user.save()
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password1,
+                first_name=first_name,
+                last_name=last_name
+            )
+            user.save()
 
-        login(request, user)  # Loguea al usuario automáticamente
-        messages.success(request, "Cuenta creada con éxito, ¡Bienvenid@!")
-        return redirect("home")  # Redirige al home
+            # Enviar email de bienvenida
+            try:
+                url_home = request.build_absolute_uri(reverse('home'))
+                enviar_email_bienvenida(user, url_home)
+            except Exception as e:
+                # Log del error pero no interrumpir el registro
+                print(f"Error enviando email de bienvenida: {e}")
+
+            login(request, user)  # Loguea al usuario automáticamente
+            messages.success(request, "Cuenta creada con éxito, ¡Bienvenid@!")
+            return redirect("home")  # Redirige al home
+        
+        except Exception as e:
+            messages.error(request, f"Error al crear la cuenta: {str(e)}")
+            return redirect("register")
 
     return render(request, "register.html")
 

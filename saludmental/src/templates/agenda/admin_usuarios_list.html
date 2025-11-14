@@ -31,6 +31,7 @@
                             <th class="border-0 py-3">{% trans "Fecha Registro" %}</th>
                             <th class="border-0 py-3">{% trans "Estado" %}</th>
                             <th class="border-0 py-3">{% trans "Rol" %}</th>
+                            <th class="border-0 py-3 text-end pe-4">{% trans "Acciones" %}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -73,10 +74,18 @@
                                 </span>
                                 {% endif %}
                             </td>
+                            <td class="text-end pe-4">
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="confirmDelete({{ user.id }}, '{{ user.username }}')"
+                                        {% if user.is_staff %}disabled title="{% trans 'No se puede eliminar administradores' %}"{% endif %}>
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center py-5">
+                            <td colspan="7" class="text-center py-5">
                                 <i class="ri-user-line fs-1 d-block mb-3 text-secondary opacity-50"></i>
                                 <p class="text-muted mb-0">{% trans "No hay usuarios registrados" %}</p>
                             </td>
@@ -109,4 +118,123 @@
         border-bottom: none;
     }
 </style>
+
+<!-- Modal ÚNICO de eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border border-danger">
+            <div class="modal-header border-danger bg-danger bg-opacity-10">
+                <h5 class="modal-title text-danger">
+                    <i class="ri-alert-line me-2"></i>{% trans "Confirmar eliminación" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="deleteUsuarioForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-danger bg-danger bg-opacity-10 border-danger mb-3">
+                        <i class="ri-error-warning-line me-2"></i>
+                        <strong>{% trans "¡ATENCIÓN!" %}</strong> {% trans "Esta acción NO se puede deshacer." %}
+                    </div>
+                    
+                    <p class="text-white mb-3">{% trans "Vas a eliminar el usuario:" %}</p>
+                    <div class="bg-secondary bg-opacity-10 rounded p-3 mb-3">
+                        <p class="text-white mb-0"><strong id="usuarioNombre"></strong></p>
+                    </div>
+                    
+                    <div class="alert alert-warning bg-warning bg-opacity-10 border-warning text-warning mb-3">
+                        <i class="ri-alarm-warning-line me-2"></i>
+                        <strong>{% trans "Para confirmar, escribe:" %} <span class="badge bg-danger">Eliminar</span></strong>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirmText" class="form-label text-white">{% trans "Escribe la palabra 'Eliminar'" %}</label>
+                        <input type="text" 
+                               class="form-control form-control-lg bg-dark text-white border-secondary" 
+                               id="confirmText" 
+                               name="confirmacion"
+                               placeholder="Eliminar"
+                               autocomplete="off"
+                               required>
+                        <div class="invalid-feedback" id="errorMessage">
+                            {% trans "Debes escribir exactamente 'Eliminar'" %}
+                        </div>
+                    </div>
+                    
+                    <p class="text-muted small mb-0">
+                        <i class="ri-information-line me-1"></i>
+                        {% trans "Se eliminarán todas las historias, comentarios y actividad del usuario." %}
+                    </p>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="ri-close-line me-1"></i>{% trans "Cancelar" %}
+                    </button>
+                    <button type="submit" class="btn btn-danger btn-lg" id="btnEliminar">
+                        <i class="ri-delete-bin-line me-1"></i>{% trans "ELIMINAR USUARIO" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(usuarioId, usuarioNombre) {
+    document.getElementById('usuarioNombre').textContent = usuarioNombre;
+    document.getElementById('deleteUsuarioForm').action = '/es/agenda/admin/usuarios/' + usuarioId + '/eliminar/';
+    document.getElementById('confirmText').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+    
+    setTimeout(() => {
+        document.getElementById('confirmText').focus();
+    }, 500);
+}
+
+// Validar antes de enviar el formulario
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('deleteUsuarioForm');
+    const confirmText = document.getElementById('confirmText');
+    const errorMessage = document.getElementById('errorMessage');
+    const btnEliminar = document.getElementById('btnEliminar');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (confirmText.value.trim() === 'Eliminar') {
+                // Cambiar botón
+                btnEliminar.disabled = true;
+                btnEliminar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminando...';
+                
+                // Enviar el formulario
+                this.submit();
+            } else {
+                // Mostrar error
+                confirmText.classList.add('is-invalid');
+                errorMessage.style.display = 'block';
+                
+                setTimeout(() => {
+                    confirmText.value = '';
+                    confirmText.classList.remove('is-invalid');
+                    errorMessage.style.display = 'none';
+                    confirmText.focus();
+                }, 1500);
+            }
+        });
+    }
+    
+    // Limpiar error al escribir
+    if (confirmText) {
+        confirmText.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                this.classList.remove('is-invalid');
+                errorMessage.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

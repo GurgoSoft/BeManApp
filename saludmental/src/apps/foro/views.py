@@ -11,6 +11,12 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.db.models import Count
 from django.urls import reverse
 from django.template.loader import render_to_string
+from apps.usuarios.email_utils import (
+    enviar_notificacion_like_historia,
+    enviar_notificacion_comentario_historia,
+    enviar_notificacion_respuesta_comentario,
+    enviar_notificacion_like_comentario
+)
 
 def historias_list(request):
     historias = (
@@ -113,6 +119,14 @@ def like_historia(request, pk):
                 tipo='like',
                 url=reverse('historia_detalle', kwargs={'pk': historia.pk})
             )
+            # Enviar email
+            url_completa = request.build_absolute_uri(reverse('historia_detalle', kwargs={'pk': historia.pk}))
+            enviar_notificacion_like_historia(
+                usuario_destinatario=historia.usuario,
+                usuario_origen=request.user.username,
+                historia_titulo=historia.titulo,
+                url_historia=url_completa
+            )
     likes_count = historia.like_set.count()
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({"liked": liked, "likes_count": likes_count, "historia_id": historia.pk})
@@ -131,11 +145,19 @@ def like_comentario(request, pk):
     else:
         # Crear notificación si es un nuevo like y no es el autor
         if comentario.usuario != request.user:
+            url_relativa = reverse('historia_detalle', kwargs={'pk': comentario.historia.pk}) + f"#comment-{comentario.pk}"
             Notificacion.objects.create(
                 usuario=comentario.usuario,
                 mensaje=f"{request.user.username} le dio like a tu comentario",
                 tipo='like',
-                url=reverse('historia_detalle', kwargs={'pk': comentario.historia.pk}) + f"#comment-{comentario.pk}"
+                url=url_relativa
+            )
+            # Enviar email
+            url_completa = request.build_absolute_uri(url_relativa)
+            enviar_notificacion_like_comentario(
+                usuario_destinatario=comentario.usuario,
+                usuario_origen=request.user.username,
+                url_comentario=url_completa
             )
     # Contar nuevamente usando el related manager correcto tras posible toggle
     likes_count = LikeComentario.objects.filter(comentario=comentario).count()
@@ -220,11 +242,20 @@ def comentar_historia(request, pk):
                     
                     # Crear notificación para el autor de la historia
                     if historia.usuario != request.user:
+                        url_relativa = reverse('historia_detalle', kwargs={'pk': historia.pk}) + f"#comment-{c.pk}"
                         Notificacion.objects.create(
                             usuario=historia.usuario,
                             mensaje=f"{request.user.username} comentó en tu historia '{historia.titulo}'",
                             tipo='comentario',
-                            url=reverse('historia_detalle', kwargs={'pk': historia.pk}) + f"#comment-{c.pk}"
+                            url=url_relativa
+                        )
+                        # Enviar email
+                        url_completa = request.build_absolute_uri(url_relativa)
+                        enviar_notificacion_comentario_historia(
+                            usuario_destinatario=historia.usuario,
+                            usuario_origen=request.user.username,
+                            historia_titulo=historia.titulo,
+                            url_comentario=url_completa
                         )
                     
                     messages.success(request, _("Comentario publicado."))
@@ -239,11 +270,21 @@ def comentar_historia(request, pk):
     return redirect("historia_detalle", pk=pk)
 
 @login_required
+@login_required
 def eliminar_historia(request, pk):
-    historia = get_object_or_404(Historia, pk=pk, usuario=request.user)
+    historia = get_object_or_404(Historia, pk=pk)
+    # Permitir eliminar si es el autor o es staff
+    if request.user != historia.usuario and not request.user.is_staff:
+        messages.error(request, _("No tienes permiso para eliminar esta historia."))
+        return redirect("historia_detalle", pk=pk)
+    
     if request.method == "POST":
         historia.delete()
-        messages.success(request, _("Historia eliminada."))
+        messages.success(request, _("Historia eliminada exitosamente."))
+        # Si es staff, redirigir al dashboard de admin
+        if request.user.is_staff:
+            return redirect("admin_historias_list")
+        # Si es el autor, redirigir a la lista de historias
         return redirect("historias_list")
     return redirect("historia_detalle", pk=pk)
 
@@ -274,11 +315,19 @@ def responder_comentario(request, pk):
             
             # Crear notificación para el autor del comentario padre
             if parent.usuario != request.user:
+                url_relativa = reverse('historia_detalle', kwargs={'pk': parent.historia.pk}) + f"#comment-{c.pk}"
                 Notificacion.objects.create(
                     usuario=parent.usuario,
                     mensaje=f"{request.user.username} respondió a tu comentario",
                     tipo='respuesta',
-                    url=reverse('historia_detalle', kwargs={'pk': parent.historia.pk}) + f"#comment-{c.pk}"
+                    url=url_relativa
+                )
+                # Enviar email
+                url_completa = request.build_absolute_uri(url_relativa)
+                enviar_notificacion_respuesta_comentario(
+                    usuario_destinatario=parent.usuario,
+                    usuario_origen=request.user.username,
+                    url_respuesta=url_completa
                 )
             
             messages.success(request, _("Respuesta publicada."))
