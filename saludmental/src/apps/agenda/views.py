@@ -53,6 +53,27 @@ def _is_staff(u):
 
 
 class EventoForm(forms.ModelForm):
+    # Campo precio personalizado como CharField para evitar problemas de parsing
+    precio = forms.CharField(
+        required=False,
+        initial='0',
+        widget=forms.TextInput(attrs={
+            'placeholder': '0',
+            'inputmode': 'numeric',
+            'class': 'form-control precio-input',
+            'data-formato': 'cop'
+        })
+    )
+    
+    # Campo fecha personalizado como CharField para evitar parsing automático de timezone
+    fecha = forms.CharField(
+        required=True,
+        widget=forms.DateTimeInput(attrs={
+            'type': 'datetime-local',
+            'class': 'form-control',
+        }, format='%Y-%m-%dT%H:%M')
+    )
+    
     class Meta:
         model = Evento
         fields = [
@@ -109,27 +130,28 @@ class EventoForm(forms.ModelForm):
             'fecha': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',
                 'class': 'form-control',
-            }),
-            'precio': forms.NumberInput(attrs={
-                'min': '0',
-                'step': '1',
-                'placeholder': '0',
-                'inputmode': 'numeric',
-                'pattern': '[0-9]*',
-                'class': 'form-control'
-            }),
+            }, format='%Y-%m-%dT%H:%M'),
         }
-
+        # Configurar fecha para NO usar localize (evita conversión automática UTC)
+        
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        import pytz
+        
+        # Deshabilitar localization para fecha (evita problemas de timezone)
+        self.fields['fecha'].input_formats = ['%Y-%m-%dT%H:%M']
+        
         # Precio por defecto 0 (COP)
         if not getattr(self.instance, 'pk', None) or self.instance.precio is None:
             self.fields['precio'].initial = 0
         
-        # Formatear fecha para datetime-local cuando se edita
+        # Formatear fecha para datetime-local
         if self.instance and self.instance.pk and self.instance.fecha:
+            # Al editar: convertir de UTC a Colombia
+            tz_colombia = pytz.timezone('America/Bogota')
+            fecha_colombia = self.instance.fecha.astimezone(tz_colombia)
             # Formato: YYYY-MM-DDTHH:MM (sin segundos ni zona horaria)
-            self.initial['fecha'] = self.instance.fecha.strftime('%Y-%m-%dT%H:%M')
+            self.initial['fecha'] = fecha_colombia.strftime('%Y-%m-%dT%H:%M')
 
     def clean_titulo(self):
         titulo = (self.cleaned_data.get('titulo') or '').strip()
@@ -174,35 +196,79 @@ class EventoForm(forms.ModelForm):
 
     def clean_precio(self):
         raw = self.cleaned_data.get('precio')
-        # Acepta sólo dígitos (COP enteros)
-        digits = ''.join(ch for ch in str(raw) if ch.isdigit()) if raw is not None else '0'
+        # Acepta formato colombiano con puntos como separadores de miles
+        if isinstance(raw, str):
+            # Remover puntos (separadores de miles) y convertir a entero
+            digits = raw.replace('.', '').replace(',', '').strip()
+        else:
+            digits = str(raw) if raw is not None else '0'
+        
+        # Extraer solo dígitos
+        digits = ''.join(ch for ch in digits if ch.isdigit())
         if digits == '':
             digits = '0'
+        
         try:
             valor = int(digits)
         except ValueError:
             raise ValidationError(_('Precio inválido. Usa solo números en COP.'))
+        
         if valor < 0:
             raise ValidationError(_('El precio no puede ser negativo.'))
-        if valor > 1000000:
-            raise ValidationError(_('El precio es demasiado alto.'))
-        return Decimal(valor)
+        
+        # El modelo tiene decimal_places=2, así que retornamos como Decimal con .00
+        # Por ejemplo: 70000 → Decimal('70000.00')
+        return Decimal(str(valor) + '.00')
 
     def clean_fecha(self):
+        import pytz
+        from datetime import datetime as dt
+        
         fecha = self.cleaned_data.get('fecha')
         if not fecha:
             raise ValidationError(_('Debes indicar fecha y hora.'))
-        ahora = timezone.now()
-        # Regla: mismo día requiere 2 horas mín; otros días 5 minutos
-        if fecha.date() == ahora.date():
-            minimo = timedelta(hours=2)
+        
+        # Obtener hora actual en Colombia (COT = UTC-5)
+        tz_colombia = pytz.timezone('America/Bogota')
+        ahora_utc = timezone.now()
+        ahora_colombia = ahora_utc.astimezone(tz_colombia)
+        
+        # Parsear fecha como string en formato datetime-local
+        if isinstance(fecha, str):
+            fecha = dt.strptime(fecha, '%Y-%m-%dT%H:%M')
+            fecha_colombia = tz_colombia.localize(fecha)
+        elif timezone.is_naive(fecha):
+            fecha_colombia = tz_colombia.localize(fecha)
         else:
-            minimo = timedelta(minutes=5)
-        if fecha < ahora + minimo:
-            raise ValidationError(_('Para hoy, mínimo 2 horas de anticipación; para otros días, al menos 5 minutos.'))
-        if fecha > ahora + timedelta(days=365*2):
+            fecha_colombia = fecha.astimezone(tz_colombia)
+        
+        # Calcular diferencia en minutos
+        diferencia = (fecha_colombia - ahora_colombia).total_seconds() / 60
+        
+        # Rechazar fechas en el pasado
+        if diferencia < 0:
+            raise ValidationError(_('No puedes crear eventos en el pasado. La hora seleccionada ya pasó.'))
+        
+        # Regla: mismo día requiere 2 horas (120 min); otros días 5 minutos
+        if fecha_colombia.date() == ahora_colombia.date():
+            minimo_minutos = 120
+            if diferencia < minimo_minutos:
+                hora_minima = ahora_colombia + timedelta(minutes=minimo_minutos)
+                raise ValidationError(
+                    _('Para eventos hoy, se requieren mínimo 2 horas de anticipación. ')
+                    + _('Debes seleccionar a partir de las {}.').format(hora_minima.strftime('%I:%M %p'))
+                )
+        else:
+            minimo_minutos = 5
+            if diferencia < minimo_minutos:
+                raise ValidationError(_('Se requieren al menos 5 minutos de anticipación.'))
+        
+        # Validar que no sea más de 2 años en el futuro
+        if fecha_colombia > ahora_colombia + timedelta(days=365*2):
             raise ValidationError(_('La fecha no puede superar 2 años desde hoy.'))
-        return fecha
+        
+        # Convertir a UTC para guardar en la base de datos
+        return fecha_colombia.astimezone(pytz.UTC)
 
     def clean_imagen(self):
         imagen = self.cleaned_data.get('imagen')

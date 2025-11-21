@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n humanize %}
+{% load agenda_filters %}
 {% block title %}{{ evento.titulo|default:evento.nombre }}{% endblock %}
 {% block extra_head %}
 {% if evento.tipo_evento == 'presencial' and evento.latitud and evento.longitud %}
@@ -115,7 +116,9 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="carousel-inner">
             {% if evento.imagen %}
               <div class="carousel-item active">
-                <img src="{{ evento.imagen.url }}" class="d-block w-100" alt="{{ evento.titulo|default:evento.nombre }}" style="object-fit:cover; height: 460px;">
+                <div class="evento-img-container">
+                  <img src="{{ evento.imagen.url }}" class="d-block w-100 evento-img" alt="{{ evento.titulo|default:evento.nombre }}">
+                </div>
                 <div class="carousel-caption d-none d-md-block" style="background: linear-gradient(transparent, rgba(0,0,0,0.7)); bottom: 0; left: 0; right: 0; padding: 20px;">
                   <p class="mb-0"><i class="ri-image-line me-1"></i>{% trans "Portada del evento" %}</p>
                 </div>
@@ -123,7 +126,9 @@ document.addEventListener('DOMContentLoaded', function() {
             {% endif %}
             {% for foto in fotos %}
               <div class="carousel-item {% if not evento.imagen and forloop.first %}active{% endif %}">
-                <img src="{{ foto.imagen.url }}" class="d-block w-100" alt="Foto {{ forloop.counter }}" style="object-fit:cover; height: 460px;">
+                <div class="evento-img-container">
+                  <img src="{{ foto.imagen.url }}" class="d-block w-100 evento-img" alt="Foto {{ forloop.counter }}">
+                </div>
                 <div class="carousel-caption d-none d-md-block" style="background: linear-gradient(transparent, rgba(0,0,0,0.7)); bottom: 0; left: 0; right: 0; padding: 20px;">
                   <p class="mb-0"><i class="ri-calendar-check-line me-1"></i>{{ foto.fecha_subida|date:"d M Y, H:i" }}</p>
                 </div>
@@ -141,7 +146,9 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       {% elif evento.imagen %}
         <!-- Solo imagen principal, sin fotos adicionales -->
-        <img src="{{ evento.imagen.url }}" class="card-img-top" alt="{{ evento.titulo|default:evento.nombre }}" style="object-fit:cover; max-height: 460px;">
+        <div class="evento-img-container" style="max-height: 460px;">
+          <img src="{{ evento.imagen.url }}" class="card-img-top evento-img" alt="{{ evento.titulo|default:evento.nombre }}">
+        </div>
       {% else %}
         <!-- Sin imagen -->
         <div class="bg-secondary d-flex align-items-center justify-content-center" style="width:100%; height: 280px;">
@@ -169,13 +176,13 @@ document.addEventListener('DOMContentLoaded', function() {
           <p class="card-text text-muted mt-2">{{ evento.descripcion_corta }}</p>
         {% endif %}
         <div class="d-flex flex-wrap gap-2 mt-2">
-          <span class="badge rounded-pill text-bg-secondary"><i class="ri-time-line me-1"></i>{{ evento.fecha|date:"D d M Y, H:i" }}</span>
+          <span class="badge rounded-pill text-bg-secondary"><i class="ri-time-line me-1"></i>{{ evento.fecha|colombia_datetime }}</span>
           {% if evento.tipo_evento == 'presencial' %}
             <span class="badge rounded-pill text-bg-secondary"><i class="ri-map-pin-2-line me-1"></i>{% trans "Presencial" %}</span>
           {% else %}
             <span class="badge rounded-pill text-bg-secondary"><i class="ri-vidicon-line me-1"></i>{% trans "Virtual" %}</span>
           {% endif %}
-          <span class="badge rounded-pill text-bg-secondary"><i class="ri-price-tag-3-line me-1"></i>{{ evento.precio|intcomma }} {{ 'COP' }}</span>
+          <span class="badge rounded-pill text-bg-secondary"><i class="ri-price-tag-3-line me-1"></i>{{ evento.precio|format_cop }} COP</span>
           <span class="badge rounded-pill text-bg-secondary"><i class="ri-user-3-line me-1"></i>{{ inscritos_count }} {% trans 'inscritos' %}</span>
         </div>
         <div class="mt-3 d-flex gap-2">
@@ -195,13 +202,13 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="card-body d-flex flex-column">
         <h5 class="mb-3">{% trans "Inscripción" %}</h5>
         <ul class="list-unstyled small text-muted mb-3">
-          <li class="mb-1"><i class="ri-time-line me-1"></i>{{ evento.fecha|date:"D d M Y, H:i" }}</li>
+          <li class="mb-1"><i class="ri-time-line me-1"></i>{{ evento.fecha|colombia_datetime }}</li>
           {% if evento.tipo_evento == 'presencial' %}
             <li class="mb-1"><i class="ri-map-pin-2-line me-1"></i>{% trans "Presencial" %}</li>
           {% else %}
             <li class="mb-1"><i class="ri-vidicon-line me-1"></i>{% trans "Virtual" %}</li>
           {% endif %}
-          <li class="mb-1"><i class="ri-price-tag-3-line me-1"></i>{{ evento.precio|intcomma }} {{ 'COP' }}</li>
+          <li class="mb-1"><i class="ri-price-tag-3-line me-1"></i>{{ evento.precio|format_cop }} COP</li>
         </ul>
         {% if user.is_authenticated %}
           {% if user.is_staff %}
@@ -325,7 +332,9 @@ document.addEventListener('DOMContentLoaded', function() {
           {% for foto in fotos %}
           <div class="col-6 col-md-4 col-lg-3">
             <div class="position-relative gallery-item" style="cursor: pointer;" onclick="openLightbox({{ forloop.counter0 }})">
-              <img src="{{ foto.imagen.url }}" class="rounded w-100 border" style="height:140px; object-fit:cover;" alt="Foto {{ forloop.counter }}">
+              <div class="gallery-thumb-container">
+                <img src="{{ foto.imagen.url }}" class="rounded w-100 border gallery-thumb" alt="Foto {{ forloop.counter }}">
+              </div>
               <div class="position-absolute top-0 end-0 m-2">
                 <span class="badge bg-dark bg-opacity-75">
                   <i class="ri-zoom-in-line"></i>
@@ -1302,6 +1311,59 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', function()
 
 .gallery-item:hover img {
   filter: brightness(1.1);
+}
+
+/* Contenedores de imágenes del evento - Adaptativas sin corte */
+.evento-img-container {
+  width: 100%;
+  height: 460px;
+  background: linear-gradient(135deg, var(--bm-azul-900), var(--bm-azul-800));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.evento-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Miniaturas de galería */
+.gallery-thumb-container {
+  width: 100%;
+  height: 140px;
+  background: var(--bm-azul-800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 0.375rem;
+}
+
+.gallery-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 768px) {
+  .evento-img-container {
+    height: 300px;
+  }
+  .gallery-thumb-container {
+    height: 120px;
+  }
+}
+
+@media (max-width: 576px) {
+  .evento-img-container {
+    height: 250px;
+  }
+  .gallery-thumb-container {
+    height: 100px;
+  }
 }
 </style>
 

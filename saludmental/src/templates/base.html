@@ -98,7 +98,7 @@ body {
 footer {
     flex-shrink: 0;
 }
-</style>
+    </style>
     <!-- Tema personalizado -->
     <link href="{% static 'css/theme.css' %}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
@@ -117,6 +117,28 @@ footer {
             </button>
             <!-- Opciones para pantallas grandes -->
             <div class="d-none d-lg-flex align-items-center ms-auto">
+                <!-- Selector de idioma SIEMPRE visible en navbar -->
+                <div class="dropdown me-2">
+                  <button class="btn btn-link dropdown-toggle" type="button" id="langDropdownNavbar" data-bs-toggle="dropdown" aria-expanded="false" title="{% trans 'Cambiar idioma' %}">
+                    <i class="ri-translate-2 fs-4 align-middle"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdownNavbar" style="min-width: 180px;">
+                    {% get_current_language as LANGUAGE_CODE %}
+                    {% get_available_languages as LANGUAGES %}
+                    {% for lang in LANGUAGES %}
+                      <li>
+                        <form action="{% url 'set_language' %}" method="post" class="d-block">
+                          {% csrf_token %}
+                          <input type="hidden" name="language" value="{{ lang.0 }}">
+                          <button type="submit" class="dropdown-item d-flex justify-content-between align-items-center {% if lang.0 == LANGUAGE_CODE %}active{% endif %}">
+                            <span>{{ lang.1 }}</span>
+                            {% if lang.0 == LANGUAGE_CODE %}<i class="ri-check-line"></i>{% endif %}
+                          </button>
+                        </form>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
                 <!-- Tema fijo oscuro: se removió toggle -->
                 {% if user.is_authenticated %}
                     {% if user.is_staff %}
@@ -130,55 +152,6 @@ footer {
                         {% endif %}
                     </a>
                                         <a href="{% url 'logout' %}" class="btn btn-link me-2" title="{% trans 'Cerrar sesión' %}"><i class="ri-logout-box-r-line fs-4"></i></a>
-                                        <!-- Selector de idioma mejorado -->
-                                        <div class="dropdown me-2">
-                                            <button class="btn btn-link dropdown-toggle" type="button" id="langDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="{% trans 'Cambiar idioma' %}">
-                                                <i class="ri-translate-2 fs-4 align-middle"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown" style="min-width: 180px;">
-                                                {% get_current_language as LANGUAGE_CODE %}
-                                                {% get_available_languages as LANGUAGES %}
-                                                {% for lang in LANGUAGES %}
-                                                    <li>
-                                                        <form action="{% url 'set_language' %}" method="post" class="d-block">
-                                                            {% csrf_token %}
-                                                            <input type="hidden" name="language" value="{{ lang.0 }}">
-                                                            <button type="submit" class="dropdown-item d-flex justify-content-between align-items-center {% if lang.0 == LANGUAGE_CODE %}active{% endif %}">
-                                                                <span>{{ lang.1 }}</span>
-                                                                {% if lang.0 == LANGUAGE_CODE %}<i class="ri-check-line"></i>{% endif %}
-                                                            </button>
-                                                        </form>
-                                                    </li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                        <a href="#" class="btn btn-link" title="{% trans 'Cambiar región' %}"><i class="ri-map-pin-2-line fs-4"></i></a>
-                    <!-- Notificaciones -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link position-relative" href="#" id="notificacionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="ri-notification-3-line fs-4"></i>
-                            
-                                {% if notif_count > 0 %}
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ notif_count }}</span>
-                                {% endif %}
-                           
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificacionesDropdown" style="min-width:300px;">
-                            {% for notif in notificaciones %}
-                                <li>
-                                    <a class="dropdown-item {% if not notif.leida %}fw-bold{% endif %}" href="{% url 'notificacion_leida' notif.pk %}">
-                                        {{ notif.mensaje|truncatechars:60 }}
-                                        <br>
-                                        <small class="text-muted">{{ notif.fecha|date:"d M H:i" }}</small>
-                                    </a>
-                                </li>
-                            {% empty %}
-                                <li><span class="dropdown-item text-muted">{% trans "Sin notificaciones" %}</span></li>
-                            {% endfor %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-center" href="{% url 'notificaciones' %}">{% trans "Ver todas" %}</a></li>
-                        </ul>
-                    </li>
                 {% else %}
                     <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">Iniciar sesión</a>
                     <a href="{% url 'register' %}" class="btn btn-primary">Registrarse</a>

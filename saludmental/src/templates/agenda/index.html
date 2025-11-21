@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load agenda_filters %}
 
 {% block title %}{% trans "Agenda" %}{% endblock %}
 
@@ -35,9 +36,9 @@
               </div>
               <div class="w-100">
                 <h5 class="mb-1"><a href="{% url 'agenda_evento_detalle' e.pk %}" class="stretched-link text-reset text-decoration-none">{{ e.titulo|default:e.nombre }}</a></h5>
-                <div class="text-muted small mb-1"><i class="ri-time-line me-1"></i>{{ e.fecha|date:"D d M Y, H:i" }}</div>
+                <div class="text-muted small mb-1"><i class="ri-time-line me-1"></i>{{ e.fecha|colombia_datetime }}</div>
                 {% if e.lugar %}<div class="text-muted small mb-2"><i class="ri-map-pin-2-line me-1"></i>{{ e.lugar }}</div>{% endif %}
-                {% if e.precio is not None %}<div class="fw-semibold mb-2">{{ e.precio }} <span class="text-muted small">{{ 'COP' }}</span></div>{% endif %}
+                {% if e.precio is not None %}<div class="fw-semibold mb-2" style="color: var(--bm-dorado);"><i class="ri-money-dollar-circle-line me-1"></i>{{ e.precio|format_cop }} <span class="text-muted small">COP</span></div>{% endif %}
                 <div class="d-flex gap-2">
                   {% if user.is_authenticated %}
                   <form method="post" action="{% url 'agenda_inscribirme' e.pk %}" class="d-inline">
@@ -78,7 +79,7 @@
               </div>
               <div>
                 <h6 class="mb-1"><a href="{% url 'agenda_evento_detalle' e.pk %}" class="stretched-link text-reset text-decoration-none">{{ e.titulo|default:e.nombre }}</a></h6>
-                <div class="text-muted small"><i class="ri-time-line me-1"></i>{{ e.fecha|date:"D d M Y, H:i" }}</div>
+                <div class="text-muted small"><i class="ri-time-line me-1"></i>{{ e.fecha|colombia_datetime }}</div>
               </div>
             </div>
           </div>
