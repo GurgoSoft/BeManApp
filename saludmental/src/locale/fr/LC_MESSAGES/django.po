@@ -83,267 +83,272 @@ msgstr "Le lieu est trop long."
 
 #: .\apps\agenda\views.py:214
 msgid "Precio inválido. Usa solo números en COP."
-msgstr ""
+msgstr "Prix invalide. Utilisez uniquement des chiffres en COP."
 
 #: .\apps\agenda\views.py:217
 msgid "El precio no puede ser negativo."
-msgstr ""
+msgstr "Le prix ne peut pas être négatif."
 
 #: .\apps\agenda\views.py:229
 msgid "Debes indicar fecha y hora."
-msgstr ""
+msgstr "Vous devez indiquer la date et l'heure."
 
 #: .\apps\agenda\views.py:250
 msgid "No puedes crear eventos en el pasado. La hora seleccionada ya pasó."
-msgstr ""
+msgstr "Vous ne pouvez pas créer des événements dans le passé. L'heure sélectionnée est déjà passée."
 
 #: .\apps\agenda\views.py:258
 msgid "Para eventos hoy, se requieren mínimo 2 horas de anticipación. "
-msgstr ""
+msgstr "Pour les événements d'aujourd'hui, un minimum de 2 heures d'anticipation est requis."
 
 #: .\apps\agenda\views.py:259
 msgid "Debes seleccionar a partir de las {}."
-msgstr ""
+msgstr "Vous devez sélectionner à partir de {}."
 
 #: .\apps\agenda\views.py:264
 msgid "Se requieren al menos 5 minutos de anticipación."
-msgstr ""
+msgstr "Au moins 5 minutes d'anticipation sont requises."
 
 #: .\apps\agenda\views.py:268
 msgid "La fecha no puede superar 2 años desde hoy."
-msgstr ""
+msgstr "La date ne peut pas dépasser 2 ans à partir d'aujourd'hui."
 
 #: .\apps\agenda\views.py:280
 #, python-format
 msgid "La imagen supera el tamaño máximo de %(mb)sMB."
-msgstr ""
+msgstr "L’image dépasse la taille maximale de %(mb)sMB."
 
 #: .\apps\agenda\views.py:284
 msgid "Formato de imagen no soportado. Usa JPG, PNG o WEBP."
-msgstr ""
+msgstr "Format d’image non pris en charge. Utilisez JPG, PNG ou WEBP."
 
 #: .\apps\agenda\views.py:300
 msgid "Ya existe un evento en el mismo lugar y horario cercano (±1h)."
-msgstr ""
+msgstr "Un événement existe déjà au même endroit avec un horaire proche (±1h)."
 
 #: .\apps\agenda\views.py:460
 msgid "Evento creado y publicado."
-msgstr ""
+msgstr "Événement créé et publié."
 
 #: .\apps\agenda\views.py:473
 msgid "No se pueden editar eventos que ya finalizaron."
-msgstr ""
+msgstr "Les événements terminés ne peuvent pas être modifiés."
 
 #: .\apps\agenda\views.py:497
 msgid "Evento actualizado y publicado."
-msgstr ""
+msgstr "Événement mis à jour et publié."
 
 #: .\apps\agenda\views.py:510
 msgid "Evento eliminado exitosamente."
-msgstr ""
+msgstr "Événement supprimé avec succès."
 
 #: .\apps\agenda\views.py:528 .\apps\agenda\views.py:575
 msgid "No seleccionaste ninguna foto."
-msgstr ""
+msgstr "Vous n'avez sélectionné aucune photo."
 
 #: .\apps\agenda\views.py:558
 msgid ""
 "{count} foto(s) agregada(s). {len(duplicadas)} foto(s) duplicada(s) "
 "omitida(s)."
 msgstr ""
+"{count} photo(s) ajoutée(s). {len(duplicadas)} photo(s) dupliquée(s) "
+"ignorée(s)."
 
 #: .\apps\agenda\views.py:560 .\apps\agenda\views.py:604
 #, python-brace-format
 msgid "{count} foto(s) agregada(s) exitosamente."
-msgstr ""
+msgstr "{count} photo(s) ajoutée(s) avec succès."
 
 #: .\apps\agenda\views.py:562 .\apps\agenda\views.py:606
 msgid "Todas las fotos ya existen en este evento."
-msgstr ""
+msgstr "Toutes les photos existent déjà dans cet événement."
 
 #: .\apps\agenda\views.py:564
 msgid "No se agregaron fotos."
-msgstr ""
+msgstr "Aucune photo n’a été ajoutée."
 
 #: .\apps\agenda\views.py:602
 msgid "{count} foto(s) agregada(s). {len(duplicadas)} duplicada(s) omitida(s)."
 msgstr ""
+"{count} photo(s) ajoutée(s). {len(duplicadas)} dupliquée(s) ignorée(s)."
 
 #: .\apps\agenda\views.py:619
 msgid "Método no permitido"
-msgstr ""
+msgstr "Méthode non autorisée"
 
 #: .\apps\agenda\views.py:623
 msgid "Solicitud inválida"
-msgstr ""
+msgstr "Requête invalide"
 
 #: .\apps\agenda\views.py:638 .\templates\agenda\evento_detalle.html:1206
 msgid ""
 "No puedes eliminar la única foto del evento. Debe haber al menos una imagen."
 msgstr ""
+"Vous ne pouvez pas supprimer la seule photo de l’événement. Il doit y avoir au moins une image."
 
 #: .\apps\agenda\views.py:646
 msgid "Foto eliminada exitosamente"
-msgstr ""
+msgstr "Photo supprimée avec succès"
 
 #: .\apps\agenda\views.py:651
 msgid "Error al eliminar la foto: "
-msgstr ""
+msgstr "Erreur lors de la suppression de la photo : "
 
 #: .\apps\agenda\views.py:663 .\templates\agenda\inscripcion_form.html:50
 msgid "Nombre completo"
-msgstr ""
+msgstr "Nom complet"
 
 #: .\apps\agenda\views.py:668
 msgid "Teléfono de contacto (opcional)"
-msgstr ""
+msgstr "Téléphone de contact (optionnel)"
 
 #: .\apps\agenda\views.py:673
 msgid "¿Algo que quieras comentarnos? (opcional)"
-msgstr ""
+msgstr "Quelque chose à nous dire ? (optionnel)"
 
 #: .\apps\agenda\views.py:684
 msgid "Ya estás inscrito en este evento."
-msgstr ""
+msgstr "Vous êtes déjà inscrit à cet événement."
 
 #: .\apps\agenda\views.py:694
 msgid ""
 "¡Inscripción confirmada! Ahora puedes ver toda la información del evento."
 msgstr ""
+"Inscription confirmée ! Vous pouvez maintenant voir toutes les informations de l’événement."
 
 #: .\apps\agenda\views.py:717
 msgid "El evento no está disponible."
-msgstr ""
+msgstr "L’événement n’est pas disponible."
 
 #: .\apps\agenda\views.py:721
 msgid "Este evento ya pasó."
-msgstr ""
+msgstr "Cet événement est déjà passé."
 
 #: .\apps\agenda\views.py:782
 msgid "Calificación eliminada."
-msgstr ""
+msgstr "Évaluation supprimée."
 
 #: .\apps\agenda\views.py:788 .\apps\agenda\views.py:789
 msgid "Calificación inválida (1 a 5)."
-msgstr ""
+msgstr "Évaluation invalide (1 à 5)."
 
 #: .\apps\agenda\views.py:801
 msgid "¡Gracias por calificar!"
-msgstr ""
+msgstr "Merci pour votre évaluation !"
 
 #: .\apps\agenda\views.py:811 .\apps\agenda\views.py:812
 msgid "El comentario es muy corto."
-msgstr ""
+msgstr "Le commentaire est trop court."
 
 #: .\apps\agenda\views.py:820 .\apps\agenda\views.py:821
 #: .\apps\agenda\views.py:943 .\apps\agenda\views.py:944
 #: .\apps\foro\views.py:205 .\apps\foro\views.py:236
 msgid "Tu comentario contiene contenido no permitido."
-msgstr ""
+msgstr "Votre commentaire contient du contenu non autorisé."
 
 #: .\apps\agenda\views.py:827 .\apps\agenda\views.py:828
 #: .\apps\agenda\views.py:950 .\apps\agenda\views.py:951
 msgid "Tu comentario contiene palabras no permitidas."
-msgstr ""
+msgstr "Votre commentaire contient des mots non autorisés."
 
 #: .\apps\agenda\views.py:852 .\apps\foro\views.py:261
 #: .\templates\agenda\evento_detalle.html:632
 #: .\templates\foro\historia_detalle.html:418
 msgid "Comentario publicado."
-msgstr ""
+msgstr "Commentaire publié."
 
 #: .\apps\agenda\views.py:888 .\apps\agenda\views.py:889
 #: .\apps\agenda\views.py:935 .\apps\agenda\views.py:936
 #: .\apps\foro\views.py:200 .\apps\foro\views.py:297
 msgid "El texto no puede estar vacío."
-msgstr ""
+msgstr "Le texte ne peut pas être vide."
 
 #: .\apps\agenda\views.py:896 .\apps\agenda\views.py:897
 #: .\apps\foro\views.py:304
 msgid "Tu respuesta contiene contenido no permitido."
-msgstr ""
+msgstr "Votre réponse contient du contenu non autorisé."
 
 #: .\apps\agenda\views.py:903 .\apps\agenda\views.py:904
 msgid "Tu respuesta contiene palabras no permitidas."
-msgstr ""
+msgstr "Votre réponse contient des mots non autorisés."
 
 #: .\apps\agenda\views.py:924 .\apps\foro\views.py:333
 msgid "Respuesta publicada."
-msgstr ""
+msgstr "Réponse publiée."
 
 #: .\apps\agenda\views.py:959 .\apps\foro\views.py:210
 msgid "Comentario actualizado."
-msgstr ""
+msgstr "Commentaire mis à jour."
 
 #: .\apps\agenda\views.py:979 .\apps\foro\views.py:178
 msgid "Comentario eliminado."
-msgstr ""
+msgstr "Commentaire supprimé."
 
 #: .\apps\agenda\views.py:990
 msgid "Fotos subidas."
-msgstr ""
+msgstr "Photos téléchargées."
 
 #: .\apps\agenda\views.py:1010
 msgid "No se puede eliminar usuarios administradores."
-msgstr ""
+msgstr "Impossible de supprimer des utilisateurs administrateurs."
 
 #: .\apps\agenda\views.py:1015
 #, python-brace-format
 msgid "Usuario \"{username}\" eliminado exitosamente."
-msgstr ""
+msgstr "Utilisateur \"{username}\" supprimé avec succès."
 
 #: .\apps\foro\views.py:52
 msgid "Historia creada."
-msgstr ""
+msgstr "Histoire créée."
 
 #: .\apps\foro\views.py:194
 msgid "No tienes permiso para editar este comentario."
-msgstr ""
+msgstr "Vous n’avez pas la permission de modifier ce commentaire."
 
 #: .\apps\foro\views.py:222 .\templates\foro\historia_detalle.html:95
 msgid "No puedes comentar tu propia historia."
-msgstr ""
+msgstr "Vous ne pouvez pas commenter votre propre histoire."
 
 #: .\apps\foro\views.py:229 .\templates\foro\historia_detalle.html:411
 msgid "El comentario no puede estar vacío."
-msgstr ""
+msgstr "Le commentaire ne peut pas être vide."
 
 #: .\apps\foro\views.py:278
 msgid "No tienes permiso para eliminar esta historia."
-msgstr ""
+msgstr "Vous n’avez pas la permission de supprimer cette histoire."
 
 #: .\apps\foro\views.py:283
 msgid "Historia eliminada exitosamente."
-msgstr ""
+msgstr "Histoire supprimée avec succès."
 
 #: .\apps\foro\views.py:352
 msgid "Historia actualizada."
-msgstr ""
+msgstr "Histoire mise à jour."
 
 #: .\apps\foro\views.py:385
 msgid "Historia ocultada."
-msgstr ""
+msgstr "Histoire masquée."
 
 #: .\apps\foro\views.py:385
 msgid "Historia visible."
-msgstr ""
+msgstr "Histoire visible."
 
 #: .\templates\agenda\_comentario_item.html:31
 #: .\templates\foro\_comentario_item.html:29
 msgid "Dar like"
-msgstr ""
+msgstr "Mettre un like"
 
 #: .\templates\agenda\_comentario_item.html:41
 #: .\templates\agenda\evento_detalle.html:767
 #: .\templates\foro\_comentario_item.html:38
 #: .\templates\foro\historia_detalle.html:268
 msgid "¿Eliminar este comentario?"
-msgstr ""
+msgstr "Supprimer ce commentaire ?"
 
 #: .\templates\agenda\_comentario_item.html:54
 #: .\templates\foro\_comentario_item.html:51
 msgid "Guardar"
-msgstr ""
+msgstr "Enregistrer"
 
 #: .\templates\agenda\_comentario_item.html:55
 #: .\templates\agenda\_comentario_item.html:67
@@ -360,26 +365,26 @@ msgstr ""
 #: .\templates\foro\crear_historia.html:151 .\templates\profile_edit.html:134
 #: .\templates\profile_edit.html:177
 msgid "Cancelar"
-msgstr ""
+msgstr "Annuler"
 
 #: .\templates\agenda\_comentario_item.html:64
 #: .\templates\foro\_comentario_item.html:61
 msgid "Escribe una respuesta..."
-msgstr ""
+msgstr "Écris une réponse..."
 
 #: .\templates\agenda\_comentario_item.html:66
 #: .\templates\foro\_comentario_item.html:63
 msgid "Responder"
-msgstr ""
+msgstr "Répondre"
 
 #: .\templates\agenda\admin_calificaciones_list.html:4
 #: .\templates\agenda\admin_calificaciones_list.html:13
 msgid "Gestión de Calificaciones"
-msgstr ""
+msgstr "Gestion des Évaluations"
 
 #: .\templates\agenda\admin_calificaciones_list.html:14
 msgid "Todas las calificaciones de eventos"
-msgstr ""
+msgstr "Toutes les évaluations des événements"
 
 #: .\templates\agenda\admin_calificaciones_list.html:17
 #: .\templates\agenda\admin_comentarios_list.html:17
@@ -389,7 +394,7 @@ msgstr ""
 #: .\templates\agenda\admin_notificaciones_list.html:17
 #: .\templates\agenda\admin_usuarios_list.html:17
 msgid "Dashboard"
-msgstr ""
+msgstr "Tableau de bord"
 
 #: .\templates\agenda\admin_calificaciones_list.html:28
 #: .\templates\agenda\admin_comentarios_list.html:31
@@ -398,7 +403,7 @@ msgstr ""
 #: .\templates\agenda\admin_usuarios_list.html:28
 #: .\templates\agenda\admin_usuarios_list.html:73
 msgid "Usuario"
-msgstr ""
+msgstr "Utilisateur"
 
 #: .\templates\agenda\admin_calificaciones_list.html:29
 #: .\templates\agenda\admin_comentarios_list.html:88
@@ -406,12 +411,12 @@ msgstr ""
 #: .\templates\agenda\admin_evento_form.html:102
 #: .\templates\agenda\admin_inscripciones_list.html:29
 msgid "Evento"
-msgstr ""
+msgstr "Événement"
 
 #: .\templates\agenda\admin_calificaciones_list.html:30
 #: .\templates\agenda\evento_detalle.html:361
 msgid "Calificación"
-msgstr ""
+msgstr "Évaluation"
 
 #: .\templates\agenda\admin_calificaciones_list.html:31
 #: .\templates\agenda\admin_comentarios_list.html:34
@@ -420,7 +425,7 @@ msgstr ""
 #: .\templates\agenda\admin_historias_list.html:30
 #: .\templates\agenda\admin_notificaciones_list.html:29
 msgid "Fecha"
-msgstr ""
+msgstr "Date"
 
 #: .\templates\agenda\admin_calificaciones_list.html:32
 #: .\templates\agenda\admin_comentarios_list.html:35
@@ -431,176 +436,174 @@ msgstr ""
 #: .\templates\agenda\admin_notificaciones_list.html:31
 #: .\templates\agenda\admin_usuarios_list.html:34
 msgid "Acciones"
-msgstr ""
+msgstr "Actions"
 
 #: .\templates\agenda\admin_calificaciones_list.html:65
 #: .\templates\agenda\admin_comentarios_list.html:112
 #: .\templates\agenda\admin_inscripciones_list.html:54
 msgid "Ver evento"
-msgstr ""
+msgstr "Voir l’événement"
 
 #: .\templates\agenda\admin_calificaciones_list.html:74
 msgid "No hay calificaciones registradas"
-msgstr ""
+msgstr "Aucune évaluation enregistrée"
 
 #: .\templates\agenda\admin_calificaciones_list.html:87
 msgid "Total de calificaciones"
-msgstr ""
+msgstr "Total des évaluations"
 
 #: .\templates\agenda\admin_comentarios_list.html:4
 #: .\templates\agenda\admin_comentarios_list.html:13
 msgid "Gestión de Comentarios"
-msgstr ""
+msgstr "Gestion des Commentaires"
 
 #: .\templates\agenda\admin_comentarios_list.html:14
 msgid "Comentarios del foro y eventos"
-msgstr ""
+msgstr "Commentaires du forum et des événements"
 
 #: .\templates\agenda\admin_comentarios_list.html:24
 msgid "Comentarios del Foro"
-msgstr ""
+msgstr "Commentaires du Forum"
 
 #: .\templates\agenda\admin_comentarios_list.html:32
 #: .\templates\agenda\admin_comentarios_list.html:87
 msgid "Comentario"
-msgstr ""
+msgstr "Commentaire"
 
 #: .\templates\agenda\admin_comentarios_list.html:33
 msgid "Historia"
-msgstr ""
+msgstr "Histoire"
 
 #: .\templates\agenda\admin_comentarios_list.html:57
 #: .\templates\agenda\admin_historias_list.html:67
 msgid "Ver historia"
-msgstr ""
+msgstr "Voir l’histoire"
 
 #: .\templates\agenda\admin_comentarios_list.html:66
 msgid "No hay comentarios del foro"
-msgstr ""
+msgstr "Aucun commentaire du forum"
 
 #: .\templates\agenda\admin_comentarios_list.html:79
 msgid "Comentarios de Eventos"
-msgstr ""
+msgstr "Commentaires des événements"
 
 #: .\templates\agenda\admin_comentarios_list.html:121
 msgid "No hay comentarios de eventos"
-msgstr ""
+msgstr "Aucun commentaire d’événement"
 
 #: .\templates\agenda\admin_dashboard.html:4
 msgid "Dashboard de Administración"
-msgstr ""
+msgstr "Tableau de bord d’Administration"
 
 #: .\templates\agenda\admin_dashboard.html:13
 msgid "Panel de Administración"
-msgstr ""
+msgstr "Panneau d’Administration"
 
 #: .\templates\agenda\admin_dashboard.html:14
 msgid "Resumen general de la plataforma"
-msgstr ""
+msgstr "Résumé général de la plateforme"
 
 #: .\templates\agenda\admin_dashboard.html:18
 msgid "Crear Evento"
-msgstr ""
+msgstr "Créer un Événement"
 
 #: .\templates\agenda\admin_dashboard.html:21
 msgid "Ver Todos"
-msgstr ""
+msgstr "Voir Tous"
 
 #: .\templates\agenda\admin_dashboard.html:35
 msgid "Usuarios Registrados"
-msgstr ""
+msgstr "Utilisateurs enregistrés"
 
 #: .\templates\agenda\admin_dashboard.html:54
 msgid "Total Eventos"
-msgstr ""
+msgstr "Total d’événements"
 
 #: .\templates\agenda\admin_dashboard.html:73
 msgid "Inscripciones"
-msgstr ""
+msgstr "Inscriptions"
 
 #: .\templates\agenda\admin_dashboard.html:92
 msgid "Rating Promedio"
-msgstr ""
+msgstr "Note moyenne"
 
 #: .\templates\agenda\admin_dashboard.html:113
 msgid "Historias Publicadas"
-msgstr ""
+msgstr "Histoires publiées"
 
 #: .\templates\agenda\admin_dashboard.html:128
 msgid "Total Comentarios"
-msgstr ""
+msgstr "Total des commentaires"
 
 #: .\templates\agenda\admin_dashboard.html:143
 msgid "Notificaciones Pendientes"
-msgstr ""
+msgstr "Notifications en attente"
 
 #: .\templates\agenda\admin_dashboard.html:158
 msgid "Eventos Más Populares"
-msgstr ""
+msgstr "Événements les plus populaires"
 
 #: .\templates\agenda\admin_dashboard.html:173
 #: .\templates\agenda\admin_dashboard.html:208
 #: .\templates\agenda\admin_evento_list.html:188
 #: .\templates\agenda\evento_detalle.html:186
 msgid "inscritos"
-msgstr ""
+msgstr "inscrits"
 
 #: .\templates\agenda\admin_dashboard.html:176
 #: .\templates\agenda\admin_evento_list.html:126
 #: .\templates\agenda\evento_detalle.html:192
 #: .\templates\foro\historia_detalle.html:36
 msgid "Editar"
-msgstr ""
+msgstr "Éditer"
 
 #: .\templates\agenda\admin_dashboard.html:195
 msgid "Próximos Eventos"
-msgstr ""
+msgstr "Événements à venir"
 
 #: .\templates\agenda\admin_dashboard.html:219
 msgid "No hay eventos próximos"
-msgstr ""
+msgstr "Aucun événement à venir"
 
 #: .\templates\agenda\admin_dashboard.html:231
 msgid "Eventos Recientes"
-msgstr ""
+msgstr "Événements récents"
 
 #: .\templates\agenda\admin_dashboard.html:244
 msgid "asistentes"
-msgstr ""
+msgstr "participants"
 
 #: .\templates\agenda\admin_dashboard.html:248
 #: .\templates\agenda\admin_evento_list.html:113
 msgid "Finalizado"
-msgstr ""
+msgstr "Terminé"
 
 #: .\templates\agenda\admin_dashboard.html:255
 msgid "No hay historial de eventos"
-msgstr ""
+msgstr "Aucun historique d’événements"
 
 #: .\templates\agenda\admin_dashboard.html:268
 msgid "Actividad Reciente en el Foro"
-msgstr ""
+msgstr "Activité récente sur le forum"
 
 #: .\templates\agenda\admin_dashboard.html:291
 #: .\templates\foro\historia_detalle.html:31 .\templates\home.html:147
 msgid "Por"
-msgstr ""
+msgstr "Par"
 
 #: .\templates\agenda\admin_dashboard.html:292
 msgid "atrás"
-msgstr ""
+msgstr "retour"
 
 #: .\templates\agenda\admin_evento_delete.html:3
 #: .\templates\agenda\admin_evento_delete.html:5
 msgid "Eliminar evento"
-msgstr ""
+msgstr "Supprimer l’événement"
 
 #: .\templates\agenda\admin_evento_delete.html:6
 #, python-format
-msgid ""
-"¿Seguro que quieres eliminar el evento "
-"\"%(evento.titulo|default:evento.nombre)s\"?"
-msgstr ""
+msgid "¿Seguro que quieres eliminar el evento \"%(evento.titulo|default:evento.nombre)s\"?"
+msgstr "Êtes-vous sûr de vouloir supprimer l’événement « %(evento.titulo|default:evento.nombre)s » ?"
 
 #: .\templates\agenda\admin_evento_delete.html:9
 #: .\templates\agenda\admin_evento_list.html:129
@@ -611,524 +614,523 @@ msgstr ""
 #: .\templates\foro\crear_historia.html:154
 #: .\templates\foro\historia_detalle.html:41 .\templates\profile_edit.html:135
 msgid "Eliminar"
-msgstr ""
+msgstr "Supprimer"
 
 #: .\templates\agenda\admin_evento_form.html:105
 msgid "Tips para publicar"
-msgstr ""
+msgstr "Conseils pour publier"
 
 #: .\templates\agenda\admin_evento_form.html:107
 msgid "Para hoy: mínimo 2 horas de anticipación; otros días: 5 minutos"
-msgstr ""
+msgstr "Pour aujourd’hui : minimum 2 heures d’anticipation ; autres jours : 5 minutes"
 
 #: .\templates\agenda\admin_evento_form.html:108
 msgid "Imagen JPG/PNG/WEBP (máx. 3MB)"
-msgstr ""
+msgstr "Image JPG/PNG/WEBP (max. 3 Mo)"
 
 #: .\templates\agenda\admin_evento_form.html:109
 msgid "Precio en COP enteros (0 si es gratuito)"
-msgstr ""
+msgstr "Prix en COP entiers (0 si gratuit)"
 
 #: .\templates\agenda\admin_evento_form.html:127
 msgid "Detalles del evento"
-msgstr ""
+msgstr "Détails de l’événement"
 
 #: .\templates\agenda\admin_evento_form.html:130
 #: .\templates\agenda\admin_evento_list.html:34
 #: .\templates\agenda\admin_historias_list.html:28
 #: .\templates\foro\crear_historia.html:44
 msgid "Título"
-msgstr ""
+msgstr "Titre"
 
 #: .\templates\agenda\admin_evento_form.html:138
 msgid "Nombre interno (slug)"
-msgstr ""
+msgstr "Nom interne (slug)"
 
 #: .\templates\agenda\admin_evento_form.html:141
 msgid "Auto"
-msgstr ""
+msgstr "Auto"
 
 #: .\templates\agenda\admin_evento_form.html:146
 msgid "Se usa como slug interno único."
-msgstr ""
+msgstr "Utilisé comme slug interne unique."
 
 #: .\templates\agenda\admin_evento_form.html:149
 msgid "Descripción corta"
-msgstr ""
+msgstr "Description courte"
 
 #: .\templates\agenda\admin_evento_form.html:160
 msgid "Logística"
-msgstr ""
+msgstr "Logistique"
 
 #: .\templates\agenda\admin_evento_form.html:163
 msgid "Tipo de evento"
-msgstr ""
+msgstr "Type d’événement"
 
 #: .\templates\agenda\admin_evento_form.html:170
 msgid "Fecha y hora"
-msgstr ""
+msgstr "Date et heure"
 
 #: .\templates\agenda\admin_evento_form.html:199
 msgid "Dirección del lugar"
-msgstr ""
+msgstr "Adresse du lieu"
 
 #: .\templates\agenda\admin_evento_form.html:206
-msgid ""
-"Comienza a escribir la dirección y selecciona una opción de las sugerencias."
-msgstr ""
+msgid "Comienza a escribir la dirección y selecciona una opción de las sugerencias."
+msgstr "Commencez à taper l’adresse et sélectionnez une option parmi les suggestions."
 
 #: .\templates\agenda\admin_evento_form.html:214
 msgid "Plataforma virtual"
-msgstr ""
+msgstr "Plateforme virtuelle"
 
 #: .\templates\agenda\admin_evento_form.html:221
 msgid "Link de la reunión"
-msgstr ""
+msgstr "Lien de la réunion"
 
 #: .\templates\agenda\admin_evento_form.html:229
 msgid "Link completo (ej: https://zoom.us/j/123456789)"
-msgstr ""
+msgstr "Lien complet (ex : https://zoom.us/j/123456789)"
 
 #: .\templates\agenda\admin_evento_form.html:233
 msgid "Precio (COP)"
-msgstr ""
+msgstr "Prix (COP)"
 
 #: .\templates\agenda\admin_evento_form.html:253
 msgid "Imagen de portada"
-msgstr ""
+msgstr "Image de couverture"
 
 #: .\templates\agenda\admin_evento_form.html:266
 msgid "Subir imagen"
-msgstr ""
+msgstr "Télécharger l’image"
 
 #: .\templates\agenda\admin_evento_form.html:271
 msgid "Formatos permitidos: JPG, PNG, WEBP. Máx 3MB."
-msgstr ""
+msgstr "Formats autorisés : JPG, PNG, WEBP. Max 3 Mo."
 
 #: .\templates\agenda\admin_evento_form.html:275
 #: .\templates\foro\crear_historia.html:107
 msgid "Publicar"
-msgstr ""
+msgstr "Publier"
 
 #: .\templates\agenda\admin_evento_list.html:4
 #: .\templates\agenda\admin_evento_list.html:13
 msgid "Gestión de Eventos"
-msgstr ""
+msgstr "Gestion des événements"
 
 #: .\templates\agenda\admin_evento_list.html:14
 msgid "Administra todos los eventos de la plataforma"
-msgstr ""
+msgstr "Gérez tous les événements de la plateforme"
 
 #: .\templates\agenda\admin_evento_list.html:18
 msgid "Atrás"
-msgstr ""
+msgstr "Retour"
 
 #: .\templates\agenda\admin_evento_list.html:21
 msgid "Nuevo Evento"
-msgstr ""
+msgstr "Nouvel événement"
 
 #: .\templates\agenda\admin_evento_list.html:33
 msgid "Imagen"
-msgstr ""
+msgstr "Image"
 
 #: .\templates\agenda\admin_evento_list.html:36
 #: .\templates\agenda\admin_evento_list.html:235
 msgid "Inscritos"
-msgstr ""
+msgstr "Inscrits"
 
 #: .\templates\agenda\admin_evento_list.html:37
 #: .\templates\agenda\admin_historias_list.html:31
 #: .\templates\agenda\admin_notificaciones_list.html:30
 #: .\templates\agenda\admin_usuarios_list.html:32
 msgid "Estado"
-msgstr ""
+msgstr "Statut"
 
 #: .\templates\agenda\admin_evento_list.html:117
 msgid "Próximo"
-msgstr ""
+msgstr "À venir"
 
 #: .\templates\agenda\admin_evento_list.html:123
 #: .\templates\agenda\admin_evento_list.html:213
 msgid "Ver"
-msgstr ""
+msgstr "Voir"
 
 #: .\templates\agenda\admin_evento_list.html:139
 #: .\templates\agenda\admin_evento_list.html:285
 msgid "No hay eventos registrados"
-msgstr ""
+msgstr "Aucun événement enregistré"
 
 #: .\templates\agenda\admin_evento_list.html:141
 #: .\templates\agenda\admin_evento_list.html:287
 msgid "Crear primer evento"
-msgstr ""
+msgstr "Créer le premier événement"
 
 #: .\templates\agenda\admin_evento_list.html:188
 msgid "inscrito"
-msgstr ""
+msgstr "registered"
 
 #: .\templates\agenda\admin_evento_list.html:192
 msgid "Sin inscritos"
-msgstr ""
+msgstr "No registrants"
 
 #: .\templates\agenda\admin_evento_list.html:272
 #: .\templates\agenda\evento_detalle.html:986
 #: .\templates\foro\crear_historia.html:144
 msgid "Cerrar"
-msgstr ""
+msgstr "Close"
 
 #: .\templates\agenda\admin_evento_list.html:297
 msgid "Total de eventos"
-msgstr ""
+msgstr "Total events"
 
 #: .\templates\agenda\admin_evento_list.html:307
 #: .\templates\agenda\admin_historias_list.html:107
 #: .\templates\agenda\admin_usuarios_list.html:128
 #: .\templates\agenda\evento_detalle.html:931 .\templates\base.html:500
 msgid "Confirmar eliminación"
-msgstr ""
+msgstr "Confirm deletion"
 
 #: .\templates\agenda\admin_evento_list.html:316
 #: .\templates\agenda\admin_usuarios_list.html:137
 msgid "¡ATENCIÓN!"
-msgstr ""
+msgstr "WARNING!"
 
 #: .\templates\agenda\admin_evento_list.html:316
 #: .\templates\agenda\admin_usuarios_list.html:137
 msgid "Esta acción NO se puede deshacer."
-msgstr ""
+msgstr "This action CANNOT be undone."
 
 #: .\templates\agenda\admin_evento_list.html:319
 msgid "Vas a eliminar el evento:"
-msgstr ""
+msgstr "You are about to delete the event:"
 
 #: .\templates\agenda\admin_evento_list.html:326
 #: .\templates\agenda\admin_usuarios_list.html:147
 msgid "Para confirmar, escribe:"
-msgstr ""
+msgstr "To confirm, type:"
 
 #: .\templates\agenda\admin_evento_list.html:330
 #: .\templates\agenda\admin_usuarios_list.html:151
 msgid "Escribe la palabra 'Eliminar'"
-msgstr ""
+msgstr "Type the word 'Eliminar'"
 
 #: .\templates\agenda\admin_evento_list.html:339
 #: .\templates\agenda\admin_usuarios_list.html:160
 msgid "Debes escribir exactamente 'Eliminar'"
-msgstr ""
+msgstr "You must type exactly 'Eliminar'"
 
 #: .\templates\agenda\admin_evento_list.html:345
 msgid "Se eliminarán todas las inscripciones, comentarios y fotos del evento."
-msgstr ""
+msgstr "All registrations, comments, and event photos will be deleted."
 
 #: .\templates\agenda\admin_evento_list.html:353
 msgid "ELIMINAR EVENTO"
-msgstr ""
+msgstr "DELETE EVENT"
 
 #: .\templates\agenda\admin_historias_list.html:4
 #: .\templates\agenda\admin_historias_list.html:13
 msgid "Gestión de Historias"
-msgstr ""
+msgstr "Story Management"
 
 #: .\templates\agenda\admin_historias_list.html:14
 msgid "Todas las historias publicadas en el foro"
-msgstr ""
+msgstr "All stories published in the forum"
 
 #: .\templates\agenda\admin_historias_list.html:29
 msgid "Autor"
-msgstr ""
+msgstr "Author"
 
 #: .\templates\agenda\admin_historias_list.html:57
 msgid "Oculta"
-msgstr ""
+msgstr "Hidden"
 
 #: .\templates\agenda\admin_historias_list.html:61
 msgid "Visible"
-msgstr ""
+msgstr "Visible"
 
 #: .\templates\agenda\admin_historias_list.html:73
 #: .\templates\agenda\admin_historias_list.html:137
 msgid "Eliminar historia"
-msgstr ""
+msgstr "Delete story"
 
 #: .\templates\agenda\admin_historias_list.html:83
 msgid "No hay historias publicadas"
-msgstr ""
+msgstr "No stories published"
 
 #: .\templates\agenda\admin_historias_list.html:96
 msgid "Total de historias"
-msgstr ""
+msgstr "Total stories"
 
 #: .\templates\agenda\admin_historias_list.html:114
 msgid "¡Atención!"
-msgstr ""
+msgstr "Attention!"
 
 #: .\templates\agenda\admin_historias_list.html:114
 msgid "Esta acción no se puede deshacer."
-msgstr ""
+msgstr "This action cannot be undone."
 
 #: .\templates\agenda\admin_historias_list.html:116
 msgid "¿Estás seguro de que deseas eliminar esta historia?"
-msgstr ""
+msgstr "Are you sure you want to delete this story?"
 
 #: .\templates\agenda\admin_historias_list.html:118
 msgid "Título:"
-msgstr ""
+msgstr "Title:"
 
 #: .\templates\agenda\admin_historias_list.html:120
 msgid "Autor:"
-msgstr ""
+msgstr "Author:"
 
 #: .\templates\agenda\admin_historias_list.html:122
 msgid "Fecha:"
-msgstr ""
+msgstr "Date:"
 
 #: .\templates\agenda\admin_historias_list.html:127
 msgid ""
 "Se eliminarán también todos los comentarios, likes y datos relacionados con "
 "esta historia."
-msgstr ""
+msgstr "All comments, likes, and data related to this story will also be deleted."
 
 #: .\templates\agenda\admin_inscripciones_list.html:4
 #: .\templates\agenda\admin_inscripciones_list.html:13
 msgid "Gestión de Inscripciones"
-msgstr ""
+msgstr "Registration Management"
 
 #: .\templates\agenda\admin_inscripciones_list.html:14
 msgid "Todas las inscripciones a eventos"
-msgstr ""
+msgstr "All event registrations"
 
 #: .\templates\agenda\admin_inscripciones_list.html:30
 msgid "Fecha Inscripción"
-msgstr ""
+msgstr "Registration Date"
 
 #: .\templates\agenda\admin_inscripciones_list.html:31
 msgid "Fecha Evento"
-msgstr ""
+msgstr "Event Date"
 
 #: .\templates\agenda\admin_inscripciones_list.html:63
 msgid "No hay inscripciones registradas"
-msgstr ""
+msgstr "No registrations found"
 
 #: .\templates\agenda\admin_inscripciones_list.html:76
 msgid "Total de inscripciones"
-msgstr ""
+msgstr "Total registrations"
 
 #: .\templates\agenda\admin_notificaciones_list.html:4
 msgid "Gestión de Notificaciones"
-msgstr ""
+msgstr "Notification Management"
 
 #: .\templates\agenda\admin_notificaciones_list.html:13
 msgid "Mis Notificaciones"
-msgstr ""
+msgstr "My Notifications"
 
 #: .\templates\agenda\admin_notificaciones_list.html:14
 msgid "Notificaciones recibidas como administrador"
-msgstr ""
+msgstr "Notifications received as administrator"
 
 #: .\templates\agenda\admin_notificaciones_list.html:28
 msgid "Mensaje"
-msgstr ""
+msgstr "Message"
 
 #: .\templates\agenda\admin_notificaciones_list.html:44
 msgid "Leída"
-msgstr ""
+msgstr "Read"
 
 #: .\templates\agenda\admin_notificaciones_list.html:48
 msgid "Pendiente"
-msgstr ""
+msgstr "Pending"
 
 #: .\templates\agenda\admin_notificaciones_list.html:54
 msgid "Ir a enlace"
-msgstr ""
+msgstr "Go to link"
 
 #: .\templates\agenda\admin_notificaciones_list.html:64
 msgid "No tienes notificaciones"
-msgstr ""
+msgstr "You have no notifications"
 
 #: .\templates\agenda\admin_notificaciones_list.html:77
 msgid "Total de notificaciones"
-msgstr ""
+msgstr "Total notifications"
 
 #: .\templates\agenda\admin_usuarios_list.html:4
 #: .\templates\agenda\admin_usuarios_list.html:13
 msgid "Gestión de Usuarios"
-msgstr ""
+msgstr "User Management"
 
 #: .\templates\agenda\admin_usuarios_list.html:14
 msgid "Todos los usuarios registrados en la plataforma"
-msgstr ""
+msgstr "All users registered on the platform"
 
 #: .\templates\agenda\admin_usuarios_list.html:29
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: .\templates\agenda\admin_usuarios_list.html:30 .\templates\register.html:55
 msgid "Nombre"
-msgstr ""
+msgstr "Name"
 
 #: .\templates\agenda\admin_usuarios_list.html:31
 msgid "Fecha Registro"
-msgstr ""
+msgstr "Registration Date"
 
 #: .\templates\agenda\admin_usuarios_list.html:33
 msgid "Rol"
-msgstr ""
+msgstr "Role"
 
 #: .\templates\agenda\admin_usuarios_list.html:58
 msgid "Activo"
-msgstr ""
+msgstr "Active"
 
 #: .\templates\agenda\admin_usuarios_list.html:62
 msgid "Inactivo"
-msgstr ""
+msgstr "Inactive"
 
 #: .\templates\agenda\admin_usuarios_list.html:69
 msgid "Admin"
-msgstr ""
+msgstr "Admin"
 
 #: .\templates\agenda\admin_usuarios_list.html:81
 msgid "No se puede eliminar administradores"
-msgstr ""
+msgstr "Administrators cannot be deleted"
 
 #: .\templates\agenda\admin_usuarios_list.html:90
 msgid "No hay usuarios registrados"
-msgstr ""
+msgstr "No users registered"
 
 #: .\templates\agenda\admin_usuarios_list.html:103
 msgid "Total de usuarios"
-msgstr ""
+msgstr "Total users"
 
 #: .\templates\agenda\admin_usuarios_list.html:140
 msgid "Vas a eliminar el usuario:"
-msgstr ""
+msgstr "You are about to delete the user:"
 
 #: .\templates\agenda\admin_usuarios_list.html:166
 msgid "Se eliminarán todas las historias, comentarios y actividad del usuario."
-msgstr ""
+msgstr "All stories, comments, and user activity will be deleted."
 
 #: .\templates\agenda\admin_usuarios_list.html:174
 msgid "ELIMINAR USUARIO"
-msgstr ""
+msgstr "DELETE USER"
 
 #: .\templates\agenda\evento_detalle.html:123
 msgid "Portada del evento"
-msgstr ""
+msgstr "Event cover"
 
 #: .\templates\agenda\evento_detalle.html:140 .\templates\home.html:39
 msgid "Anterior"
-msgstr ""
+msgstr "Previous"
 
 #: .\templates\agenda\evento_detalle.html:144 .\templates\home.html:43
 msgid "Siguiente"
-msgstr ""
+msgstr "Next"
 
 #: .\templates\agenda\evento_detalle.html:157
 msgid "Sin imagen"
-msgstr ""
+msgstr "No image"
 
 #: .\templates\agenda\evento_detalle.html:181
 #: .\templates\agenda\evento_detalle.html:207
 msgid "Presencial"
-msgstr ""
+msgstr "In person"
 
 #: .\templates\agenda\evento_detalle.html:183
 #: .\templates\agenda\evento_detalle.html:209
 msgid "Virtual"
-msgstr ""
+msgstr "Virtual"
 
 #: .\templates\agenda\evento_detalle.html:189
 #: .\templates\agenda\evento_detalle.html:811
 msgid "Copiar enlace"
-msgstr ""
+msgstr "Copy link"
 
 #: .\templates\agenda\evento_detalle.html:203
 msgid "Inscripción"
-msgstr ""
+msgstr "Registration"
 
 #: .\templates\agenda\evento_detalle.html:217
 msgid "Modo administrador"
-msgstr ""
+msgstr "Mode administrateur"
 
 #: .\templates\agenda\evento_detalle.html:222
 msgid "Editar evento"
-msgstr ""
+msgstr "Modifier l’événement"
 
 #: .\templates\agenda\evento_detalle.html:227
 msgid "Agregar fotos del evento"
-msgstr ""
+msgstr "Ajouter des photos de l’événement"
 
 #: .\templates\agenda\evento_detalle.html:230
 msgid "El evento ya finalizó"
-msgstr ""
+msgstr "L’événement est déjà terminé"
 
 #: .\templates\agenda\evento_detalle.html:235
 msgid "Ya estás inscrito/a en este evento."
-msgstr ""
+msgstr "Vous êtes déjà inscrit(e) à cet événement."
 
 #: .\templates\agenda\evento_detalle.html:240
 msgid "Inscribirme ahora"
-msgstr ""
+msgstr "M’inscrire maintenant"
 
 #: .\templates\agenda\evento_detalle.html:244
 msgid "Este evento ya finalizó"
-msgstr ""
+msgstr "Cet événement est déjà terminé"
 
 #: .\templates\agenda\evento_detalle.html:249
 msgid "Inicia sesión para inscribirte"
-msgstr ""
+msgstr "Connectez-vous pour vous inscrire"
 
 #: .\templates\agenda\evento_detalle.html:255
 msgid "Información del evento"
-msgstr ""
+msgstr "Informations sur l’événement"
 
 #: .\templates\agenda\evento_detalle.html:260
 msgid "Ubicación"
-msgstr ""
+msgstr "Localisation"
 
 #: .\templates\agenda\evento_detalle.html:268
 msgid "Abrir en Google Maps"
-msgstr ""
+msgstr "Ouvrir dans Google Maps"
 
 #: .\templates\agenda\evento_detalle.html:272
 msgid "Las coordenadas del mapa se agregarán próximamente"
-msgstr ""
+msgstr "Les coordonnées de la carte seront ajoutées prochainement"
 
 #: .\templates\agenda\evento_detalle.html:279
 msgid "Plataforma"
-msgstr ""
+msgstr "Plateforme"
 
 #: .\templates\agenda\evento_detalle.html:295
 msgid "Unirse al evento"
-msgstr ""
+msgstr "Rejoindre l’événement"
 
 #: .\templates\agenda\evento_detalle.html:298
 msgid "Guarda este enlace para el día del evento"
-msgstr ""
+msgstr "Conservez ce lien pour le jour de l’événement"
 
 #: .\templates\agenda\evento_detalle.html:308
 msgid "Inscríbete para ver la ubicación exacta en el mapa"
-msgstr ""
+msgstr "Inscrivez-vous pour voir l’emplacement exact sur la carte"
 
 #: .\templates\agenda\evento_detalle.html:310
 msgid "Inscríbete para recibir el enlace del evento virtual"
-msgstr ""
+msgstr "Inscrivez-vous pour recevoir le lien de l’événement virtuel"
 
 #: .\templates\agenda\evento_detalle.html:326
 msgid "Galería del Evento"
-msgstr ""
+msgstr "Galerie de l’événement"
 
 #: .\templates\agenda\evento_detalle.html:345 .\templates\profile_edit.html:120
 msgid "Eliminar foto"
-msgstr ""
+msgstr "Supprimer la photo"
 
 #: .\templates\agenda\evento_detalle.html:373
 msgid "Inicia sesión para calificar"
-msgstr ""
+msgstr "Connectez-vous pour noter"
 
 #: .\templates\agenda\evento_detalle.html:387 .\templates\base.html:259
 #: .\templates\foro\historia_detalle.html:68
 msgid "Comentarios"
-msgstr ""
+msgstr "Commentaires"
 
 #: .\templates\agenda\evento_detalle.html:388
 #: .\templates\agenda\evento_detalle.html:638
@@ -1139,678 +1141,671 @@ msgstr ""
 #: .\templates\foro\historia_detalle.html:383
 #: .\templates\foro\historia_detalle.html:419
 msgid "total"
-msgstr ""
+msgstr "total"
 
 #: .\templates\agenda\evento_detalle.html:393
 msgid "Escribe tu experiencia..."
-msgstr ""
+msgstr "Écrivez votre expérience…"
 
 #: .\templates\agenda\evento_detalle.html:395
 msgid "Sé respetuoso. Los comentarios pasan por moderación."
-msgstr ""
+msgstr "Restez respectueux. Les commentaires sont modérés."
 
 #: .\templates\agenda\evento_detalle.html:396
 #: .\templates\foro\historia_detalle.html:90
 msgid "Comentar"
-msgstr ""
+msgstr "Commenter"
 
 #: .\templates\agenda\evento_detalle.html:400
 msgid "Inicia sesión para comentar"
-msgstr ""
+msgstr "Connectez-vous pour commenter"
 
 #: .\templates\agenda\evento_detalle.html:406
 msgid "Sé el primero en comentar."
-msgstr ""
+msgstr "Soyez le premier à commenter."
 
 #: .\templates\agenda\evento_detalle.html:557
 msgid "Calificación eliminada"
-msgstr ""
+msgstr "Note supprimée"
 
 #: .\templates\agenda\evento_detalle.html:559
 msgid "¡Excelente! Cuéntanos tu experiencia en los comentarios"
-msgstr ""
+msgstr "Excellent ! Partagez votre expérience dans les commentaires"
 
 #: .\templates\agenda\evento_detalle.html:561
 msgid "¡Muy bien! Comparte tu opinión abajo"
-msgstr ""
+msgstr "Très bien ! Partagez votre avis ci-dessous"
 
 #: .\templates\agenda\evento_detalle.html:563
 msgid "¿Qué mejorarías? Déjanos un comentario"
-msgstr ""
+msgstr "Que pourriez-vous améliorer ? Laissez-nous un commentaire"
 
 #: .\templates\agenda\evento_detalle.html:565
 msgid "¿Qué falló? Ayúdanos con tu feedback en los comentarios"
-msgstr ""
+msgstr "Qu’est-ce qui n’a pas fonctionné ? Aidez-nous avec votre retour dans les commentaires"
 
 #: .\templates\agenda\evento_detalle.html:567
 msgid "Lamentamos tu experiencia. Cuéntanos qué pasó en los comentarios"
-msgstr ""
+msgstr "Nous regrettons votre expérience. Dites-nous ce qui s’est passé dans les commentaires"
 
 #: .\templates\agenda\evento_detalle.html:570
 msgid "Error al calificar"
-msgstr ""
+msgstr "Erreur lors de l’évaluation"
 
 #: .\templates\agenda\evento_detalle.html:573
 #: .\templates\agenda\evento_detalle.html:644
 #: .\templates\foro\historia_detalle.html:421
 msgid "Error de red"
-msgstr ""
+msgstr "Erreur réseau"
 
 #: .\templates\agenda\evento_detalle.html:641
 #: .\templates\foro\historia_detalle.html:420
 msgid "Error al publicar el comentario."
-msgstr ""
+msgstr "Erreur lors de la publication du commentaire."
 
 #: .\templates\agenda\evento_detalle.html:807
 msgid "Copiado"
-msgstr ""
+msgstr "Copié"
 
 #: .\templates\agenda\evento_detalle.html:889
 msgid "Agregar Fotos del Evento"
-msgstr ""
+msgstr "Ajouter des photos de l’événement"
 
 #: .\templates\agenda\evento_detalle.html:898
 msgid "Seleccionar fotos"
-msgstr ""
+msgstr "Sélectionner des photos"
 
 #: .\templates\agenda\evento_detalle.html:902
 msgid "Puedes seleccionar múltiples fotos (Ctrl+Click)"
-msgstr ""
+msgstr "Vous pouvez sélectionner plusieurs photos (Ctrl+Click)"
 
 #: .\templates\agenda\evento_detalle.html:908
 msgid "Vista previa"
-msgstr ""
+msgstr "Aperçu"
 
 #: .\templates\agenda\evento_detalle.html:917
 #: .\templates\agenda\evento_detalle.html:1094
 #: .\templates\agenda\evento_detalle.html:1101
 msgid "Subir Fotos"
-msgstr ""
+msgstr "Télécharger les photos"
 
 #: .\templates\agenda\evento_detalle.html:936
-msgid ""
-"¿Estás seguro de que deseas eliminar esta foto? Esta acción no se puede "
-"deshacer."
-msgstr ""
+msgid "¿Estás seguro de que deseas eliminar esta foto? Esta acción no se puede deshacer."
+msgstr "Êtes-vous sûr de vouloir supprimer cette photo ? Cette action est irréversible."
 
 #: .\templates\agenda\evento_detalle.html:961
 #: .\templates\agenda\evento_detalle.html:995
 msgid "¡Éxito!"
-msgstr ""
+msgstr "Succès !"
 
 #: .\templates\agenda\evento_detalle.html:966
 msgid "Entendido"
-msgstr ""
+msgstr "Compris"
 
 #: .\templates\agenda\evento_detalle.html:981
 #: .\templates\agenda\evento_detalle.html:1002
 msgid "Error"
-msgstr ""
+msgstr "Erreur"
 
 #: .\templates\agenda\evento_detalle.html:1027
 msgid "La foto"
-msgstr ""
+msgstr "La photo"
 
 #: .\templates\agenda\evento_detalle.html:1027
 msgid "ya está en la lista"
-msgstr ""
+msgstr "est déjà dans la liste"
 
 #: .\templates\agenda\evento_detalle.html:1027
 msgid "Foto duplicada"
-msgstr ""
+msgstr "Photo dupliquée"
 
 #: .\templates\agenda\evento_detalle.html:1069
 msgid "Subiendo..."
-msgstr ""
+msgstr "Téléchargement…"
 
 #: .\templates\agenda\evento_detalle.html:1095
 #: .\templates\agenda\evento_detalle.html:1102
 msgid "Error al subir las fotos"
-msgstr ""
+msgstr "Erreur lors du téléversement des photos"
 
 #: .\templates\agenda\evento_detalle.html:1206
 msgid "No se puede eliminar"
-msgstr ""
+msgstr "Impossible de supprimer"
 
 #: .\templates\agenda\evento_detalle.html:1230
 msgid "Eliminando..."
-msgstr ""
+msgstr "Suppression…"
 
 #: .\templates\agenda\evento_detalle.html:1253
 #: .\templates\agenda\evento_detalle.html:1268
 msgid "Error al eliminar la foto"
-msgstr ""
+msgstr "Erreur lors de la suppression de la photo"
 
 #: .\templates\agenda\index.html:5 .\templates\home.html:27
 msgid "Agenda"
-msgstr ""
+msgstr "Agenda"
 
 #: .\templates\agenda\index.html:11
 msgid "Agenda de eventos"
-msgstr ""
+msgstr "Agenda des événements"
 
 #: .\templates\agenda\index.html:12
 msgid "Descubre actividades para tu bienestar"
-msgstr ""
+msgstr "Découvrez des activités pour votre bien-être"
 
 #: .\templates\agenda\index.html:15
 msgid "Volver"
-msgstr ""
+msgstr "Retour"
 
 #: .\templates\agenda\index.html:16
 msgid "Ver próximos"
-msgstr ""
+msgstr "Voir les prochains"
 
 #: .\templates\agenda\index.html:22 .\templates\home.html:97
 msgid "Próximos eventos"
-msgstr ""
+msgstr "Événements à venir"
 
 #: .\templates\agenda\index.html:46 .\templates\agenda\index.html:49
 msgid "Inscribirme"
-msgstr ""
+msgstr "M’inscrire"
 
 #: .\templates\agenda\index.html:51
 msgid "Compartir"
-msgstr ""
+msgstr "Partager"
 
 #: .\templates\agenda\index.html:59
 msgid "No hay eventos próximos."
-msgstr ""
+msgstr "Il n’y a pas d’événements à venir."
 
 #: .\templates\agenda\index.html:65
 msgid "Eventos pasados"
-msgstr ""
+msgstr "Événements passés"
 
 #: .\templates\agenda\index.html:89
 msgid "Aún no hay historial de eventos."
-msgstr ""
+msgstr "Il n’y a pas encore d’historique d’événements."
 
 #: .\templates\agenda\inscripcion_form.html:4
 msgid "Inscribirse al Evento"
-msgstr ""
+msgstr "S’inscrire à l’événement"
 
 #: .\templates\agenda\inscripcion_form.html:25
 msgid "Evento presencial"
-msgstr ""
+msgstr "Événement en présentiel"
 
 #: .\templates\agenda\inscripcion_form.html:29
 msgid "Evento virtual"
-msgstr ""
+msgstr "Événement virtuel"
 
 #: .\templates\agenda\inscripcion_form.html:41
 msgid "Completa tu inscripción"
-msgstr ""
+msgstr "Complétez votre inscription"
 
 #: .\templates\agenda\inscripcion_form.html:60
 msgid "Teléfono de contacto"
-msgstr ""
+msgstr "Téléphone de contact"
 
 #: .\templates\agenda\inscripcion_form.html:63
 msgid "Opcional. Para contactarte en caso necesario."
-msgstr ""
+msgstr "Optionnel. Pour vous contacter si nécessaire."
 
 #: .\templates\agenda\inscripcion_form.html:71
 msgid "Notas adicionales"
-msgstr ""
+msgstr "Notes supplémentaires"
 
 #: .\templates\agenda\inscripcion_form.html:74
 msgid "Opcional. Cualquier comentario o pregunta."
-msgstr ""
+msgstr "Optionnel. Tout commentaire ou question."
 
 #: .\templates\agenda\inscripcion_form.html:83
 msgid "Una vez inscrito, podrás ver la ubicación exacta del evento en el mapa."
-msgstr ""
+msgstr "Une fois inscrit, vous pourrez voir l’emplacement exact de l’événement sur la carte."
 
 #: .\templates\agenda\inscripcion_form.html:85
 msgid "Una vez inscrito, recibirás el enlace para unirte al evento virtual."
-msgstr ""
+msgstr "Une fois inscrit, vous recevrez le lien pour rejoindre l’événement virtuel."
 
 #: .\templates\agenda\inscripcion_form.html:91
 msgid "Confirmar inscripción"
-msgstr ""
+msgstr "Confirmer l’inscription"
 
 #: .\templates\agenda\inscripcion_form.html:94
 msgid "Volver al evento"
-msgstr ""
+msgstr "Retour à l’événement"
 
 #: .\templates\base.html:125 .\templates\base.html:241
 msgid "Editar perfil"
-msgstr ""
+msgstr "Modifier le profil"
 
 #: .\templates\base.html:132 .\templates\base.html:341
 msgid "Cerrar sesión"
-msgstr ""
+msgstr "Se déconnecter"
 
 #: .\templates\base.html:135
 msgid "Cambiar idioma"
-msgstr ""
+msgstr "Changer de langue"
 
 #: .\templates\base.html:155
 msgid "Cambiar región"
-msgstr ""
+msgstr "Changer de région"
 
 #: .\templates\base.html:176
 msgid "Sin notificaciones"
-msgstr ""
+msgstr "Aucune notification"
 
 #: .\templates\base.html:179
 msgid "Ver todas"
-msgstr ""
+msgstr "Voir tout"
 
 #: .\templates\base.html:231
 msgid "Menú"
-msgstr ""
+msgstr "Menu"
 
 #: .\templates\base.html:252 .\templates\base.html:283
 #: .\templates\base.html:366 .\templates\home.html:21
 msgid "Historias"
-msgstr ""
+msgstr "Histoires"
 
 #: .\templates\base.html:266
 msgid "Likes"
-msgstr ""
+msgstr "Likes"
 
 #: .\templates\base.html:276
 msgid "Dashboard Admin"
-msgstr ""
+msgstr "Tableau de bord Admin"
 
 #: .\templates\base.html:280 .\templates\base.html:363
 #: .\templates\base.html:546 .\templates\base.html:668
 msgid "Inicio"
-msgstr ""
+msgstr "Accueil"
 
 #: .\templates\base.html:286 .\templates\base.html:369
 #: .\templates\base.html:556 .\templates\base.html:672
 msgid "Eventos"
-msgstr ""
+msgstr "Événements"
 
 #: .\templates\base.html:289 .\templates\home.html:33
 msgid "Podcast"
-msgstr ""
+msgstr "Podcast"
 
 #: .\templates\base.html:297
 msgid "Notificaciones"
-msgstr ""
+msgstr "Notifications"
 
 #: .\templates\base.html:304
 msgid "No hay notificaciones nuevas"
-msgstr ""
+msgstr "Aucune nouvelle notification"
 
 #: .\templates\base.html:314 .\templates\base.html:376
 msgid "IDIOMA"
-msgstr ""
+msgstr "LANGUE"
 
 #: .\templates\base.html:350
 msgid "Inicia sesión para acceder a todas las funciones"
-msgstr ""
+msgstr "Connectez-vous pour accéder à toutes les fonctionnalités"
 
 #: .\templates\base.html:353 .\templates\login.html:77
 msgid "Iniciar sesión"
-msgstr ""
+msgstr "Se connecter"
 
 #: .\templates\base.html:356
 msgid "Registrarse"
-msgstr ""
+msgstr "S’inscrire"
 
 #: .\templates\base.html:505
 msgid "¿Estás seguro de que deseas eliminar este elemento?"
-msgstr ""
+msgstr "Êtes-vous sûr de vouloir supprimer cet élément ?"
 
 #: .\templates\base.html:531
-msgid ""
-"Plataforma de apoyo para la salud mental y bienestar emocional. Comparte, "
-"conecta y encuentra ayuda profesional."
-msgstr ""
+msgid "Plataforma de apoyo para la salud mental y bienestar emocional. Comparte, conecta y encuentra ayuda profesional."
+msgstr "Plateforme de soutien pour la santé mentale et le bien-être émotionnel. Partagez, connectez-vous et trouvez une aide professionnelle."
 
 #: .\templates\base.html:534
 msgid "Comunidad"
-msgstr ""
+msgstr "Communauté"
 
 #: .\templates\base.html:535
 msgid "Seguro"
-msgstr ""
+msgstr "Sécurisé"
 
 #: .\templates\base.html:542
 msgid "Enlaces"
-msgstr ""
+msgstr "Liens"
 
 #: .\templates\base.html:551 .\templates\base.html:670
 msgid "Foro"
-msgstr ""
+msgstr "Forum"
 
 #: .\templates\base.html:561
 msgid "Podcasts"
-msgstr ""
+msgstr "Podcasts"
 
 #: .\templates\base.html:569
 msgid "Recursos"
-msgstr ""
+msgstr "Ressources"
 
 #: .\templates\base.html:573 .\templates\base.html:674
 msgid "Ayuda"
-msgstr ""
+msgstr "Aide"
 
 #: .\templates\base.html:578
 msgid "Términos y Condiciones"
-msgstr ""
+msgstr "Conditions générales"
 
 #: .\templates\base.html:583
 msgid "Privacidad"
-msgstr ""
+msgstr "Confidentialité"
 
 #: .\templates\base.html:588
 msgid "Contacto"
-msgstr ""
+msgstr "Contact"
 
 #: .\templates\base.html:596 .\templates\base.html:640
 msgid "Síguenos"
-msgstr ""
+msgstr "Suivez-nous"
 
 #: .\templates\base.html:598
 msgid "Mantente conectado en nuestras redes sociales"
-msgstr ""
+msgstr "Restez connecté sur nos réseaux sociaux"
 
 #: .\templates\base.html:634
 msgid "Plataforma de apoyo para la salud mental"
-msgstr ""
+msgstr "Plateforme de soutien pour la santé mentale"
 
 #: .\templates\base.html:687
 msgid "Todos los derechos reservados"
-msgstr ""
+msgstr "Tous droits réservés"
 
 #: .\templates\foro\crear_historia.html:6
 #: .\templates\foro\crear_historia.html:20
 msgid "Editar historia"
-msgstr ""
+msgstr "Modifier l’histoire"
 
 #: .\templates\foro\crear_historia.html:6
 #: .\templates\foro\crear_historia.html:20
 msgid "Escribir nueva historia"
-msgstr ""
+msgstr "Écrire une nouvelle histoire"
 
 #: .\templates\foro\crear_historia.html:23
 msgid "Modifica tu historia y hazla aún más inspiradora."
-msgstr ""
+msgstr "Modifiez votre histoire et rendez-la encore plus inspirante."
 
 #: .\templates\foro\crear_historia.html:24
 msgid "Comparte tu experiencia y ayuda a otros con tu historia."
-msgstr ""
+msgstr "Partagez votre expérience et aidez les autres grâce à votre histoire."
 
 #: .\templates\foro\crear_historia.html:50
 msgid "Ej: Cómo superé la ansiedad social"
-msgstr ""
+msgstr "Ex : Comment j’ai surmonté l’anxiété sociale"
 
 #: .\templates\foro\crear_historia.html:61
 msgid "Sé claro y directo. Evita mayúsculas excesivas."
-msgstr ""
+msgstr "Soyez clair et direct. Évitez les majuscules excessives."
 
 #: .\templates\foro\crear_historia.html:70
 msgid "Contenido"
-msgstr ""
+msgstr "Contenu"
 
 #: .\templates\foro\crear_historia.html:76
 msgid "Comparte tu historia de forma respetuosa y honesta..."
-msgstr ""
+msgstr "Partagez votre histoire de manière respectueuse et honnête..."
 
 #: .\templates\foro\crear_historia.html:86
 msgid "Cuenta tu historia con respeto. Evita datos sensibles de terceros."
-msgstr ""
+msgstr "Racontez votre histoire avec respect. Évitez les données sensibles concernant des tiers."
 
 #: .\templates\foro\crear_historia.html:107
 msgid "Actualizar"
-msgstr ""
+msgstr "Mettre à jour"
 
 #: .\templates\foro\crear_historia.html:117
 msgid "Consejos para escribir tu historia"
-msgstr ""
+msgstr "Conseils pour écrire votre histoire"
 
 #: .\templates\foro\crear_historia.html:120
 msgid "Sé auténtico y honesto con tus experiencias"
-msgstr ""
+msgstr "Soyez authentique et honnête avec vos expériences"
 
 #: .\templates\foro\crear_historia.html:121
 msgid "Evita compartir información personal identificable de terceros"
-msgstr ""
+msgstr "Évitez de partager des informations personnelles identifiables de tiers"
 
 #: .\templates\foro\crear_historia.html:122
 msgid "Usa un lenguaje respetuoso y constructivo"
-msgstr ""
+msgstr "Utilisez un langage respectueux et constructif"
 
 #: .\templates\foro\crear_historia.html:123
 msgid "Tu historia puede inspirar a otros que pasan por situaciones similares"
-msgstr ""
+msgstr "Votre histoire peut inspirer d’autres personnes traversant des situations similaires"
 
 #: .\templates\foro\crear_historia.html:142
 msgid "¿Eliminar historia?"
-msgstr ""
+msgstr "Supprimer l’histoire ?"
 
 #: .\templates\foro\crear_historia.html:147
-msgid ""
-"Esta acción no se puede deshacer. Tu historia se eliminará permanentemente."
-msgstr ""
+msgid "Esta acción no se puede deshacer. Tu historia se eliminará permanentemente."
+msgstr "Cette action est irréversible. Votre histoire sera supprimée définitivement."
 
 #: .\templates\foro\historia_detalle.html:39
 msgid "¿Eliminar esta historia?"
-msgstr ""
+msgstr "Supprimer cette histoire ?"
 
 #: .\templates\foro\historia_detalle.html:58
 msgid "Like"
-msgstr ""
+msgstr "Like"
 
 #: .\templates\foro\historia_detalle.html:75
 msgid "No hay comentarios aún."
-msgstr ""
+msgstr "Aucun commentaire pour le moment."
 
 #: .\templates\foro\historia_detalle.html:99
 msgid "Inicia sesión para comentar."
-msgstr ""
+msgstr "Connectez-vous pour commenter."
 
 #: .\templates\foro\historia_detalle.html:238
 msgid "Guardando"
-msgstr ""
+msgstr "Enregistrement"
 
 #: .\templates\foro\historia_detalle.html:252
 msgid "No se pudo guardar el comentario."
-msgstr ""
+msgstr "Impossible d’enregistrer le commentaire."
 
 #: .\templates\foro\historia_detalle.html:323
 msgid "Enviando"
-msgstr ""
+msgstr "Envoi"
 
 #: .\templates\foro\historia_detalle.html:393
 msgid "No se pudo guardar la respuesta."
-msgstr ""
+msgstr "Impossible d’enregistrer la réponse."
 
 #: .\templates\foro\historia_detalle.html:397
 msgid "Error de red al guardar respuesta."
-msgstr ""
+msgstr "Erreur réseau lors de l’enregistrement de la réponse."
 
 #: .\templates\foro\historias_list.html:4 .\templates\home.html:139
 msgid "Historias Destacadas"
-msgstr ""
+msgstr "Histoires en vedette"
 
 #: .\templates\foro\historias_list.html:31 .\templates\home.html:155
 msgid "Leer más"
-msgstr ""
+msgstr "Lire plus"
 
 #: .\templates\foro\historias_list.html:38 .\templates\home.html:161
 msgid "No hay historias publicadas aún."
-msgstr ""
+msgstr "Aucune histoire publiée pour le moment."
 
 #: .\templates\foro\historias_list.html:41 .\templates\home.html:168
 msgid "Escribir historia"
-msgstr ""
+msgstr "Écrire une histoire"
 
 #: .\templates\home.html:6
 msgid "Inicio - Iterum"
-msgstr ""
+msgstr "Accueil - Iterum"
 
 #: .\templates\home.html:98
 msgid "Ver agenda"
-msgstr ""
+msgstr "Voir l’agenda"
 
 #: .\templates\home.html:131
 msgid "No hay eventos próximos por ahora."
-msgstr ""
+msgstr "Aucun événement à venir pour le moment."
 
 #: .\templates\home.html:166
 msgid "Ver historias"
-msgstr ""
+msgstr "Voir les histoires"
 
 #: .\templates\home.html:173
 msgid "Escucha Nuestro Podcast En Spotify"
-msgstr ""
+msgstr "Écoutez notre podcast sur Spotify"
 
 #: .\templates\home.html:178
 msgid "Abrir en Spotify"
-msgstr ""
+msgstr "Ouvrir sur Spotify"
 
 #: .\templates\login.html:5
 msgid "Iniciar sesión - Iterum"
-msgstr ""
+msgstr "Connexion - Iterum"
 
 #: .\templates\login.html:41
 msgid "Bienvenid@ de nuevo"
-msgstr ""
+msgstr "Bon retour !"
 
 #: .\templates\login.html:42
 msgid "Ingresa tus credenciales para continuar"
-msgstr ""
+msgstr "Entrez vos identifiants pour continuer"
 
 #: .\templates\login.html:54
 msgid "Usuario o Correo"
-msgstr ""
+msgstr "Nom d’utilisateur ou e-mail"
 
 #: .\templates\login.html:57
 msgid "usuario@ejemplo.com"
-msgstr ""
+msgstr "utilisateur@exemple.com"
 
 #: .\templates\login.html:61 .\templates\register.html:85
 msgid "Contraseña"
-msgstr ""
+msgstr "Mot de passe"
 
 #: .\templates\login.html:73
 msgid "Recordarme"
-msgstr ""
+msgstr "Se souvenir de moi"
 
 #: .\templates\login.html:75
 msgid "¿Olvidaste tu contraseña?"
-msgstr ""
+msgstr "Mot de passe oublié ?"
 
 #: .\templates\login.html:80
 msgid "¿No tienes cuenta?"
-msgstr ""
+msgstr "Pas de compte ?"
 
 #: .\templates\login.html:80
 msgid "Regístrate aquí"
-msgstr ""
+msgstr "Inscrivez-vous ici"
 
 #: .\templates\profile_edit.html:6
 msgid "Editar Perfil - Iterum"
-msgstr ""
+msgstr "Modifier le profil - Iterum"
 
 #: .\templates\profile_edit.html:88
 msgid "Miembro desde"
-msgstr ""
+msgstr "Membre depuis"
 
 #: .\templates\profile_edit.html:96
 msgid "Nombre de Usuario"
-msgstr ""
+msgstr "Nom d’utilisateur"
 
 #: .\templates\profile_edit.html:100 .\templates\register.html:70
 msgid "Correo electrónico"
-msgstr ""
+msgstr "E-mail"
 
 #: .\templates\profile_edit.html:104
 msgid "Foto de perfil"
-msgstr ""
+msgstr "Photo de profil"
 
 #: .\templates\profile_edit.html:115
 msgid "Cambiar foto"
-msgstr ""
+msgstr "Changer la photo"
 
 #: .\templates\profile_edit.html:127
 msgid "¿Eliminar foto de perfil?"
-msgstr ""
+msgstr "Supprimer la photo de profil ?"
 
 #: .\templates\profile_edit.html:131
-msgid ""
-"¿Estás segur@ de que quieres eliminar tu foto de perfil? Esta acción no se "
-"puede deshacer."
-msgstr ""
+msgid "¿Estás segur@ de que quieres eliminar tu foto de perfil? Esta acción no se puede deshacer."
+msgstr "Êtes-vous sûr de vouloir supprimer votre photo de profil ? Cette action est irréversible."
 
 #: .\templates\profile_edit.html:143
 msgid "Formatos: PNG, JPG, JPEG. Máx 2MB."
-msgstr ""
+msgstr "Formats : PNG, JPG, JPEG. Max 2 Mo."
 
 #: .\templates\profile_edit.html:149
 msgid "Nombre Real"
-msgstr ""
+msgstr "Nom réel"
 
 #: .\templates\profile_edit.html:153 .\templates\register.html:62
 msgid "Apellido"
-msgstr ""
+msgstr "Nom"
 
 #: .\templates\profile_edit.html:157
 msgid "Biografía"
-msgstr ""
+msgstr "Biographie"
 
 #: .\templates\profile_edit.html:158
 msgid "Cuéntanos algo sobre ti..."
-msgstr ""
+msgstr "Parlez-nous un peu de vous…"
 
 #: .\templates\profile_edit.html:161
 msgid "Teléfono"
-msgstr ""
+msgstr "Téléphone"
 
 #: .\templates\profile_edit.html:164
 msgid "Indicativo (sin +)"
-msgstr ""
+msgstr "Indicatif (sans +)"
 
 #: .\templates\profile_edit.html:169
 msgid "Ingresa solo números (7 a 15 dígitos)."
-msgstr ""
+msgstr "Entrez uniquement des chiffres (7 à 15 chiffres)."
 
 #: .\templates\profile_edit.html:172
 msgid "Escribe el indicativo y tu número. Solo números permitidos."
-msgstr ""
+msgstr "Entrez l’indicatif et votre numéro. Chiffres uniquement."
 
 #: .\templates\profile_edit.html:176
 msgid "Guardar cambios"
-msgstr ""
+msgstr "Enregistrer les modifications"
 
 #: .\templates\profile_edit.html:182
 msgid "Tus datos están protegidos y nunca serán compartidos."
-msgstr ""
+msgstr "Vos données sont protégées et ne seront jamais partagées."
 
 #: .\templates\register.html:5
 msgid "Registrarse - Iterum"
-msgstr ""
+msgstr "Inscription - Iterum"
 
 #: .\templates\register.html:41
 msgid "Crea tu cuenta"
-msgstr ""
+msgstr "Créez votre compte"
 
 #: .\templates\register.html:42
 msgid "Únete a la comunidad en segundos"
-msgstr ""
+msgstr "Rejoignez la communauté en quelques secondes"
 
 #: .\templates\register.html:77
 msgid "Nombre de usuario"
-msgstr ""
+msgstr "Nom d’utilisateur"
 
 #: .\templates\register.html:98
 msgid "Confirmar contraseña"
-msgstr ""
+msgstr "Confirmer le mot de passe"
 
 #: .\templates\register.html:105
 msgid "Crear cuenta"
-msgstr ""
+msgstr "Créer un compte"
 
 #: .\templates\register.html:108
 msgid "¿Ya tienes cuenta?"
-msgstr ""
+msgstr "Vous avez déjà un compte ?"
 
 #: .\templates\register.html:108
 msgid "Inicia sesión aquí"
-msgstr ""
+msgstr "Connectez-vous ici"
