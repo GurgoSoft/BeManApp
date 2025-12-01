@@ -142,7 +142,7 @@ footer {
                 <!-- Tema fijo oscuro: se removió toggle -->
                 {% if user.is_authenticated %}
                     {% if user.is_staff %}
-                        <a href="{% url 'agenda_admin_dashboard' %}" class="btn btn-link me-2" title="Dashboard admin"><i class="ri-dashboard-line fs-4"></i></a>
+                        <a href="{% url 'agenda_admin_dashboard' %}" class="btn btn-link me-2" title="{% trans 'Dashboard admin' %}"><i class="ri-dashboard-line fs-4"></i></a>
                     {% endif %}
                     <a href="{% url 'editar_perfil' %}" class="btn btn-link me-2 p-0" title="{% trans 'Editar perfil' %}" style="line-height:0;">
                         {% if user.foto_perfil %}
@@ -153,8 +153,8 @@ footer {
                     </a>
                                         <a href="{% url 'logout' %}" class="btn btn-link me-2" title="{% trans 'Cerrar sesión' %}"><i class="ri-logout-box-r-line fs-4"></i></a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">Iniciar sesión</a>
-                    <a href="{% url 'register' %}" class="btn btn-primary">Registrarse</a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">{% trans 'Iniciar sesión' %}</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary">{% trans 'Registrarse' %}</a>
                 {% endif %}
             </div>
         </div>

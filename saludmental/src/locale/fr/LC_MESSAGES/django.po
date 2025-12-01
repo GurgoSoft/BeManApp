@@ -1809,3 +1809,35 @@ msgstr "Vous avez déjà un compte ?"
 #: .\templates\register.html:108
 msgid "Inicia sesión aquí"
 msgstr "Connectez-vous ici"
+
+#: .\templates\base.html:145
+msgid "Dashboard admin"
+msgstr "Tableau de bord admin"
+
+#: .\templates\agenda\evento_detalle.html:31
+msgid "Coordenadas inválidas"
+msgstr "Coordonnées invalides"
+
+#: .\templates\agenda\evento_detalle.html:89
+msgid "Error al cargar el mapa"
+msgstr "Erreur lors du chargement de la carte"
+
+#: .\templates\agenda\admin_evento_form.html:244
+msgid "Formato: 1.000 | 50.000 | 1.000.000 (sin decimales). Deja en 0 si es gratuito."
+msgstr "Format : 1 000 | 50 000 | 1 000 000 (sans décimales). Laissez à 0 si gratuit."
+
+#: .\templates\profile_edit.html:168
+msgid "Ej: 3001234567"
+msgstr "Ex : 3001234567"
+
+#: .\templates\emails\notificacion_base.html:137
+msgid "Comunidad de Hombres"
+msgstr "Communauté d'hommes"
+
+#: .\templates\emails\notificacion_base.html:138
+msgid "Este es un correo automático. Por favor no respondas a este mensaje."
+msgstr "Ceci est un e-mail automatique. Veuillez ne pas répondre à ce message."
+
+#: .\templates\emails\notificacion_base.html:140
+msgid "WhatsApp de soporte"
+msgstr "WhatsApp de support"

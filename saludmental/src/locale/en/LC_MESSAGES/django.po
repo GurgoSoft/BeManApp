@@ -1809,3 +1809,35 @@ msgstr "Already have an account?"
 #: .\templates\register.html:108
 msgid "Inicia sesión aquí"
 msgstr "Log in here"
+
+#: .\templates\base.html:145
+msgid "Dashboard admin"
+msgstr "Admin Dashboard"
+
+#: .\templates\agenda\evento_detalle.html:31
+msgid "Coordenadas inválidas"
+msgstr "Invalid coordinates"
+
+#: .\templates\agenda\evento_detalle.html:89
+msgid "Error al cargar el mapa"
+msgstr "Error loading map"
+
+#: .\templates\agenda\admin_evento_form.html:244
+msgid "Formato: 1.000 | 50.000 | 1.000.000 (sin decimales). Deja en 0 si es gratuito."
+msgstr "Format: 1,000 | 50,000 | 1,000,000 (no decimals). Leave at 0 if free."
+
+#: .\templates\profile_edit.html:168
+msgid "Ej: 3001234567"
+msgstr "E.g.: 3001234567"
+
+#: .\templates\emails\notificacion_base.html:137
+msgid "Comunidad de Hombres"
+msgstr "Men's Community"
+
+#: .\templates\emails\notificacion_base.html:138
+msgid "Este es un correo automático. Por favor no respondas a este mensaje."
+msgstr "This is an automated email. Please do not reply to this message."
+
+#: .\templates\emails\notificacion_base.html:140
+msgid "WhatsApp de soporte"
+msgstr "Support WhatsApp"

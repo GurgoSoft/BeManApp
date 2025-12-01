@@ -165,7 +165,7 @@
                                     <span id="country-flag" class="position-absolute country-flag"></span>
                                 </div>
                                 <div class="col-7 col-sm-8">
-                                    <input type="tel" inputmode="numeric" autocomplete="tel-national" name="phone_number" id="id_phone_number" class="form-control profile-input" pattern="^[0-9]{7,15}$" maxlength="15" required value="{{ form.phone_number.value|default:'' }}" placeholder="Ej: 3001234567" aria-describedby="phoneHelp">
+                                    <input type="tel" inputmode="numeric" autocomplete="tel-national" name="phone_number" id="id_phone_number" class="form-control profile-input" pattern="^[0-9]{7,15}$" maxlength="15" required value="{{ form.phone_number.value|default:'' }}" placeholder="{% trans 'Ej: 3001234567' %}" aria-describedby="phoneHelp">
                                     <div class="invalid-feedback">{% trans "Ingresa solo números (7 a 15 dígitos)." %}</div>
                                 </div>
                             </div>

@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (isNaN(lat) || isNaN(lng)) {
     console.error('❌ Coordenadas inválidas:', lat, lng);
-    mapDiv.innerHTML = '<div class="alert alert-danger">Coordenadas inválidas</div>';
+    mapDiv.innerHTML = '<div class="alert alert-danger">{% trans "Coordenadas inválidas" %}</div>';
     return;
   }
   
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Mapa de Google creado exitosamente');
   } catch (error) {
     console.error('❌ Error al crear el mapa:', error);
-    mapDiv.innerHTML = '<div class="alert alert-danger">Error al cargar el mapa</div>';
+    mapDiv.innerHTML = '<div class="alert alert-danger">{% trans "Error al cargar el mapa" %}</div>';
   }
 });
 </script>

@@ -1813,3 +1813,35 @@ msgstr "Hai già un account?"
 #: .\templates\register.html:108
 msgid "Inicia sesión aquí"
 msgstr "Accedi qui"
+
+#: .\templates\base.html:145
+msgid "Dashboard admin"
+msgstr "Dashboard amministratore"
+
+#: .\templates\agenda\evento_detalle.html:31
+msgid "Coordenadas inválidas"
+msgstr "Coordinate non valide"
+
+#: .\templates\agenda\evento_detalle.html:89
+msgid "Error al cargar el mapa"
+msgstr "Errore nel caricamento della mappa"
+
+#: .\templates\agenda\admin_evento_form.html:244
+msgid "Formato: 1.000 | 50.000 | 1.000.000 (sin decimales). Deja en 0 si es gratuito."
+msgstr "Formato: 1.000 | 50.000 | 1.000.000 (senza decimali). Lascia a 0 se gratuito."
+
+#: .\templates\profile_edit.html:168
+msgid "Ej: 3001234567"
+msgstr "Es.: 3001234567"
+
+#: .\templates\emails\notificacion_base.html:137
+msgid "Comunidad de Hombres"
+msgstr "Comunità di uomini"
+
+#: .\templates\emails\notificacion_base.html:138
+msgid "Este es un correo automático. Por favor no respondas a este mensaje."
+msgstr "Questa è un'email automatica. Si prega di non rispondere a questo messaggio."
+
+#: .\templates\emails\notificacion_base.html:140
+msgid "WhatsApp de soporte"
+msgstr "WhatsApp di supporto"
