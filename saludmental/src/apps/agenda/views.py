@@ -81,62 +81,75 @@ class EventoForm(forms.ModelForm):
             'tipo_evento', 'lugar', 'latitud', 'longitud',
             'link_virtual', 'plataforma_virtual', 'fecha', 'precio'
         ]
-        widgets = {
-            'imagen': forms.ClearableFileInput(attrs={
-                'accept': 'image/jpeg,image/png,image/webp',
-                'class': 'form-control'
-            }),
-            'titulo': forms.TextInput(attrs={
-                'placeholder': _('Ej: Círculo de Hombres — Medellín'),
-                'maxlength': 120,
-                'class': 'form-control'
-            }),
-            'nombre': forms.TextInput(attrs={
-                'placeholder': _('slug interno único, p. ej. circulo-hombres-medellin-oct-2025'),
-                'maxlength': 140,
-                'class': 'form-control'
-            }),
-            'descripcion_corta': forms.Textarea(attrs={
-                'rows': 4,
-                'maxlength': 500,
-                'placeholder': _('Qué aprenderán, a quién va dirigido y beneficios (máx. 500).'),
-                'class': 'form-control'
-            }),
-            'tipo_evento': forms.Select(attrs={
-                'class': 'form-select'
-            }),
-            'lugar': forms.TextInput(attrs={
-                'placeholder': _('Dirección exacta o enlace de Zoom/Meet'),
-                'maxlength': 120,
-                'class': 'form-control',
-                'id': 'id_lugar'
-            }),
-            'latitud': forms.HiddenInput(attrs={'id': 'id_latitud'}),
-            'longitud': forms.HiddenInput(attrs={'id': 'id_longitud'}),
-            'link_virtual': forms.URLInput(attrs={
-                'placeholder': _('https://zoom.us/j/123456789 o https://meet.google.com/abc-defg-hij'),
-                'class': 'form-control'
-            }),
-            'plataforma_virtual': forms.Select(attrs={
-                'class': 'form-select'
-            }, choices=[
-                ('', _('Seleccionar plataforma')),
-                ('Zoom', 'Zoom'),
-                ('Google Meet', 'Google Meet'),
-                ('Microsoft Teams', 'Microsoft Teams'),
-                ('Discord', 'Discord'),
-                ('Otro', _('Otro'))
-            ]),
-            'fecha': forms.DateTimeInput(attrs={
-                'type': 'datetime-local',
-                'class': 'form-control',
-            }, format='%Y-%m-%dT%H:%M'),
-        }
-        # Configurar fecha para NO usar localize (evita conversión automática UTC)
+        # No definir widgets aquí para que se configuren en __init__ con traducciones actualizadas
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         import pytz
+        
+        # Configurar widgets con traducciones dinámicas
+        self.fields['imagen'].widget = forms.ClearableFileInput(attrs={
+            'accept': 'image/jpeg,image/png,image/webp',
+            'class': 'form-control'
+        })
+        
+        self.fields['titulo'].widget = forms.TextInput(attrs={
+            'placeholder': _('Ej: Círculo de Hombres — Medellín'),
+            'maxlength': 120,
+            'class': 'form-control'
+        })
+        
+        self.fields['nombre'].widget = forms.TextInput(attrs={
+            'placeholder': _('slug interno único, p. ej. circulo-hombres-medellin-oct-2025'),
+            'maxlength': 140,
+            'class': 'form-control'
+        })
+        
+        self.fields['descripcion_corta'].widget = forms.Textarea(attrs={
+            'rows': 4,
+            'maxlength': 500,
+            'placeholder': _('Qué aprenderán, a quién va dirigido y beneficios (máx. 500).'),
+            'class': 'form-control'
+        })
+        
+        self.fields['tipo_evento'].widget = forms.Select(attrs={
+            'class': 'form-select'
+        }, choices=[
+            ('', _('Seleccionar tipo')),
+            ('presencial', _('Presencial')),
+            ('virtual', _('Virtual'))
+        ])
+        
+        self.fields['lugar'].widget = forms.TextInput(attrs={
+            'placeholder': _('Dirección exacta o enlace de Zoom/Meet'),
+            'maxlength': 120,
+            'class': 'form-control',
+            'id': 'id_lugar'
+        })
+        
+        self.fields['latitud'].widget = forms.HiddenInput(attrs={'id': 'id_latitud'})
+        self.fields['longitud'].widget = forms.HiddenInput(attrs={'id': 'id_longitud'})
+        
+        self.fields['link_virtual'].widget = forms.URLInput(attrs={
+            'placeholder': _('https://zoom.us/j/123456789 o https://meet.google.com/abc-defg-hij'),
+            'class': 'form-control'
+        })
+        
+        self.fields['plataforma_virtual'].widget = forms.Select(attrs={
+            'class': 'form-select'
+        }, choices=[
+            ('', _('Seleccionar plataforma')),
+            ('Zoom', 'Zoom'),
+            ('Google Meet', 'Google Meet'),
+            ('Microsoft Teams', 'Microsoft Teams'),
+            ('Discord', 'Discord'),
+            ('Otro', _('Otro'))
+        ])
+        
+        self.fields['fecha'].widget = forms.DateTimeInput(attrs={
+            'type': 'datetime-local',
+            'class': 'form-control',
+        }, format='%Y-%m-%dT%H:%M')
         
         # Deshabilitar localization para fecha (evita problemas de timezone)
         self.fields['fecha'].input_formats = ['%Y-%m-%dT%H:%M']
@@ -245,27 +258,9 @@ class EventoForm(forms.ModelForm):
         # Calcular diferencia en minutos
         diferencia = (fecha_colombia - ahora_colombia).total_seconds() / 60
         
-        # Rechazar fechas en el pasado
-        if diferencia < 0:
+        # Rechazar fechas en el pasado (con margen de 1 minuto para evitar problemas de sincronización)
+        if diferencia < -1:
             raise ValidationError(_('No puedes crear eventos en el pasado. La hora seleccionada ya pasó.'))
-        
-        # Regla: mismo día requiere 2 horas (120 min); otros días 5 minutos
-        if fecha_colombia.date() == ahora_colombia.date():
-            minimo_minutos = 120
-            if diferencia < minimo_minutos:
-                hora_minima = ahora_colombia + timedelta(minutes=minimo_minutos)
-                raise ValidationError(
-                    _('Para eventos hoy, se requieren mínimo 2 horas de anticipación. ')
-                    + _('Debes seleccionar a partir de las {}.').format(hora_minima.strftime('%I:%M %p'))
-                )
-        else:
-            minimo_minutos = 5
-            if diferencia < minimo_minutos:
-                raise ValidationError(_('Se requieren al menos 5 minutos de anticipación.'))
-        
-        # Validar que no sea más de 2 años en el futuro
-        if fecha_colombia > ahora_colombia + timedelta(days=365*2):
-            raise ValidationError(_('La fecha no puede superar 2 años desde hoy.'))
         
         # Convertir a UTC para guardar en la base de datos
         return fecha_colombia.astimezone(pytz.UTC)
@@ -716,10 +711,11 @@ def evento_detalle(request, pk):
     if not evento or not evento.publicado:
         messages.info(request, _("El evento no está disponible."))
         return redirect('home')
-    # Si el evento ya pasó, redirige al home con mensaje (EXCEPTO para admin)
-    if evento.fecha < timezone.now() and not (request.user.is_authenticated and request.user.is_staff):
-        messages.info(request, _("Este evento ya pasó."))
-        return redirect('home')
+    
+    # Determinar si el evento ya pasó
+    evento_pasado = evento.fecha < timezone.now()
+    
+    # Verificar si el usuario está inscrito
     inscrito = False
     if request.user.is_authenticated:
         inscrito = Inscripcion.objects.filter(usuario=request.user, evento=evento).exists()
@@ -754,6 +750,7 @@ def evento_detalle(request, pk):
     return render(request, 'agenda/evento_detalle.html', {
         'evento': evento,
         'inscrito': inscrito,
+        'evento_pasado': evento_pasado,
         'avg_rating': round(float(avg_rating), 2),
         'user_rating': user_rating or 0,
         'comentarios': comentarios,
@@ -768,6 +765,21 @@ def evento_detalle(request, pk):
 @login_required
 def calificar_evento(request, pk):
     evento = get_object_or_404(Evento, pk=pk)
+    
+    # Solo aceptar POST
+    if request.method != 'POST':
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': _('Método no permitido.')}, status=405)
+        return redirect('agenda_evento_detalle', pk=pk)
+    
+    # Verificar que el usuario esté inscrito en el evento (o sea staff)
+    inscrito = Inscripcion.objects.filter(usuario=request.user, evento=evento).exists()
+    if not inscrito and not request.user.is_staff:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': _('Solo los usuarios inscritos pueden calificar el evento.')}, status=403)
+        messages.error(request, _("Solo los usuarios inscritos pueden calificar el evento."))
+        return redirect('agenda_evento_detalle', pk=pk)
+    
     try:
         estrellas = int(request.POST.get('estrellas', '0'))
     except ValueError:
@@ -805,6 +817,21 @@ def calificar_evento(request, pk):
 @login_required
 def comentar_evento(request, pk):
     evento = get_object_or_404(Evento, pk=pk)
+    
+    # Solo aceptar POST
+    if request.method != 'POST':
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': _('Método no permitido.')}, status=405)
+        return redirect('agenda_evento_detalle', pk=pk)
+    
+    # Verificar que el usuario esté inscrito en el evento (o sea staff)
+    inscrito = Inscripcion.objects.filter(usuario=request.user, evento=evento).exists()
+    if not inscrito and not request.user.is_staff:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': _('Solo los usuarios inscritos pueden comentar en el evento.')}, status=403)
+        messages.error(request, _("Solo los usuarios inscritos pueden comentar en el evento."))
+        return redirect('agenda_evento_detalle', pk=pk)
+    
     texto = (request.POST.get('texto') or '').strip()
     if not texto or len(texto) < 2:
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -855,7 +882,14 @@ def comentar_evento(request, pk):
 
 @login_required
 @require_POST
+@login_required
 def like_evento_comentario(request, pk):
+    # Solo aceptar POST
+    if request.method != 'POST':
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': _('Método no permitido.')}, status=405)
+        return redirect('home')
+    
     comentario = get_object_or_404(EventoComentario, pk=pk)
     like, created = EventoLikeComentario.objects.get_or_create(comentario=comentario, usuario=request.user)
     liked = True
@@ -928,6 +962,12 @@ def responder_evento_comentario(request, pk):
 @login_required
 @require_POST
 def editar_evento_comentario(request, pk):
+    # Solo aceptar POST
+    if request.method != 'POST':
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': _('Método no permitido.')}, status=405)
+        return redirect('home')
+    
     comentario = get_object_or_404(EventoComentario, pk=pk, usuario=request.user)
     texto = (request.POST.get('texto') or '').strip()
     if not texto:
@@ -963,6 +1003,12 @@ def editar_evento_comentario(request, pk):
 @login_required
 @require_POST
 def eliminar_evento_comentario(request, pk):
+    # Solo aceptar POST
+    if request.method != 'POST':
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': _('Método no permitido.')}, status=405)
+        return redirect('home')
+    
     comentario = get_object_or_404(EventoComentario, pk=pk)
     if request.user != comentario.usuario and not request.user.is_staff:
         return HttpResponseForbidden()

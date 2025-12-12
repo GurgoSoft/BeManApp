@@ -360,15 +360,21 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="card-body">
         <h5 class="mb-3">{% trans "Calificación" %}</h5>
         {% if user.is_authenticated %}
-        <div id="rating-widget" class="d-flex align-items-center gap-2" data-url="{% url 'agenda_calificar_evento' evento.pk %}" data-avg="{{ avg_rating|floatformat:0 }}" data-current="{{ user_rating }}">
-          {% csrf_token %}
-          <div class="rating-stars" style="font-size: 1.6rem; color: #f5c518; cursor: pointer;">
-            {% for i in "12345" %}
-              <i class="ri-star-line" data-value="{{ forloop.counter }}"></i>
-            {% endfor %}
-          </div>
-          <span id="rating-status" class="small text-muted"></span>
-        </div>
+          {% if inscrito or user.is_staff %}
+            <div id="rating-widget" class="d-flex align-items-center gap-2" data-url="{% url 'agenda_calificar_evento' evento.pk %}" data-avg="{{ avg_rating|floatformat:0 }}" data-current="{{ user_rating }}">
+              {% csrf_token %}
+              <div class="rating-stars" style="font-size: 1.6rem; color: #f5c518; cursor: pointer;">
+                {% for i in "12345" %}
+                  <i class="ri-star-line" data-value="{{ forloop.counter }}"></i>
+                {% endfor %}
+              </div>
+              <span id="rating-status" class="small text-muted"></span>
+            </div>
+          {% else %}
+            <div class="alert alert-info small">
+              <i class="ri-information-line me-1"></i>{% trans "Solo los usuarios inscritos pueden calificar el evento." %}
+            </div>
+          {% endif %}
         {% else %}
           <a class="btn btn-outline-primary" href="{% url 'login' %}?next={% url 'agenda_evento_detalle' evento.pk %}">{% trans "Inicia sesión para calificar" %}</a>
         {% endif %}
@@ -388,14 +394,20 @@ document.addEventListener('DOMContentLoaded', function() {
           <span id="comments-total-badge" class="badge bg-primary-subtle text-primary" data-count="{{ comentarios_total|default:comentarios|length }}">{{ comentarios_total|default:comentarios|length }} {% trans "total" %}</span>
         </div>
         {% if user.is_authenticated %}
-        <form id="comment-form" method="post" action="{% url 'agenda_comentar_evento' evento.pk %}" class="mb-3">
-          {% csrf_token %}
-          <textarea class="form-control" name="texto" rows="3" placeholder="{% trans 'Escribe tu experiencia...' %}"></textarea>
-          <div class="d-flex justify-content-between align-items-center mt-2">
-            <small class="text-muted">{% trans "Sé respetuoso. Los comentarios pasan por moderación." %}</small>
-            <button class="btn btn-primary" type="submit">{% trans "Comentar" %}</button>
-          </div>
-        </form>
+          {% if inscrito or user.is_staff %}
+            <form id="comment-form" method="post" action="{% url 'agenda_comentar_evento' evento.pk %}" class="mb-3">
+              {% csrf_token %}
+              <textarea class="form-control" name="texto" rows="3" placeholder="{% trans 'Escribe tu experiencia...' %}"></textarea>
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <small class="text-muted">{% trans "Sé respetuoso. Los comentarios pasan por moderación." %}</small>
+                <button class="btn btn-primary" type="submit">{% trans "Comentar" %}</button>
+              </div>
+            </form>
+          {% else %}
+            <div class="alert alert-info mb-3">
+              <i class="ri-information-line me-1"></i>{% trans "Solo los usuarios inscritos pueden comentar en el evento." %}
+            </div>
+          {% endif %}
         {% else %}
           <a class="btn btn-outline-primary mb-3" href="{% url 'login' %}?next={% url 'agenda_evento_detalle' evento.pk %}">{% trans "Inicia sesión para comentar" %}</a>
         {% endif %}
@@ -531,16 +543,47 @@ document.addEventListener('DOMContentLoaded', function() {
           // Si toca la misma estrella, descalificar (eliminar rating)
           const newVal = (current === val) ? 0 : val;
           
+          // Validar CSRF token
+          if(!csrftoken){
+            console.error('CSRF token no disponible');
+            showAlert('{% trans "Error de seguridad. Recarga la página." %}', 'danger');
+            isRating = false;
+            return;
+          }
+          
           try{
             const form = new FormData();
             form.append('estrellas', String(newVal));
+            
+            console.log('Enviando calificación:', {url, estrellas: newVal, csrf: csrftoken.substring(0,10)+'...'});
+            
             const resp = await fetch(url, {
               method:'POST', 
               headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken}, 
               credentials:'same-origin', 
               body: form
             });
+            
+            console.log('Respuesta recibida:', resp.status, resp.statusText);
+            
+            // Verificar si la respuesta es exitosa
+            if(!resp.ok){
+              let errorMsg = '{% trans "Error al calificar" %}';
+              try {
+                const errorData = await resp.json();
+                console.error('Error del servidor:', errorData);
+                errorMsg = errorData.error || errorMsg;
+              } catch(jsonError) {
+                // Si no puede parsear JSON, usar mensaje de error HTTP
+                console.error('Error parseando respuesta:', jsonError);
+                errorMsg = `Error ${resp.status}: ${resp.statusText}`;
+              }
+              showAlert(errorMsg, 'danger');
+              return;
+            }
+            
             const data = await resp.json();
+            console.log('Datos recibidos:', data);
             
             if(data.ok){
               current = newVal;
@@ -570,7 +613,8 @@ document.addEventListener('DOMContentLoaded', function() {
               showAlert(data.error || '{% trans "Error al calificar" %}', 'danger');
             }
           } catch(e) { 
-            showAlert('{% trans "Error de red" %}', 'danger');
+            console.error('Error al calificar:', e);
+            showAlert('{% trans "Error de red. Verifica tu conexión." %}', 'danger');
           } finally {
             isRating = false;
           }

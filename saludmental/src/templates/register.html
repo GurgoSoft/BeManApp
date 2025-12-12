@@ -72,13 +72,15 @@
 <i class="ri-mail-line input-icon"></i>
 <input type="email" id="email" name="email" placeholder="{% trans 'usuario@ejemplo.com' %}" required autocomplete="email">
 </div>
+<small style="color: #6c757d; font-size: 0.8rem; display: block; margin-top: 0.25rem;">{% trans "Usarás este correo para iniciar sesión" %}</small>
 </div>
 <div class="field">
 <label for="username">{% trans "Nombre de usuario" %}</label>
 <div class="input-wrapper">
 <i class="ri-at-line input-icon"></i>
-<input type="text" id="username" name="username" required autocomplete="username">
+<input type="text" id="username" name="username" placeholder="{% trans 'usuario123' %}" required autocomplete="username">
 </div>
+<small style="color: #6c757d; font-size: 0.8rem; display: block; margin-top: 0.25rem;">{% trans "Nombre visible para otros usuarios (mínimo 3 caracteres)" %}</small>
 </div>
 <div class="row-fields">
 <div class="field">
@@ -132,6 +134,7 @@ icon.classList.add('ri-eye-line');
 });
 }
 var password1=document.getElementById('password1');
+var password2=document.getElementById('password2');
 var strengthBar=document.getElementById('strengthBar');
 if(password1&&strengthBar){
 password1.addEventListener('input',function(){
@@ -145,7 +148,23 @@ if(/[0-9]/.test(val))strength+=25;
 if(/[^A-Za-z0-9]/.test(val))strength+=25;
 }
 strengthBar.style.width=Math.min(strength,100)+'%';
+checkPasswordMatch();
 });
+}
+// Validación en tiempo real de contraseñas
+function checkPasswordMatch(){
+if(password1&&password2&&password2.value){
+if(password1.value===password2.value){
+password2.style.borderColor='#28a745';
+}else{
+password2.style.borderColor='#dc3545';
+}
+}else if(password2){
+password2.style.borderColor='var(--bm-dorado, #d4af37)';
+}
+}
+if(password2){
+password2.addEventListener('input',checkPasswordMatch);
 }
 });
 </script>

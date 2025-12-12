@@ -204,10 +204,10 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            if (confirmText.value.trim() === 'Eliminar') {
+            if (confirmText.value.trim() === '{% trans "Eliminar" %}') {
                 // Cambiar botón
                 btnEliminar.disabled = true;
-                btnEliminar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminando...';
+                btnEliminar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{% trans "Eliminando..." %}';
                 
                 // Enviar el formulario
                 this.submit();

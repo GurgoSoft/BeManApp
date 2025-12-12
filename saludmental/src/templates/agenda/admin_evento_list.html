@@ -304,7 +304,7 @@
         <div class="modal-content bg-dark border border-danger">
             <div class="modal-header border-danger bg-danger bg-opacity-10">
                 <h5 class="modal-title text-danger">
-                    <i class="ri-alert-line me-2"></i>{% trans "Confirmar eliminación" %}
+                    <i class="ri-alert-line me-2"></i>Confirm deletion
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -313,21 +313,21 @@
                 <div class="modal-body">
                     <div class="alert alert-danger bg-danger bg-opacity-10 border-danger mb-3">
                         <i class="ri-error-warning-line me-2"></i>
-                        <strong>{% trans "¡ATENCIÓN!" %}</strong> {% trans "Esta acción NO se puede deshacer." %}
+                        <strong>WARNING!</strong> This action CANNOT be undone.
                     </div>
                     
-                    <p class="text-white mb-3">{% trans "Vas a eliminar el evento:" %}</p>
+                    <p class="text-white mb-3">You are about to delete the event:</p>
                     <div class="bg-secondary bg-opacity-10 rounded p-3 mb-3">
                         <p class="text-white mb-0"><strong id="eventoNombre"></strong></p>
                     </div>
                     
                     <div class="alert alert-warning bg-warning bg-opacity-10 border-warning text-warning mb-3">
                         <i class="ri-alarm-warning-line me-2"></i>
-                        <strong>{% trans "Para confirmar, escribe:" %} <span class="badge bg-danger">Eliminar</span></strong>
+                        <strong>To confirm, type: <span class="badge bg-danger">Eliminar</span></strong>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="confirmText" class="form-label text-white">{% trans "Escribe la palabra 'Eliminar'" %}</label>
+                        <label for="confirmText" class="form-label text-white">Type the word 'Eliminar'</label>
                         <input type="text" 
                                class="form-control form-control-lg bg-dark text-white border-secondary" 
                                id="confirmText" 
@@ -336,21 +336,21 @@
                                autocomplete="off"
                                required>
                         <div class="invalid-feedback" id="errorMessage">
-                            {% trans "Debes escribir exactamente 'Eliminar'" %}
+                            You must type exactly 'Eliminar'
                         </div>
                     </div>
                     
                     <p class="text-muted small mb-0">
                         <i class="ri-information-line me-1"></i>
-                        {% trans "Se eliminarán todas las inscripciones, comentarios y fotos del evento." %}
+                        All registrations, comments, and photos of the event will be deleted.
                     </p>
                 </div>
                 <div class="modal-footer border-secondary">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        <i class="ri-close-line me-1"></i>{% trans "Cancelar" %}
+                        <i class="ri-close-line me-1"></i>Cancel
                     </button>
                     <button type="submit" class="btn btn-danger btn-lg" id="btnEliminar">
-                        <i class="ri-delete-bin-line me-1"></i>{% trans "ELIMINAR EVENTO" %}
+                        <i class="ri-delete-bin-line me-1"></i>DELETE EVENT
                     </button>
                 </div>
             </form>
@@ -556,10 +556,16 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            if (confirmText.value.trim() === 'Eliminar') {
+            // Normalizar el texto ingresado (trim y comparar exactamente)
+            const inputValue = confirmText.value.trim();
+            const expectedValue = 'Eliminar';
+            
+            console.log('Valor ingresado:', inputValue, 'Esperado:', expectedValue);
+            
+            if (inputValue === expectedValue) {
                 // Cambiar botón
                 btnEliminar.disabled = true;
-                btnEliminar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminando...';
+                btnEliminar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
                 
                 // Enviar el formulario
                 this.submit();

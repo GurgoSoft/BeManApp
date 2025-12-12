@@ -104,9 +104,9 @@ input[type="datetime-local"]:hover {
 <div class="alert alert-info" role="alert">
   <div class="fw-semibold mb-1">{% trans "Tips para publicar" %}</div>
   <ul class="mb-0 ps-3">
-    <li>{% trans "Para hoy: mínimo 2 horas de anticipación; otros días: 5 minutos" %}</li>
     <li>{% trans "Imagen JPG/PNG/WEBP (máx. 3MB)" %}</li>
     <li>{% trans "Precio en COP enteros (0 si es gratuito)" %}</li>
+    <li>{% trans "Selecciona una fecha futura para el evento" %}</li>
   </ul>
 </div>
 
@@ -168,19 +168,6 @@ input[type="datetime-local"]:hover {
         </div>
         <div class="col-md-6">
           <label class="form-label" for="id_fecha">{% trans "Fecha y hora" %}</label>
-          <div class="mb-2">
-            <div class="btn-group btn-group-sm" role="group" aria-label="Atajos de fecha">
-              <button type="button" class="btn btn-outline-primary" id="btn-hoy">
-                <i class="ri-time-line me-1"></i>Hoy
-              </button>
-              <button type="button" class="btn btn-outline-primary" id="btn-manana">
-                <i class="ri-calendar-line me-1"></i>Mañana
-              </button>
-              <button type="button" class="btn btn-outline-primary" id="btn-semana">
-                <i class="ri-calendar-2-line me-1"></i>En 1 semana
-              </button>
-            </div>
-          </div>
           <div class="input-group">
             <span class="input-group-text"><i class="ri-calendar-event-line"></i></span>
             {{ form.fecha|add_class:"form-control" }}
@@ -190,7 +177,7 @@ input[type="datetime-local"]:hover {
           {% endif %}
           <div class="fecha-error-msg text-danger small mt-1" style="display:none;"></div>
           <div class="form-text">
-            <span class="fw-semibold">Hora de Colombia (COT)</span> - <span id="fecha-preview" class="fw-normal"></span>
+            <span id="fecha-preview" class="fw-normal"></span>
           </div>
         </div>
         
@@ -260,7 +247,7 @@ input[type="datetime-local"]:hover {
                style="width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0;">
           <div id="preview-placeholder" class="text-center text-muted" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
             <i class="ri-image-line" style="font-size: 3rem; opacity: 0.3;"></i>
-            <p class="mt-2 small mb-0">La imagen se mostrará aquí</p>
+            <p class="mt-2 small mb-0">{% trans "La imagen se mostrará aquí" %}</p>
           </div>
         </div>
         <label class="form-label" for="id_imagen">{% trans "Subir imagen" %}</label>
@@ -268,7 +255,9 @@ input[type="datetime-local"]:hover {
         {% if form.imagen.errors %}
           <div class="invalid-feedback d-block">{{ form.imagen.errors|join:', ' }}</div>
         {% endif %}
-        <div class="form-text">{% trans "Formatos permitidos: JPG, PNG, WEBP. Máx 3MB." %}</div>
+        <div class="form-text">
+          <i class="ri-information-line me-1"></i>{% trans "Formatos permitidos: JPG, PNG, WEBP. Máximo 3MB." %}
+        </div>
       </div>
     </div>
     <div class="d-grid mt-3">
@@ -299,9 +288,6 @@ let autocomplete; // Variable global para el autocomplete
   const lugarInput = $('#id_lugar');
   const latInput = $('#id_latitud');
   const lngInput = $('#id_longitud');
-  const btnHoy = document.getElementById('btn-hoy');
-  const btnManana = document.getElementById('btn-manana');
-  const btnSemana = document.getElementById('btn-semana');
   const fechaPreview = document.getElementById('fecha-preview');
   let userTouchedSlug = false;
 
@@ -334,84 +320,22 @@ let autocomplete; // Variable global para el autocomplete
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
-  // Botón "Hoy" - establece hora mínima (2 horas adelante)
-  if (btnHoy && fecha) {
-    btnHoy.addEventListener('click', function() {
-      const ahora = new Date();
-      const horaMinima = new Date(ahora.getTime() + (2 * 60 * 60 * 1000)); // +2 horas
-      const fechaFormateada = formatearParaInput(horaMinima);
-      fecha.value = fechaFormateada;
-      if (fechaPreview) {
-        fechaPreview.innerHTML = `<strong>${formatearFechaLegible(fechaFormateada)}</strong>`;
-      }
-      // Ejecutar validación para quitar error si la hora es válida
-      if (typeof validateFecha === 'function') validateFecha();
-      btnHoy.classList.add('active');
-      setTimeout(() => btnHoy.classList.remove('active'), 200);
-      console.log('Fecha establecida para HOY (2h adelante):', fechaFormateada);
-    });
-  }
-
-  // Botón "Mañana" - establece mañana 10:00 AM
-  if (btnManana && fecha) {
-    btnManana.addEventListener('click', function() {
-      const manana = new Date();
-      manana.setDate(manana.getDate() + 1);
-      manana.setHours(10, 0, 0, 0);
-      
-      const fechaFormateada = formatearParaInput(manana);
-      fecha.value = fechaFormateada;
-      
-      if (fechaPreview) {
-        fechaPreview.innerHTML = `<strong>${formatearFechaLegible(fechaFormateada)}</strong>`;
-      }
-      
-      fecha.classList.remove('is-invalid');
-      btnManana.classList.add('active');
-      setTimeout(() => btnManana.classList.remove('active'), 200);
-      
-      console.log('✅ Fecha establecida para MAÑANA 10:00 AM:', fechaFormateada);
-    });
-  }
-
-  // Botón "En 1 semana" - establece próxima semana 10:00 AM
-  if (btnSemana && fecha) {
-    btnSemana.addEventListener('click', function() {
-      const semana = new Date();
-      semana.setDate(semana.getDate() + 7);
-      semana.setHours(10, 0, 0, 0);
-      
-      const fechaFormateada = formatearParaInput(semana);
-      fecha.value = fechaFormateada;
-      
-      if (fechaPreview) {
-        fechaPreview.innerHTML = `<strong>${formatearFechaLegible(fechaFormateada)}</strong>`;
-      }
-      
-      fecha.classList.remove('is-invalid');
-      btnSemana.classList.add('active');
-      setTimeout(() => btnSemana.classList.remove('active'), 200);
-      
-      console.log('✅ Fecha establecida para EN 1 SEMANA 10:00 AM:', fechaFormateada);
-    });
-  }
-
   // Actualizar preview cuando se cambie manualmente la fecha
-  if (fecha && fechaPreview) {
-    fecha.addEventListener('change', function() {
+  function updateFechaPreview() {
+    if (fecha && fechaPreview) {
       if (fecha.value) {
         fechaPreview.innerHTML = `<strong>${formatearFechaLegible(fecha.value)}</strong>`;
       } else {
-        fechaPreview.textContent = 'Si es hoy, mínimo 2 horas de anticipación; otros días, al menos 5 minutos.';
+        fechaPreview.textContent = '{% trans "Selecciona una fecha futura." %}';
       }
-    });
+    }
+  }
+
+  if (fecha && fechaPreview) {
+    fecha.addEventListener('change', updateFechaPreview);
     
     // Mostrar preview inicial si ya hay valor
-    if (fecha.value) {
-      fechaPreview.innerHTML = `<strong>${formatearFechaLegible(fecha.value)}</strong>`;
-    } else {
-      fechaPreview.textContent = 'Si es hoy, mínimo 2 horas de anticipación; otros días, al menos 5 minutos.';
-    }
+    updateFechaPreview();
   }
 
   function toggleEventoFields() {
@@ -449,18 +373,13 @@ let autocomplete; // Variable global para el autocomplete
     if(!val) return;
     const dt = new Date(val);
     const now = new Date();
-    const min = new Date(now.getTime() + 2*60*60*1000); // 2 horas adelante
-    const max = new Date(now.getTime() + 2*365*24*60*60000);
     const errorMsg = document.querySelector('.fecha-error-msg');
-    // Comparar solo año, mes, día, hora y minuto
-    function fechaToKey(f){
-      return f.getFullYear()+"-"+(f.getMonth()+1)+"-"+f.getDate()+" "+f.getHours()+":"+f.getMinutes();
-    }
-    if(fechaToKey(dt) < fechaToKey(min) || dt.getTime() > max.getTime()){
+    
+    // Solo validar que no sea fecha pasada
+    if(dt.getTime() < now.getTime()){
       fecha.classList.add('is-invalid');
       if(errorMsg){
-        const minStr = min.toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit',hour12:true});
-        errorMsg.innerHTML = `Para eventos hoy, se requieren mínimo 2 horas de anticipación.<br>Debes seleccionar a partir de las <strong>${minStr}</strong>.`;
+        errorMsg.textContent = '{% trans "La fecha debe ser futura." %}';
         errorMsg.style.display = 'block';
       }
     } else {
@@ -608,7 +527,7 @@ let autocomplete; // Variable global para el autocomplete
       const maxSize = 3 * 1024 * 1024;
       
       if(!okTypes.includes(f.type)){
-        alert('❌ Formato no válido. Usa JPG, PNG o WEBP.');
+        alert('{% trans "❌ Formato no válido. Usa JPG, PNG o WEBP." %}');
         imageInput.value = '';
         previewImg.classList.add('d-none');
         previewPlaceholder.style.display = 'block';
@@ -616,7 +535,7 @@ let autocomplete; // Variable global para el autocomplete
       }
       
       if(f.size > maxSize){
-        alert('❌ Archivo muy grande (' + (f.size / 1024 / 1024).toFixed(2) + 'MB). Máx: 3MB.');
+        alert('{% trans "❌ Archivo muy grande" %}' + ' (' + (f.size / 1024 / 1024).toFixed(2) + 'MB). {% trans "Máx: 3MB" %}');
         imageInput.value = '';
         previewImg.classList.add('d-none');
         previewPlaceholder.style.display = 'block';

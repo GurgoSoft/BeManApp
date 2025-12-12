@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% trans "Gestión de Fotos" %} - {{ evento.titulo }}{% endblock %}
+{% block extra_css %}
+<link href="{% static 'css/admin-dashboard.css' %}" rel="stylesheet">
+<style>
+.foto-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+.foto-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.foto-card img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+.foto-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    padding: 1rem;
+    color: white;
+}
+.upload-zone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 3rem 2rem;
+    text-align: center;
+    background-color: #f8f9fa;
+    transition: all 0.3s;
+}
+.upload-zone:hover {
+    border-color: var(--bm-dorado);
+    background-color: #fff;
+}
+.upload-zone.dragover {
+    border-color: var(--bm-dorado);
+    background-color: rgba(212, 175, 55, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div>
+            <h1 class="mb-1"><i class="ri-image-line me-2 text-secondary"></i>{% trans "Gestión de Fotos" %}</h1>
+            <p class="text-muted mb-0">{{ evento.titulo }}</p>
+        </div>
+        <div class="d-flex gap-2 w-100 w-md-auto">
+            <a href="{% url 'admin_evento_list' %}" class="btn btn-outline-secondary flex-fill flex-md-grow-0">
+                <i class="ri-arrow-left-line me-1"></i><span class="d-none d-sm-inline">{% trans "Volver a Eventos" %}</span><span class="d-inline d-sm-none">{% trans "Atrás" %}</span>
+            </a>
+            <a href="{% url 'agenda_evento_detalle' evento.pk %}" class="btn btn-outline-primary flex-fill flex-md-grow-0">
+                <i class="ri-eye-line me-1"></i>{% trans "Ver Evento" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3"><i class="ri-upload-cloud-line me-2"></i>{% trans "Subir Nuevas Fotos" %}</h5>
+            <form method="post" enctype="multipart/form-data" id="uploadForm">
+                {% csrf_token %}
+                <div class="upload-zone" id="uploadZone">
+                    <i class="ri-image-add-line" style="font-size: 3rem; color: var(--bm-dorado);"></i>
+                    <p class="mt-3 mb-2"><strong>{% trans "Arrastra imágenes aquí o haz clic para seleccionar" %}</strong></p>
+                    <p class="text-muted small mb-0">{% trans "Puedes subir múltiples imágenes a la vez (JPEG, PNG, WEBP)" %}</p>
+                    <input type="file" name="fotos" id="fotosInput" multiple accept="image/jpeg,image/png,image/webp" class="d-none">
+                </div>
+                <div id="previewContainer" class="row g-3 mt-3 d-none"></div>
+                <button type="submit" class="btn mt-3" style="background-color: var(--bm-dorado); color: var(--bm-azul-900); border: none;" id="uploadBtn" disabled>
+                    <i class="ri-upload-line me-2"></i>{% trans "Subir Fotos Seleccionadas" %}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Photos Gallery -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">
+                <i class="ri-gallery-line me-2"></i>{% trans "Galería de Fotos" %}
+                <span class="badge bg-secondary ms-2">{{ fotos.count }}</span>
+            </h5>
+            
+            {% if fotos %}
+            <div class="row g-4">
+                {% for foto in fotos %}
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                    <div class="foto-card">
+                        <img src="{{ foto.imagen.url }}" alt="Foto {{ foto.pk }}" loading="lazy">
+                        <div class="foto-info">
+                            <small class="d-block">
+                                <i class="ri-user-line me-1"></i>
+                                {% if foto.subido_por %}
+                                    {{ foto.subido_por.get_full_name|default:foto.subido_por.username }}
+                                {% else %}
+                                    {% trans "Anónimo" %}
+                                {% endif %}
+                            </small>
+                            <small class="d-block text-white-50">
+                                <i class="ri-calendar-line me-1"></i>
+                                {{ foto.fecha_subida|date:"d/m/Y H:i" }}
+                            </small>
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 delete-foto-btn" 
+                                data-foto-id="{{ foto.pk }}"
+                                data-delete-url="{% url 'eliminar_evento_foto' foto.pk %}"
+                                title="{% trans 'Eliminar foto' %}">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="ri-image-2-line" style="font-size: 4rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">{% trans "No hay fotos subidas para este evento todavía" %}</p>
+                <p class="text-muted small">{% trans "Utiliza el formulario de arriba para subir la primera foto" %}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Confirmar Eliminación" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>{% trans "¿Estás seguro de que deseas eliminar esta foto? Esta acción no se puede deshacer." %}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">{% trans "Eliminar" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Upload zone interactions
+const uploadZone = document.getElementById('uploadZone');
+const fotosInput = document.getElementById('fotosInput');
+const uploadBtn = document.getElementById('uploadBtn');
+const previewContainer = document.getElementById('previewContainer');
+
+// Click to upload
+uploadZone.addEventListener('click', () => {
+    fotosInput.click();
+});
+
+// Drag and drop
+uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    fotosInput.files = e.dataTransfer.files;
+    updatePreview();
+});
+
+// File input change
+fotosInput.addEventListener('change', updatePreview);
+
+// Update preview
+function updatePreview() {
+    const files = fotosInput.files;
+    if (files.length === 0) {
+        previewContainer.classList.add('d-none');
+        uploadBtn.disabled = true;
+        return;
+    }
+    
+    previewContainer.classList.remove('d-none');
+    previewContainer.innerHTML = '';
+    uploadBtn.disabled = false;
+    
+    Array.from(files).forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const col = document.createElement('div');
+            col.className = 'col-6 col-md-4 col-lg-3';
+            col.innerHTML = `
+                <div class="position-relative">
+                    <img src="${e.target.result}" class="img-fluid rounded" style="height: 150px; width: 100%; object-fit: cover;">
+                    <span class="badge bg-dark position-absolute bottom-0 start-0 m-2">${file.name}</span>
+                </div>
+            `;
+            previewContainer.appendChild(col);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// Delete foto function
+let deleteModal;
+let currentDeleteUrl = '';
+
+// Attach event listeners to delete buttons
+document.querySelectorAll('.delete-foto-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        currentDeleteUrl = this.dataset.deleteUrl;
+        if (!deleteModal) {
+            deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        }
+        deleteModal.show();
+    });
+});
+
+// Handle delete confirmation
+document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+    try {
+        const response = await fetch(currentDeleteUrl, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            deleteModal.hide();
+            location.reload();
+        } else {
+            alert(data.message || '{% trans "Error al eliminar la foto" %}');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('{% trans "Error al eliminar la foto" %}');
+    }
+});
+
+// Get CSRF token from cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

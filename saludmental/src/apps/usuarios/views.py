@@ -7,6 +7,7 @@ from django.db.models import Count
 from django.urls import reverse
 from django import forms
 from django.http import JsonResponse
+from django.utils.translation import gettext as _
 
 from apps.foro.models import Historia, Like
 from .email_utils import enviar_email_bienvenida
@@ -46,10 +47,10 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            messages.success(request, f"¡Bienvenid@ a Iterum, {user.username}!")
+            messages.success(request, _(f"¡Bienvenid@ a Iterum, {user.username}!"))
             return redirect("home")
         else:
-            messages.error(request, "Usuario o contraseña incorrectos")
+            messages.error(request, _("Usuario o contraseña incorrectos"))
 
     return render(request, "login.html")
 
@@ -64,35 +65,35 @@ def register_view(request):
 
         # Validaciones básicas
         if not username or not email or not password1:
-            messages.error(request, "Todos los campos obligatorios deben estar llenos")
+            messages.error(request, _("Todos los campos obligatorios deben estar llenos"))
             return redirect("register")
         
         if len(username) < 3:
-            messages.error(request, "El nombre de usuario debe tener al menos 3 caracteres")
+            messages.error(request, _("El nombre de usuario debe tener al menos 3 caracteres"))
             return redirect("register")
         
         if not email or '@' not in email:
-            messages.error(request, "Debes ingresar un correo electrónico válido")
+            messages.error(request, _("Debes ingresar un correo electrónico válido"))
             return redirect("register")
         
         if len(password1) < 6:
-            messages.error(request, "La contraseña debe tener al menos 6 caracteres")
+            messages.error(request, _("La contraseña debe tener al menos 6 caracteres"))
             return redirect("register")
 
         if password1 != password2:
-            messages.error(request, "Las contraseñas no coinciden")
+            messages.error(request, _("Las contraseñas no coinciden"))
             return redirect("register")
 
-        # Validar unicidad (case insensitive para email)
+        # Validar unicidad (case insensitive para email y username)
         if User.objects.filter(username__iexact=username).exists():
-            messages.error(request, "Este nombre de usuario ya está registrado")
+            messages.error(request, _("Este nombre de usuario ya está registrado"))
             return redirect("register")
 
         if User.objects.filter(email__iexact=email).exists():
-            messages.error(request, "Este correo electrónico ya está registrado")
+            messages.error(request, _("Este correo electrónico ya está registrado"))
             return redirect("register")
 
-        # Crear usuario
+        # Crear usuario con email como campo de autenticación principal
         try:
             user = User.objects.create_user(
                 username=username,
@@ -111,19 +112,26 @@ def register_view(request):
                 # Log del error pero no interrumpir el registro
                 print(f"Error enviando email de bienvenida: {e}")
 
-            login(request, user)  # Loguea al usuario automáticamente
-            messages.success(request, "Cuenta creada con éxito, ¡Bienvenid@!")
-            return redirect("home")  # Redirige al home
+            # Autenticar con email (que es el USERNAME_FIELD)
+            user_authenticated = authenticate(request, username=email, password=password1)
+            if user_authenticated:
+                login(request, user_authenticated)
+                messages.success(request, _(f"¡Bienvenid@ a Iterum, {user.username}!"))
+                return redirect("home")
+            else:
+                # Si falla la autenticación automática, al menos el usuario se creó
+                messages.success(request, _("Cuenta creada con éxito. Por favor inicia sesión."))
+                return redirect("login")
         
         except Exception as e:
-            messages.error(request, f"Error al crear la cuenta: {str(e)}")
+            messages.error(request, _(f"Error al crear la cuenta: {str(e)}"))
             return redirect("register")
 
     return render(request, "register.html")
 
 def logout_view(request):
     logout(request)
-    messages.info(request, "Sesión cerrada correctamente")
+    messages.info(request, _("Sesión cerrada correctamente"))
     return redirect("home")
 
 @login_required
@@ -133,7 +141,7 @@ def editar_perfil(request):
         form = PerfilForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
-            messages.success(request, "Perfil actualizado.")
+            messages.success(request, _("Perfil actualizado."))
             return redirect('editar_perfil')
     else:
         form = PerfilForm(instance=user)
@@ -150,6 +158,14 @@ def marcar_notificacion_leida(request, pk):
     notif.leida = True
     notif.save()
     return redirect(notif.url or '/')
+
+@login_required
+def marcar_todas_leidas(request):
+    """Marca todas las notificaciones del usuario como leídas"""
+    if request.method == 'POST':
+        request.user.notificaciones.filter(leida=False).update(leida=True)
+        messages.success(request, _('Todas las notificaciones han sido marcadas como leídas.'))
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 # APIs para sidebar móvil
 @login_required
